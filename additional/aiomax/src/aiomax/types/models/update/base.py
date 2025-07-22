@@ -1,8 +1,9 @@
 from ...base import MaxObject
 from pydantic import Field
+from abc import ABC
 
 
-class UpdateBase(MaxObject):
+class UpdateBase(MaxObject, ABC):
     update_type: str
     timestamp: int = Field(
         ...,

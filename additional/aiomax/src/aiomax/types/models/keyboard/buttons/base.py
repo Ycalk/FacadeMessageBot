@@ -1,8 +1,9 @@
 from ....base import MaxObject
 from pydantic import Field, field_validator
+from abc import ABC
 
 
-class KeyboardButtonBase(MaxObject):
+class KeyboardButtonBase(MaxObject, ABC):
     type: str
     text: str = Field(..., description="Button text")
 

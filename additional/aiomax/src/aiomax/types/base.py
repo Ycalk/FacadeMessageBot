@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, model_validator
 from typing import Dict, Any
+from abc import ABC
 
 
 class UnsetType:
@@ -14,7 +15,7 @@ UNSET = UnsetType()
 UNSET_TYPE = UnsetType
 
 
-class MaxObject(BaseModel):
+class MaxObject(BaseModel, ABC):
     model_config = ConfigDict(
         extra="allow",
         arbitrary_types_allowed=True,
