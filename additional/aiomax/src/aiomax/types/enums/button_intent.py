@@ -13,3 +13,6 @@ class ButtonIntent(StrEnum):
     DEFAULT = "default"
     POSITIVE = "positive"
     NEGATIVE = "negative"
+    
+    def __str__(self) -> str:
+        return self.value

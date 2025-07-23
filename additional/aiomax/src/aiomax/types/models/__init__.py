@@ -10,6 +10,7 @@ from .message import Message
 from .new_message_body import NewMessageBody
 from .new_message_link import NewMessageLink
 from .recipient import Recipient
+from .upload import UploadUrl, InputFile
 from .attachment import (
     ContactAttachmentPayload,
     FileAttachmentPayload,
@@ -87,6 +88,8 @@ __all__ = [
     "NewMessageBody",
     "NewMessageLink",
     "Recipient",
+    "UploadUrl",
+    "InputFile",
     "ContactAttachmentPayload",
     "FileAttachmentPayload",
     "MediaAttachmentPayload",

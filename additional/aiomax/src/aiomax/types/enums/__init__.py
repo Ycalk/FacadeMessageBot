@@ -4,7 +4,7 @@ from .markup_element_type import MarkupElementType
 from .button_intent import ButtonIntent
 from .message_link_type import MessageLinkType
 from .text_format import TextFormat
-
+from .upload_type import UploadType
 
 __all__ = [
     "ChatType",
@@ -13,4 +13,5 @@ __all__ = [
     "ButtonIntent",
     "MessageLinkType",
     "TextFormat",
+    "UploadType",
 ]

@@ -11,3 +11,6 @@ class MessageLinkType(StrEnum):
 
     FORWARD = "forward"
     REPLY = "reply"
+    
+    def __str__(self) -> str:
+        return self.value

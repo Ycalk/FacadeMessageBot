@@ -1,7 +1,6 @@
 from typing import Any, Dict, Generic, TypeVar
 from pydantic import BaseModel
 from ..types.base import MaxObject
-from typing import get_args, get_origin, Annotated
 from abc import ABC, abstractmethod
 
 ResponseT = TypeVar("ResponseT", bound=MaxObject)
@@ -71,12 +70,10 @@ class MaxMethod(BaseModel, Generic[ResponseT], ABC):
         Returns:
             Dict[str, Any]: Dictionary of parameters filtered by the marker.
         """
-        return {
-            field_name: getattr(self, field_name)
-            for field_name, model_field in self.__class__.model_fields.items()
-            if model_field.annotation
-            and get_origin(model_field.annotation) is Annotated
-            and any(
-                isinstance(meta, marker) for meta in get_args(model_field.annotation)
-            )
-        }
+        result: Dict[str, Any] = {}
+
+        for field_name, model_field in self.__class__.model_fields.items():
+            if model_field.metadata:
+                if any(isinstance(meta, marker) for meta in model_field.metadata):
+                    result[field_name] = getattr(self, field_name)
+        return result

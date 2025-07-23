@@ -1,4 +1,4 @@
-from .models import GetMe, GetChatList, GetChat, GetUpdates
+from .models import GetMe, GetChatList, GetChat, GetUpdates, GetUploadUrl, UploadType
 
 
 __all__ = [
@@ -6,4 +6,6 @@ __all__ = [
     "GetChatList",
     "GetChat",
     "GetUpdates",
+    "GetUploadUrl",
+    "UploadType",
 ]

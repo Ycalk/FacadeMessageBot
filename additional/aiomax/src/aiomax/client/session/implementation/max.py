@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from ..base import BaseSession, DEFAULT_TIMEOUT
+from aiomax.types import InputFile, UploadType
 from ....methods.base import MaxMethod, ResponseT
 from ....exceptions import (
     DecodeModelError,
@@ -53,12 +54,6 @@ class MaxSession(BaseSession):
             case _:
                 raise APIError(status, type(method), content, "Unknown error")
 
-    def get_url(self, method: MaxMethod[ResponseT]) -> str:
-        """
-        Constructs the URL for the given method.
-        """
-        return f"{self.base_url}{method.endpoint}"
-
     async def request(self, method: MaxMethod[ResponseT], bot: "Bot") -> ResponseT:
         """Create and send a request to the Max API.
 
@@ -74,8 +69,27 @@ class MaxSession(BaseSession):
         async with AsyncClient(base_url=self.base_url, timeout=self._timeout) as client:
             response = await client.request(
                 method=method.method,
-                url=self.get_url(method),
+                url=method.endpoint,
                 params=parameters,
                 json=method.body,
             )
             return self._validate_response(method, response.status_code, response.text)
+
+    async def upload(self, file: InputFile, url: str, bot: "Bot") -> str | None:
+        async with AsyncClient(timeout=self._timeout) as client:
+            response = await client.post(
+                url, files={"data": (file.filename, file.data, file.upload_type.value)}
+            )
+        if response.status_code != 200:
+            raise APIError(
+                response.status_code,
+                type(MaxSession.upload),
+                response.text,
+                "Failed to upload",
+            )
+        if file.upload_type in (UploadType.VIDEO, UploadType.AUDIO):
+            return None
+        try:
+            return next(iter(response.json()["photos"].values()))["token"]
+        except Exception as e:
+            raise DecodeModelError(e, type(MaxSession.upload), response.text)

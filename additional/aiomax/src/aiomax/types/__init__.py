@@ -12,6 +12,8 @@ from .models import (
     NewMessageBody,
     NewMessageLink,
     Recipient,
+    UploadUrl,
+    InputFile,
     ContactAttachmentPayload,
     FileAttachmentPayload,
     MediaAttachmentPayload,
@@ -76,6 +78,7 @@ from .enums import (
     ButtonIntent,
     MessageLinkType,
     TextFormat,
+    UploadType
 )
 
 __all__ = [
@@ -85,6 +88,8 @@ __all__ = [
     "ButtonIntent",
     "MessageLinkType",
     "TextFormat",
+    "UploadType",
+    "InputFile",
     "BotCommand",
     "Callback",
     "Chat",
@@ -98,6 +103,7 @@ __all__ = [
     "NewMessageBody",
     "NewMessageLink",
     "Recipient",
+    "UploadUrl",
     "ContactAttachmentPayload",
     "FileAttachmentPayload",
     "MediaAttachmentPayload",
