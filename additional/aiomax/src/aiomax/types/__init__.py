@@ -78,7 +78,7 @@ from .enums import (
     ButtonIntent,
     MessageLinkType,
     TextFormat,
-    UploadType
+    UploadType,
 )
 
 __all__ = [

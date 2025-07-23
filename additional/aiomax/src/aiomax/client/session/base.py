@@ -51,4 +51,3 @@ class BaseSession(ABC):
             ResponseT: The response from the method.
         """
         return await self.request(method, bot)
-    
