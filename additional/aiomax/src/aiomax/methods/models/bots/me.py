@@ -1,5 +1,5 @@
-from ..base import MaxMethod
-from ...types import BotInfo
+from ...base import MaxMethod
+from ....types import BotInfo
 
 
 class Me(MaxMethod[BotInfo]):

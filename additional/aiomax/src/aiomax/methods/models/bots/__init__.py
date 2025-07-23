@@ -1,4 +1,4 @@
-from .bots import Me
+from .me import Me
 
 
 __all__ = [
