@@ -10,8 +10,8 @@ class Chat(MaxObject):
     chat_id: int = Field(..., description="Unique identifier for the chat")
     type: ChatType = Field(..., description="Type of the chat")
     status: ChatStatus = Field(..., description="Status of the chat")
-    title: str | None = Field(..., description="Title of the chat, if applicable")
-    icon: Image | None = Field(..., description="Icon of the chat, if applicable")
+    title: str | None = Field(None, description="Title of the chat, if applicable")
+    icon: Image | None = Field(None, description="Icon of the chat, if applicable")
     last_event_time: int = Field(
         ..., description="Timestamp of the last event in the chat"
     )
@@ -28,7 +28,7 @@ class Chat(MaxObject):
     is_public: bool = Field(..., description="Indicates if the chat is public")
     link: str | None = Field(None, description="Link to the chat, if applicable")
     description: str | None = Field(
-        ..., description="Description of the chat, if applicable"
+        None, description="Description of the chat, if applicable"
     )
     dialog_with_user: UserWithPhoto | None = Field(
         None, description="Dialog with user, if chat type is dialog"

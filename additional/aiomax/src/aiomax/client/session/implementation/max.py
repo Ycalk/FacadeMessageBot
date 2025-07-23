@@ -32,27 +32,26 @@ class MaxSession(BaseSession):
     def _validate_response(
         self, method: MaxMethod[ResponseT], status: int, content: str
     ) -> ResponseT:
-        try:
-            response = method.load_response(content)
-        except Exception as e:
-            raise DecodeModelError(e, type(method), content)
         match status:
             case 200:
-                return response
+                try:
+                    return method.load_response(content)
+                except Exception as e:
+                    raise DecodeModelError(e, type(method), content)
             case 400:
-                raise BadRequestError(type(method))
+                raise BadRequestError(type(method), content)
             case 401:
-                raise UnauthorizedError(type(method))
+                raise UnauthorizedError(type(method), content)
             case 404:
-                raise NotFoundError(type(method))
+                raise NotFoundError(type(method), content)
             case 405:
-                raise MethodNotAllowedError(type(method))
+                raise MethodNotAllowedError(type(method), content)
             case 429:
-                raise TooManyRequestsError(type(method))
+                raise TooManyRequestsError(type(method), content)
             case 503:
-                raise ServiceUnavailableError(type(method))
+                raise ServiceUnavailableError(type(method), content)
             case _:
-                raise APIError(status, "Unknown error", type(method))
+                raise APIError(status, type(method), content, "Unknown error")
 
     def get_url(self, method: MaxMethod[ResponseT]) -> str:
         """
@@ -61,6 +60,15 @@ class MaxSession(BaseSession):
         return f"{self.base_url}{method.endpoint}"
 
     async def request(self, method: MaxMethod[ResponseT], bot: "Bot") -> ResponseT:
+        """Create and send a request to the Max API.
+
+        Args:
+            method (MaxMethod[ResponseT]): The method to be executed.
+            bot (Bot): The bot instance containing the token.
+
+        Returns:
+            ResponseT: The response from the Max API, validated and parsed.
+        """
         parameters = method.query_parameters.copy()
         parameters["access_token"] = bot.token
         async with AsyncClient(base_url=self.base_url, timeout=self._timeout) as client:

@@ -4,7 +4,7 @@ from pydantic import Field, field_validator
 
 class ShareAttachmentPayload(MaxObject):
     url: str | None = Field(None, description="The URL of the shared attachment")
-    token: str | None = Field(..., description="The token of the shared attachment")
+    token: str | None = Field(None, description="The token of the shared attachment")
 
     @field_validator("url")
     def validate_url(cls, value: str | None) -> str | None:

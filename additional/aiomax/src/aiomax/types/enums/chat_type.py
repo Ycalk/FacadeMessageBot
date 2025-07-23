@@ -9,6 +9,7 @@ class ChatType(StrEnum):
     """
 
     CHAT = "chat"
+    DIALOG = "dialog"
 
     def __str__(self) -> str:
         return self.value

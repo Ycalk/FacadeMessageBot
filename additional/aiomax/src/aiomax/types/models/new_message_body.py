@@ -5,9 +5,9 @@ from ..enums import TextFormat
 
 
 class NewMessageBody(MaxObject):
-    text: str | None = Field(..., description="The text of the message")
+    text: str | None = Field(None, description="The text of the message")
     attachments: list[AttachmentRequest] | None = Field(
-        ..., description="List of attachments in the message"
+        None, description="List of attachments in the message"
     )
     notify: bool = Field(
         True, description="Whether to notify the user about the message"

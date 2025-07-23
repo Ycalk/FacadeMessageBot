@@ -10,6 +10,7 @@ from .message_removed_update import MessageRemovedUpdate
 from .user_added_update import UserAddedUpdate
 from .user_removed_update import UserRemovedUpdate
 
+from ...base import MaxObject
 from typing import Annotated, Union
 from pydantic import Field
 
@@ -27,11 +28,24 @@ Update = Annotated[
         UserAddedUpdate,
         UserRemovedUpdate,
     ],
-    Field(discriminator="type", description="Type of attachment"),
+    Field(discriminator="update_type", description="Type of attachment"),
 ]
+
+
+class UpdateList(MaxObject):
+    updates: list[Update] = Field(
+        ...,
+        description="List of updates",
+    )
+    marker: int | None = Field(
+        None,
+        description="Marker for the next batch of updates. If not provided, it means there are no more updates.",
+    )
+
 
 __all__ = [
     "Update",
+    "UpdateList",
     "BotAddedUpdate",
     "BotRemovedUpdate",
     "BotStartedUpdate",

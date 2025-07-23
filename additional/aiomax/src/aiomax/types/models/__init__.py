@@ -58,6 +58,7 @@ from .keyboard import (
 )
 from .update import (
     Update,
+    UpdateList,
     BotAddedUpdate,
     BotRemovedUpdate,
     BotStartedUpdate,
@@ -127,6 +128,7 @@ __all__ = [
     "RequestContactButton",
     "RequestGeoLocationButton",
     "Update",
+    "UpdateList",
     "BotAddedUpdate",
     "BotRemovedUpdate",
     "BotStartedUpdate",
