@@ -1,0 +1,73 @@
+from typing import TYPE_CHECKING
+from ..base import BaseSession, DEFAULT_TIMEOUT
+from ....methods.base import MaxMethod, ResponseT
+from ....exceptions import (
+    DecodeModelError,
+    BadRequestError,
+    MethodNotAllowedError,
+    NotFoundError,
+    UnauthorizedError,
+    ServiceUnavailableError,
+    TooManyRequestsError,
+    APIError,
+)
+from typing import Final
+from httpx import AsyncClient
+
+if TYPE_CHECKING:
+    from aiomax.client.bot import Bot
+
+BASE_URL: Final[str] = "https://botapi.max.ru"
+
+
+class MaxSession(BaseSession):
+    """MaxSession is a session implementation for interacting with the Max API."""
+
+    def __init__(
+        self, timeout: float = DEFAULT_TIMEOUT, base_url: str = BASE_URL
+    ) -> None:
+        super().__init__(timeout)
+        self.base_url = base_url
+
+    def _validate_response(
+        self, method: MaxMethod[ResponseT], status: int, content: str
+    ) -> ResponseT:
+        try:
+            response = method.load_response(content)
+        except Exception as e:
+            raise DecodeModelError(e, type(method), content)
+        match status:
+            case 200:
+                return response
+            case 400:
+                raise BadRequestError(type(method))
+            case 401:
+                raise UnauthorizedError(type(method))
+            case 404:
+                raise NotFoundError(type(method))
+            case 405:
+                raise MethodNotAllowedError(type(method))
+            case 429:
+                raise TooManyRequestsError(type(method))
+            case 503:
+                raise ServiceUnavailableError(type(method))
+            case _:
+                raise APIError(status, "Unknown error", type(method))
+
+    def get_url(self, method: MaxMethod[ResponseT]) -> str:
+        """
+        Constructs the URL for the given method.
+        """
+        return f"{self.base_url}{method.endpoint}"
+
+    async def request(self, method: MaxMethod[ResponseT], bot: "Bot") -> ResponseT:
+        parameters = method.query_parameters.copy()
+        parameters["access_token"] = bot.token
+        async with AsyncClient(base_url=self.base_url, timeout=self._timeout) as client:
+            response = await client.request(
+                method=method.method,
+                url=self.get_url(method),
+                params=parameters,
+                json=method.body,
+            )
+            return self._validate_response(method, response.status_code, response.text)
