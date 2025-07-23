@@ -2,7 +2,7 @@ from ...base import MaxMethod
 from ....types import BotInfo
 
 
-class Me(MaxMethod[BotInfo]):
+class GetMe(MaxMethod[BotInfo]):
     @property
     def endpoint(self) -> str:
         return "/me"

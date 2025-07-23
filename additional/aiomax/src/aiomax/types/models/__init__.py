@@ -1,6 +1,6 @@
 from .bot_command import BotCommand
 from .callback import Callback
-from .chat import Chat
+from .chat import Chat, ChatList
 from .image import Image
 from .linked_message import LinkedMessage
 from .markup_element import MarkupElement
@@ -76,6 +76,7 @@ __all__ = [
     "BotCommand",
     "Callback",
     "Chat",
+    "ChatList",
     "Image",
     "LinkedMessage",
     "MarkupElement",

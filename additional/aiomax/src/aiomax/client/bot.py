@@ -1,7 +1,7 @@
 from .session import MaxSession
 from typing import TYPE_CHECKING, Optional
 from ..methods.base import MaxMethod, ResponseT
-from ..methods import Me
+from ..methods import GetMe
 from ..types import BotInfo
 
 if TYPE_CHECKING:
@@ -34,4 +34,4 @@ class Bot:
         Returns:
             BotInfo: Information about the bot.
         """
-        return await self(Me())
+        return await self(GetMe())

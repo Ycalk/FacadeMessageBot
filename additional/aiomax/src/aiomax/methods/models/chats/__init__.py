@@ -1,7 +1,6 @@
-from .bots import GetMe
 from .chats import GetChatList
 
+
 __all__ = [
-    "GetMe",
     "GetChatList",
 ]

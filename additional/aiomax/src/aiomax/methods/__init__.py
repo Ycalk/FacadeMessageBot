@@ -1,6 +1,7 @@
-from .models import Me
+from .models import GetMe, GetChatList
 
 
 __all__ = [
-    "Me",
+    "GetMe",
+    "GetChatList",
 ]

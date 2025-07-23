@@ -1,6 +1,6 @@
-from .me import Me
+from .me import GetMe
 
 
 __all__ = [
-    "Me",
+    "GetMe",
 ]

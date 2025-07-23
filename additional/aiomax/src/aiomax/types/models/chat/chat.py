@@ -1,9 +1,9 @@
-from ..base import MaxObject
+from ...base import MaxObject
 from pydantic import Field
-from ..enums import ChatType, ChatStatus
-from .image import Image
-from .user.user_with_photo import UserWithPhoto
-from .message import Message
+from ...enums import ChatType, ChatStatus
+from ..image import Image
+from ..user.user_with_photo import UserWithPhoto
+from ..message import Message
 
 
 class Chat(MaxObject):

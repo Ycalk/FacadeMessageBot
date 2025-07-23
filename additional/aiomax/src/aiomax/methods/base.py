@@ -1,9 +1,10 @@
 from typing import Any, Dict, Generic, Optional, TypeVar
 from pydantic import BaseModel
+from ..types.base import MaxObject
 from typing import get_args, get_origin, Annotated
 from abc import ABC, abstractmethod
 
-ResponseT = TypeVar("ResponseT", bound=BaseModel)
+ResponseT = TypeVar("ResponseT", bound=MaxObject)
 
 
 class QueryParameterMarker:
@@ -19,8 +20,6 @@ class BodyParameterMarker:
 
 
 class MaxMethod(BaseModel, Generic[ResponseT], ABC):
-    access_token: Optional[str] = None
-
     @property
     @abstractmethod
     def endpoint(self) -> str:
