@@ -41,6 +41,26 @@ class MaxMethod(BaseModel, Generic[ResponseT], ABC):
         """
         ...
 
+    @abstractmethod
+    def load_response(self, json_data: str | bytes | bytearray) -> ResponseT:
+        """Decode the response from the API.
+
+        Args:
+            response (Any): The raw response from the API.
+
+        Returns:
+            ResponseT: Decoded response as a Pydantic model.
+        """
+        ...
+
+    @property
+    def query_parameters(self) -> Dict[str, str]:
+        return self._get_parameter(QueryParameterMarker)
+
+    @property
+    def body(self) -> Dict[str, Any]:
+        return self._get_parameter(BodyParameterMarker)
+
     def _get_parameter(
         self, marker: type[QueryParameterMarker | BodyParameterMarker]
     ) -> Dict[str, Any]:
@@ -61,11 +81,3 @@ class MaxMethod(BaseModel, Generic[ResponseT], ABC):
                 isinstance(meta, marker) for meta in get_args(model_field.annotation)
             )
         }
-
-    @property
-    def query_parameters(self) -> Dict[str, str]:
-        return self._get_parameter(QueryParameterMarker)
-
-    @property
-    def body_parameters(self) -> Dict[str, Any]:
-        return self._get_parameter(BodyParameterMarker)

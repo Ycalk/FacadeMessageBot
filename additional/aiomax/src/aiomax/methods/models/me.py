@@ -10,3 +10,6 @@ class Me(MaxMethod[BotInfo]):
     @property
     def method(self) -> str:
         return "GET"
+
+    def load_response(self, json_data: str | bytes | bytearray) -> BotInfo:
+        return BotInfo.model_validate_json(json_data)
