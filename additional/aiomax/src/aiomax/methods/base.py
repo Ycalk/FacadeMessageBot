@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, Dict, Generic, TypeVar
 from pydantic import BaseModel
 from ..types.base import MaxObject
 from typing import get_args, get_origin, Annotated
