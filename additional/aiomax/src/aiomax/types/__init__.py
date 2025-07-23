@@ -65,6 +65,7 @@ from .models import (
     UserRemovedUpdate,
     User,
     UserWithPhoto,
+    BotInfo,
 )
 from .enums import (
     ChatType,
@@ -148,4 +149,5 @@ __all__ = [
     "UserRemovedUpdate",
     "User",
     "UserWithPhoto",
+    "BotInfo",
 ]

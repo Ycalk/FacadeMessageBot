@@ -70,7 +70,7 @@ from .update import (
     UserAddedUpdate,
     UserRemovedUpdate,
 )
-from .user import User, UserWithPhoto
+from .user import User, UserWithPhoto, BotInfo
 
 __all__ = [
     "BotCommand",
@@ -139,4 +139,5 @@ __all__ = [
     "UserRemovedUpdate",
     "User",
     "UserWithPhoto",
+    "BotInfo",
 ]
