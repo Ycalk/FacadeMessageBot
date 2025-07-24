@@ -28,7 +28,7 @@ Update = Annotated[
         MessageRemovedUpdate,
         UserAddedUpdate,
         UserRemovedUpdate,
-        BotStoppedUpdate
+        BotStoppedUpdate,
     ],
     Field(discriminator="update_type", description="Type of attachment"),
 ]

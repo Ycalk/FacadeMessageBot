@@ -3,8 +3,8 @@ from aiomax.types.attachment_requests import InlineKeyboardAttachmentRequest
 from aiomax.types.keyboard import CallbackButton, Keyboard
 from aiomax.types import TextFormat, ButtonIntent
 from aiomax.methods import SendMessage
-from ..bot import bot
-from ..utils import Texts
+from ..bot import bot, state_machine
+from ..utils import Texts, UserState
 
 
 async def start_handler(update: BotStartedUpdate):
@@ -40,3 +40,5 @@ async def start_handler(update: BotStartedUpdate):
             attachments=attachments,
         )
     )
+
+    state_machine.set_state(update.user.user_id, UserState.CONFIRM_START)

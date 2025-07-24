@@ -20,10 +20,7 @@ class BodyParameterMarker:
 
 class MaxMethod(BaseModel, Generic[ResponseT], ABC):
     model_config = ConfigDict(
-        extra="allow",
-        arbitrary_types_allowed=True,
-        frozen=True,
-        use_enum_values=True
+        extra="allow", arbitrary_types_allowed=True, frozen=True, use_enum_values=True
     )
 
     @property

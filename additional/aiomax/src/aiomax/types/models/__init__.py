@@ -72,7 +72,7 @@ from .update import (
     MessageRemovedUpdate,
     UserAddedUpdate,
     UserRemovedUpdate,
-    BotStoppedUpdate
+    BotStoppedUpdate,
 )
 from .user import User, UserWithPhoto, BotInfo
 

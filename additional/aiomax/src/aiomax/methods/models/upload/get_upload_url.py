@@ -11,6 +11,7 @@ class GetUploadUrl(MaxMethod[UploadUrl]):
     Args:
         type (UploadType): The type of upload. This is a required field.
     """
+
     type: Annotated[
         UploadType,
         QueryParameterMarker(),

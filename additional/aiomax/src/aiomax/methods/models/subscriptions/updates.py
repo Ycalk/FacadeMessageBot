@@ -11,6 +11,7 @@ class GetUpdates(MaxMethod[UpdateList]):
         limit (int): Maximum number of updates to return. Default is 100, minimum is 1, maximum is 1000.
         timeout (int): Timeout in seconds for the request. Default is 30, minimum is 0, maximum is 90.
     """
+
     limit: Annotated[
         int, QueryParameterMarker(), Field(ge=1, le=1000, description="Maximum updates")
     ] = 100
