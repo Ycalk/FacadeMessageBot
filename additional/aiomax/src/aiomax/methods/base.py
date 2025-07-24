@@ -1,6 +1,6 @@
 from typing import Any, Dict, Generic, TypeVar
 from pydantic import BaseModel
-from ..types.base import MaxObject
+from ..types.base import MaxObject, UNSET
 from abc import ABC, abstractmethod
 
 ResponseT = TypeVar("ResponseT", bound=MaxObject)
@@ -75,5 +75,7 @@ class MaxMethod(BaseModel, Generic[ResponseT], ABC):
         for field_name, model_field in self.__class__.model_fields.items():
             if model_field.metadata:
                 if any(isinstance(meta, marker) for meta in model_field.metadata):
-                    result[field_name] = getattr(self, field_name)
+                    value = getattr(self, field_name, UNSET)
+                    if value is not UNSET:
+                        result[field_name] = value
         return result

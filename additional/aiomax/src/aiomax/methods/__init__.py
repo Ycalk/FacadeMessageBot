@@ -1,4 +1,15 @@
-from .models import GetMe, GetChatList, GetChat, GetUpdates, GetUploadUrl, UploadType
+from .models import (
+    GetMe,
+    GetChatList,
+    GetChat,
+    GetUpdates,
+    GetUploadUrl,
+    UploadType,
+    DeleteMessage,
+    EditMessage,
+    AnswerCallback,
+    SendMessage,
+)
 
 
 __all__ = [
@@ -8,4 +19,8 @@ __all__ = [
     "GetUpdates",
     "GetUploadUrl",
     "UploadType",
+    "DeleteMessage",
+    "EditMessage",
+    "AnswerCallback",
+    "SendMessage",
 ]

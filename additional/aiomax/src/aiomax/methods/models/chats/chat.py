@@ -4,6 +4,12 @@ from pydantic import Field
 
 
 class GetChat(MaxMethod[Chat]):
+    """Get information about a chat.
+
+    Args:
+        chat_id (int): Unique identifier for the target chat.
+    """
+
     chat_id: int = Field(
         ...,
         description="Unique identifier for the target chat or username of the target channel",

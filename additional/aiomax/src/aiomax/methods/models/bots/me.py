@@ -3,6 +3,8 @@ from ....types import BotInfo
 
 
 class GetMe(MaxMethod[BotInfo]):
+    """Get information about the bot."""
+    
     @property
     def endpoint(self) -> str:
         return "/me"

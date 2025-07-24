@@ -6,6 +6,11 @@ from typing import Annotated
 
 
 class GetUploadUrl(MaxMethod[UploadUrl]):
+    """Get an upload URL for uploading files.
+
+    Args:
+        type (UploadType): The type of upload. This is a required field.
+    """
     type: Annotated[
         UploadType,
         QueryParameterMarker(),

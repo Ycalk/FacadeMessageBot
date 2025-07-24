@@ -5,6 +5,13 @@ from typing import Annotated
 
 
 class GetChatList(MaxMethod[ChatList]):
+    """Get a list of chats.
+
+    Args:
+        count (int): Maximum number of chats to return. Default is 50, minimum is 1, maximum is 100.
+        marker (str | None): Marker for pagination, used to get the next set of chats. Use None for the first page.
+    """
+
     count: Annotated[
         int,
         QueryParameterMarker(),
