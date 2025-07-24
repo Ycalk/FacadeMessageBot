@@ -72,6 +72,7 @@ from .update import (
     MessageRemovedUpdate,
     UserAddedUpdate,
     UserRemovedUpdate,
+    BotStoppedUpdate
 )
 from .user import User, UserWithPhoto, BotInfo
 
@@ -145,6 +146,7 @@ __all__ = [
     "MessageRemovedUpdate",
     "UserAddedUpdate",
     "UserRemovedUpdate",
+    "BotStoppedUpdate",
     "User",
     "UserWithPhoto",
     "BotInfo",

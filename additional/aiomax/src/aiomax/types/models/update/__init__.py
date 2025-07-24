@@ -9,6 +9,7 @@ from .message_edited_update import MessageEditedUpdate
 from .message_removed_update import MessageRemovedUpdate
 from .user_added_update import UserAddedUpdate
 from .user_removed_update import UserRemovedUpdate
+from .bot_stopped_update import BotStoppedUpdate
 
 from ...base import MaxObject
 from typing import Annotated, Union
@@ -27,6 +28,7 @@ Update = Annotated[
         MessageRemovedUpdate,
         UserAddedUpdate,
         UserRemovedUpdate,
+        BotStoppedUpdate
     ],
     Field(discriminator="update_type", description="Type of attachment"),
 ]
@@ -57,4 +59,5 @@ __all__ = [
     "MessageRemovedUpdate",
     "UserAddedUpdate",
     "UserRemovedUpdate",
+    "BotStoppedUpdate",
 ]

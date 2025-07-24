@@ -23,6 +23,7 @@ class MaxMethod(BaseModel, Generic[ResponseT], ABC):
         extra="allow",
         arbitrary_types_allowed=True,
         frozen=True,
+        use_enum_values=True
     )
 
     @property
@@ -65,6 +66,15 @@ class MaxMethod(BaseModel, Generic[ResponseT], ABC):
     def body(self) -> Dict[str, Any]:
         return self._get_parameter(BodyParameterMarker)
 
+    def model_dump(self, *args, **kwargs) -> Dict[str, Any]:
+        """Dump the model to a dictionary, excluding unset and None values.
+
+        Returns:
+            Dict[str, Any]: Dictionary representation of the model.
+        """
+        original = super().model_dump(*args, **kwargs)
+        return {k: v for k, v in original.items() if v is not UNSET}
+
     def _get_parameter(
         self, marker: type[QueryParameterMarker | BodyParameterMarker]
     ) -> Dict[str, Any]:
@@ -78,10 +88,12 @@ class MaxMethod(BaseModel, Generic[ResponseT], ABC):
         """
         result: Dict[str, Any] = {}
 
+        dumped_model = self.model_dump()
+
         for field_name, model_field in self.__class__.model_fields.items():
             if model_field.metadata:
                 if any(isinstance(meta, marker) for meta in model_field.metadata):
                     value = getattr(self, field_name, UNSET)
                     if value is not UNSET:
-                        result[field_name] = value
+                        result[field_name] = dumped_model.get(field_name, value)
         return result

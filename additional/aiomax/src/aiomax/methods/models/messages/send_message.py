@@ -2,7 +2,8 @@ from ...base import MaxMethod, QueryParameterMarker, BodyParameterMarker
 from ....types import Message, AttachmentRequest, NewMessageLink, TextFormat
 from ....types.base import UNSET, UNSET_TYPE
 from pydantic import Field
-from typing import Annotated
+import json
+from typing import Annotated, Sequence
 
 
 class SendMessage(MaxMethod[Message]):
@@ -54,7 +55,7 @@ class SendMessage(MaxMethod[Message]):
     ]
 
     attachments: Annotated[
-        list[AttachmentRequest] | None,
+        Sequence[AttachmentRequest] | None,
         BodyParameterMarker(),
         Field(
             ...,
@@ -98,4 +99,5 @@ class SendMessage(MaxMethod[Message]):
         return "POST"
 
     def load_response(self, json_data: str | bytes | bytearray) -> Message:
-        return Message.model_validate_json(json_data)
+        result = json.loads(json_data)
+        return Message.model_validate(result["message"])
