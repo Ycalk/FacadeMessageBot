@@ -55,8 +55,8 @@ async def test_register_handler_with_filter(bot: Bot):
 
     # Check if the handler is registered
     assert "bot_started" in bot._handlers
-    assert bot._handlers["bot_started"].handler == handler
-    assert bot._handlers["bot_started"].filter == filter_func
+    assert bot._handlers["bot_started"][0].handler == handler
+    assert bot._handlers["bot_started"][0].filter == filter_func
 
 
 @pytest.mark.asyncio
@@ -67,4 +67,4 @@ async def test_register_handler_without_filter(bot: Bot):
     bot.register_handler(handler)
 
     assert "bot_started" in bot._handlers
-    assert bot._handlers["bot_started"].handler == handler
+    assert bot._handlers["bot_started"][0].handler == handler

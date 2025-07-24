@@ -1,11 +1,13 @@
 from inspect import get_annotations
 import logging
+import asyncio
+import traceback
 from .session import MaxSession
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, AsyncGenerator
 from ..methods.base import MaxMethod, ResponseT
 from ..logging import get_logger
-from ..methods import GetMe, GetUploadUrl
-from ..types import InputFile, BotInfo
+from ..methods import GetMe, GetUploadUrl, GetUpdates
+from ..types import InputFile, BotInfo, Update
 from typing import Callable, TypeVar, Generic, Awaitable, get_type_hints, get_args
 from dataclasses import dataclass
 
@@ -41,7 +43,8 @@ class Bot:
         """
         self._session = session or MaxSession()
         self._token = token
-        self._handlers: dict[str, _Handler] = {}
+        self._stop_event = asyncio.Event()
+        self._handlers: dict[str, list[_Handler]] = {}
         self.logger = get_logger("aiomax.bot", level=logging_level)
 
     @property
@@ -110,4 +113,70 @@ class Bot:
             raise ValueError("Update type incorrect")
 
         key = get_args(update_annotations["update_type"])[0]
-        self._handlers[key] = _Handler[UpdateT](handler, filter)
+        if key not in self._handlers:
+            self._handlers[key] = []
+        self._handlers[key].append(_Handler[UpdateT](handler, filter))
+
+    async def _listen_for_updates(
+        self, timeout: int, sleep_on_exception: int
+    ) -> AsyncGenerator[Update, None]:
+        while True:
+            try:
+                updates = await self(GetUpdates(timeout=timeout))
+            except Exception as _:
+                self.logger.error(
+                    f"Error while fetching updates\n:{traceback.format_exc()}"
+                )
+                self.logger.info(f"Retrying in {sleep_on_exception} seconds...")
+                await asyncio.sleep(sleep_on_exception)
+                continue
+            for update in updates.updates:
+                self.logger.debug(f"Received update: {update}")
+                yield update
+
+    async def start_polling(
+        self, timeout: int = 20, sleep_on_exception: int = 1
+    ) -> None:
+        """Starts polling for updates from the Max API.
+
+        Args:
+            timeout (int, optional): The timeout for each request in seconds. Defaults to 20.
+            sleep_on_exception (int, optional): The time to wait before retrying after an exception in seconds. Defaults to 1.
+        """
+        self.logger.info(f"Starting polling for updates with timeout {timeout}s")
+        me = await self.me()
+        self.logger.info(f"Bot: {me}")
+        self.logger.info("Registered handlers:\n")
+        for key, handlers in self._handlers.items():
+            self.logger.info(f"  {key}:")
+            for handler in handlers:
+                self.logger.info(
+                    f"    - {handler.handler.__name__} (filter: {handler.filter.__name__})"
+                )
+        async for update in self._listen_for_updates(timeout, sleep_on_exception):
+            update_type = update.update_type
+            self.logger.debug(f"Processing update of type: {update_type}")
+
+            if update_type not in self._handlers:
+                self.logger.warning(
+                    f"No handlers registered for update type: {update_type}"
+                )
+                continue
+
+            handled = False
+            for handler in self._handlers[update_type]:
+                if handler.filter(update):
+                    try:
+                        self.logger.debug(
+                            f"Calling handler: {handler.handler.__name__}"
+                        )
+                        await handler.handler(update)
+                        handled = True
+                    except Exception as _:
+                        self.logger.error(
+                            f"Error while processing update with handler {handler.handler.__name__}\n:{traceback.format_exc()}"
+                        )
+            if not handled:
+                self.logger.warning(
+                    f"No handler processed update of type: {update_type} with content: {update}"
+                )

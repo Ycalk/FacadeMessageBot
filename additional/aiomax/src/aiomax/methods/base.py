@@ -1,5 +1,5 @@
 from typing import Any, Dict, Generic, TypeVar
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from ..types.base import MaxObject, UNSET
 from abc import ABC, abstractmethod
 
@@ -19,6 +19,12 @@ class BodyParameterMarker:
 
 
 class MaxMethod(BaseModel, Generic[ResponseT], ABC):
+    model_config = ConfigDict(
+        extra="allow",
+        arbitrary_types_allowed=True,
+        frozen=True,
+    )
+
     @property
     @abstractmethod
     def endpoint(self) -> str:
