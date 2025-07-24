@@ -8,12 +8,21 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "aiomax @ file:///home/ycalk/projects/facade-message-bot/additional/aiomax",
+    "python-dotenv (>=1.1.1,<2.0.0)"
 ]
 
 [tool.poetry]
 packages = [{include = "bot", from = "src"}]
 
 
+[tool.poetry.dependencies]
+aiomax = {develop = true}
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.scripts]
+bot = "bot:run"
