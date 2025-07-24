@@ -92,4 +92,4 @@ class MaxSession(BaseSession):
         try:
             return next(iter(response.json()["photos"].values()))["token"]
         except Exception as e:
-            raise DecodeModelError(e, type(MaxSession.upload), response.text)
+            raise DecodeModelError(e, type(MaxSession.upload), response.text) from e
