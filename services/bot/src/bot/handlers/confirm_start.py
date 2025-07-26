@@ -24,6 +24,7 @@ async def confirm_start(update: MessageCallbackUpdate):
             text_format=TextFormat.MARKDOWN,
         )
     )
+    
     state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
 
 

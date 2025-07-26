@@ -8,22 +8,6 @@ from ..utils import Texts, UserState
 
 
 async def start_handler(update: BotStartedUpdate):
-    attachments = [
-        InlineKeyboardAttachmentRequest(
-            payload=Keyboard(
-                buttons=[
-                    [
-                        CallbackButton(
-                            text="Подтвердить",
-                            payload="confirm_start",
-                            intent=ButtonIntent.POSITIVE,
-                        )
-                    ]
-                ]
-            )
-        )
-    ]
-
     await bot(
         SendMessage(
             user_id=update.user.user_id,
@@ -37,7 +21,21 @@ async def start_handler(update: BotStartedUpdate):
             user_id=update.user.user_id,
             text=Texts.Messages.ask_confirm,
             text_format=TextFormat.MARKDOWN,
-            attachments=attachments,
+            attachments=[
+                InlineKeyboardAttachmentRequest(
+                    payload=Keyboard(
+                        buttons=[
+                            [
+                                CallbackButton(
+                                    text="Подтвердить",
+                                    payload="confirm_start",
+                                    intent=ButtonIntent.POSITIVE,
+                                )
+                            ]
+                        ]
+                    )
+                )
+            ],
         )
     )
 
