@@ -7,8 +7,8 @@ from aiomax.types import (
     ButtonIntent,
 )
 from aiomax.methods import SendMessage
-from ..utils import Texts, UserState
-from ..bot import bot, state_machine
+from ...utils import Texts, UserState
+from ...bot import bot, state_machine
 
 
 async def get_name(update: MessageCreatedUpdate):

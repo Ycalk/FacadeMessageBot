@@ -8,8 +8,8 @@ from aiomax.types import (
     LocationAttachment,
 )
 from aiomax.methods import SendMessage
-from ..utils import Texts, UserState
-from ..bot import bot, state_machine, city_extractor
+from ...utils import Texts, UserState
+from ...bot import bot, state_machine, city_extractor
 
 
 async def get_city(update: MessageCreatedUpdate):

@@ -9,8 +9,8 @@ from aiomax.types import (
     ButtonIntent
 )
 from aiomax.methods import AnswerCallback
-from ..utils import Texts, UserState
-from ..bot import bot, state_machine
+from ...utils import Texts, UserState
+from ...bot import bot, state_machine
 
 
 async def add_name_solution(update: MessageCallbackUpdate):

@@ -1,8 +1,8 @@
 from aiomax.types.updates import MessageCallbackUpdate
 from aiomax.types import NewMessageBody, TextFormat
 from aiomax.methods import AnswerCallback, SendMessage
-from ..utils import Texts, UserState
-from ..bot import bot, state_machine
+from ...utils import Texts, UserState
+from ...bot import bot, state_machine
 
 
 async def confirm_start(update: MessageCallbackUpdate):
