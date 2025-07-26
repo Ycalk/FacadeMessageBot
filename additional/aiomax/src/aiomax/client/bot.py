@@ -163,7 +163,6 @@ class Bot:
                 )
                 continue
 
-            handled = False
             for handler in self._handlers[update_type]:
                 if handler.filter(update):
                     try:
@@ -171,12 +170,12 @@ class Bot:
                             f"Calling handler: {handler.handler.__name__}"
                         )
                         await handler.handler(update)
-                        handled = True
+                        break
                     except Exception as _:
                         self.logger.error(
                             f"Error while processing update with handler {handler.handler.__name__}\n:{traceback.format_exc()}"
                         )
-            if not handled:
+            else:
                 self.logger.warning(
                     f"No handler processed update of type: {update_type} with content: {update}"
                 )
