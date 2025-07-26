@@ -1,4 +1,5 @@
 from enum import StrEnum
+from dataclasses import dataclass
 
 
 class UserState(StrEnum):
@@ -10,6 +11,9 @@ class UserState(StrEnum):
     GET_CITY = "get_city"
     CONFIRM_CITY = "confirm_city"
     GET_PHOTO_SOLUTION = "get_photo_solution"
+    SET_DATE = "set_date"
+    SET_TIME = "set_time"
+    CONFIRM_FIELDS = "confirm_fields"
 
 
 class StateMachine:
@@ -24,6 +28,10 @@ class StateMachine:
 
     def get_context(self, user_id: int, key: str) -> str | None:
         return self._context.get(user_id, {}).get(key)
+
+    def clear_context(self, user_id: int) -> None:
+        if user_id in self._context:
+            self._context[user_id] = {}
 
     def set_state(self, user_id: int, state: UserState) -> None:
         self._states[user_id] = state

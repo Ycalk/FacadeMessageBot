@@ -14,7 +14,7 @@ from ...bot import bot, state_machine
 async def get_name(update: MessageCreatedUpdate):
     if not update.message or not update.message.sender:
         return
-    
+
     if not update.message.body.text or len(update.message.body.text) < 1:
         await bot(
             SendMessage(
@@ -24,7 +24,7 @@ async def get_name(update: MessageCreatedUpdate):
             )
         )
         return
-    
+
     await bot(
         SendMessage(
             user_id=update.message.sender.user_id,
@@ -52,7 +52,7 @@ async def get_name(update: MessageCreatedUpdate):
             ],
         )
     )
-    
+
     state_machine.set_state(update.message.sender.user_id, UserState.ADD_CITY_SOLUTION)
     state_machine.update_context(
         update.message.sender.user_id, name=update.message.body.text

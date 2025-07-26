@@ -6,7 +6,7 @@ from aiomax.types import (
     MessageButton,
     NewMessageBody,
     CallbackButton,
-    ButtonIntent
+    ButtonIntent,
 )
 from aiomax.methods import AnswerCallback
 from ...utils import Texts, UserState

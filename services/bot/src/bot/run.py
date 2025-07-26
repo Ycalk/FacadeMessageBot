@@ -13,6 +13,16 @@ from .handlers import (
     add_city_solution_filter,
     get_city,
     get_city_filter,
+    confirm_city,
+    confirm_city_filter,
+    get_photo_solution,
+    get_photo_solution_filter,
+    set_date,
+    set_date_filter,
+    set_time,
+    set_time_filter,
+    confirm_fields,
+    confirm_fields_filter,
 )
 from .bot import bot
 
@@ -25,6 +35,11 @@ async def main():
     bot.register_handler(get_name, filter=get_name_filter)
     bot.register_handler(add_city_solution, filter=add_city_solution_filter)
     bot.register_handler(get_city, filter=get_city_filter)
+    bot.register_handler(confirm_city, filter=confirm_city_filter)
+    bot.register_handler(get_photo_solution, filter=get_photo_solution_filter)
+    bot.register_handler(set_date, filter=set_date_filter)
+    bot.register_handler(set_time, filter=set_time_filter)
+    bot.register_handler(confirm_fields, filter=confirm_fields_filter)
     await bot.start_polling()
 
 

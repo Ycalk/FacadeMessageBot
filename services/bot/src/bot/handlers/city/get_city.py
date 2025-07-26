@@ -92,7 +92,7 @@ async def get_city(update: MessageCreatedUpdate):
                                     ),
                                     CallbackButton(
                                         text="Ввести заново",
-                                        payload="write_city",
+                                        payload="try_again_city",
                                         intent=ButtonIntent.DEFAULT,
                                     ),
                                 ]

@@ -55,7 +55,7 @@ async def get_message(update: MessageCreatedUpdate):
             ],
         )
     )
-    
+
     state_machine.set_state(update.message.sender.user_id, UserState.ADD_NAME_SOLUTION)
     state_machine.update_context(
         update.message.sender.user_id, message=update.message.body.text
