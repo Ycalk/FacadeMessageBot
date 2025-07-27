@@ -1,10 +1,10 @@
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["Test services"]
-    types:
-      - completed
+  push:
+    branches:
+      - bot-builder
+
 
 jobs:
   copy:
