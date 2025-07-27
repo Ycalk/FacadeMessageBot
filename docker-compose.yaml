@@ -1,0 +1,8 @@
+services:
+  bot:
+    build:
+      context: services/bot
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - secrets.env
