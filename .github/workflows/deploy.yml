@@ -4,8 +4,8 @@ name: Deploy
 on:
   workflow_run:
     workflows: [Tests]
-    types: [completed]
-    branches: [bot-builder]
+    types:
+      - completed
 
 jobs:
   copy:

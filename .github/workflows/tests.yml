@@ -3,7 +3,7 @@ name: Tests
 on:
   push:
     branches:
-      - bot-builder
+      - main
 
 
 jobs:
