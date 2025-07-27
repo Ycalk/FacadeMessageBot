@@ -28,7 +28,7 @@ async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
                         buttons=[
                             [
                                 CallbackButton(
-                                    text="Подтвердить",
+                                    text=Texts.Buttons.confirm_start,
                                     payload="confirm_start",
                                     intent=ButtonIntent.POSITIVE,
                                 )

@@ -17,7 +17,7 @@ class UserState(StrEnum):
 
 class StateMachine:
     def __init__(self):
-        self._states: dict[int, UserState] = {}
+        self._states: dict[int, UserState | None] = {}
         self._context: dict[int, dict[str, str]] = {}
 
     def update_context(self, user_id: int, **data) -> None:
@@ -37,6 +37,14 @@ class StateMachine:
 
     def get_state(self, user_id: int) -> UserState | None:
         return self._states.get(user_id)
+
+    def clear_state(self, user_id: int) -> None:
+        if user_id in self._states:
+            self._states[user_id] = None
+
+    def clear(self) -> None:
+        self._states.clear()
+        self._context.clear()
 
     def __str__(self) -> str:
         result = ["Current User States:"]

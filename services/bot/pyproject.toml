@@ -17,7 +17,10 @@ dependencies = [
 packages = [{include = "bot", from = "src"}]
 
 
-[tool.poetry.dependencies]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-asyncio = "^1.1.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
