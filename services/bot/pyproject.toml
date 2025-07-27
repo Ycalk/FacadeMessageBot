@@ -1,0 +1,31 @@
+[project]
+name = "bot"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "ycalk",email = "alosev752@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "fuzzywuzzy[speedup] (>=0.18.0,<0.19.0)",
+    "async-max-api (>=0.1.0,<0.2.0)"
+]
+
+[tool.poetry]
+packages = [{include = "bot", from = "src"}]
+
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-asyncio = "^1.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.scripts]
+bot = "bot:run"

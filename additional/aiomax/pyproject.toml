@@ -1,0 +1,26 @@
+[project]
+name = "async-max-api"
+version = "0.1.0"
+description = "Async Python client for Max API"
+authors = [
+    {name = "ycalk",email = "alosev752@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic (>=2.11.7,<3.0.0)",
+    "httpx (>=0.28.1,<0.29.0)"
+]
+
+[tool.poetry]
+packages = [{include = "aiomax", from = "src"}]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.0"
+pytest-asyncio = "1.1.0"
+python-dotenv = "1.1.1"
+pillow = "11.3.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
