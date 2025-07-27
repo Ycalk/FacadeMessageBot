@@ -1,4 +1,4 @@
-from .implementation import MaxSession
+from .implementation import MaxSession, TestSession, TestResponse
 
 
-__all__ = ["MaxSession"]
+__all__ = ["MaxSession", "TestSession", "TestResponse"]

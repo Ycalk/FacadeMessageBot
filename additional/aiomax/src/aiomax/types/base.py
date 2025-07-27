@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, model_validator
-from typing import Dict, Any
+from typing import Dict, Any, Final
 from abc import ABC
 
 
@@ -11,7 +11,7 @@ class UnsetType:
         return False
 
 
-UNSET = UnsetType()
+UNSET: Final[UnsetType] = UnsetType()
 UNSET_TYPE = UnsetType
 
 

@@ -1,9 +1,18 @@
 import pytest
 import io
+import asyncio
 from aiomax import Bot
-from aiomax.types import ChatList, UpdateList, BotInfo, InputFile, BotStartedUpdate
+from aiomax.types import (
+    ChatList,
+    UpdateList,
+    BotInfo,
+    InputFile,
+    BotStartedUpdate,
+    User,
+)
+from aiomax.client import TestSession
 from aiomax.types.enums import UploadType
-from aiomax.methods import GetChatList, GetUpdates
+from aiomax.methods import GetChatList, GetUpdates, GetMe
 from PIL import Image
 
 
@@ -68,3 +77,46 @@ async def test_register_handler_without_filter(bot: Bot):
 
     assert "bot_started" in bot._handlers
     assert bot._handlers["bot_started"][0].handler == handler
+
+
+# Test session
+@pytest.mark.asyncio
+async def test_bot_get_me_in_test_session(bot_with_test_session: Bot):
+    """Test the bot's get_me method in a test session."""
+    response = await bot_with_test_session.me()
+    assert response is not None
+    assert isinstance(response, BotInfo)
+    assert response.user_id == 0
+
+
+@pytest.mark.asyncio
+async def test_bot_update_reaction_in_test_session(
+    bot_with_test_session: Bot, test_session: TestSession
+):
+    update = BotStartedUpdate(
+        timestamp=1,
+        chat_id=0,
+        user=User(
+            user_id=1,
+            first_name="Test User",
+            last_name=None,
+            username=None,
+            is_bot=False,
+            last_activity_time=1,
+        ),
+        payload=None,
+        user_locale="locale",
+    )
+
+    event = asyncio.Event()
+
+    async def handler(update: BotStartedUpdate) -> None:
+        await bot_with_test_session.me()
+        event.set()
+
+    bot_with_test_session.register_handler(handler)
+    await test_session.add_update(update)
+
+    await asyncio.wait_for(event.wait(), timeout=2)
+    assert len(test_session.requests) == 1
+    assert isinstance(test_session.requests[0], GetMe)

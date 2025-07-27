@@ -1,7 +1,7 @@
 [project]
-name = "aiomax"
+name = "aiomax-python"
 version = "0.1.0"
-description = ""
+description = "Async Python client for Max API"
 authors = [
     {name = "ycalk",email = "alosev752@gmail.com"}
 ]
