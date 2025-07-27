@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -43,6 +43,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --no-cache-dir poetry==2.1.3
           poetry install --with dev
+          export BOT_TOKEN=${{ secrets.BOT_TOKEN }}
           
       - name: Run tests
         run: |
