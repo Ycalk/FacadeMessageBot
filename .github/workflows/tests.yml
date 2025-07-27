@@ -24,11 +24,11 @@ jobs:
         run: |
           docker compose build
   
-  test-aiomax:
+  test-bot:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: services/bot
+        working-directory: ./services/bot
     steps:
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip pip install --no-cache-dir poetry==2.1.3
+          pip install --no-cache-dir poetry==2.1.3
           poetry install --with dev
           
       - name: Run tests
