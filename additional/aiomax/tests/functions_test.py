@@ -54,7 +54,7 @@ async def test_upload_image_file(bot: Bot):
 
 @pytest.mark.asyncio
 async def test_register_handler_with_filter(bot: Bot):
-    async def handler(update: BotStartedUpdate) -> None:
+    async def handler(update: BotStartedUpdate, bot: Bot) -> None:
         pass
 
     def filter_func(update: BotStartedUpdate) -> bool:
@@ -70,7 +70,7 @@ async def test_register_handler_with_filter(bot: Bot):
 
 @pytest.mark.asyncio
 async def test_register_handler_without_filter(bot: Bot):
-    async def handler(update: BotStartedUpdate) -> None:
+    async def handler(update: BotStartedUpdate, bot: Bot) -> None:
         pass
 
     bot.register_handler(handler)
@@ -110,8 +110,8 @@ async def test_bot_update_reaction_in_test_session(
 
     event = asyncio.Event()
 
-    async def handler(update: BotStartedUpdate) -> None:
-        await bot_with_test_session.me()
+    async def handler(update: BotStartedUpdate, bot: Bot) -> None:
+        await bot.me()
         event.set()
 
     bot_with_test_session.register_handler(handler)

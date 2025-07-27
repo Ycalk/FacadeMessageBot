@@ -6,9 +6,10 @@ from aiomax.types import (
     CallbackButton,
     ButtonIntent,
 )
+from aiomax import Bot
 from aiomax.methods import SendMessage
 from ...utils import Texts, UserState
-from ...bot import bot, state_machine
+from ...bot import state_machine
 from datetime import datetime
 
 
@@ -28,7 +29,7 @@ def get_time(time_str: str) -> str | None:
     return None
 
 
-async def set_time(update: MessageCreatedUpdate):
+async def set_time(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
     time = get_time(update.message.body.text) if update.message.body.text else None

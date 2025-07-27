@@ -10,10 +10,11 @@ from aiomax.types import (
 )
 from aiomax.methods import AnswerCallback
 from ...utils import Texts, UserState
-from ...bot import bot, state_machine
+from ...bot import state_machine
+from aiomax import Bot
 
 
-async def add_name_solution(update: MessageCallbackUpdate):
+async def add_name_solution(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "add_name":
         await bot(
             AnswerCallback(

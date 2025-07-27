@@ -8,7 +8,15 @@ from ..methods.base import MaxMethod, ResponseT
 from ..logging import get_logger
 from ..methods import GetMe, GetUploadUrl, GetUpdates
 from ..types import InputFile, BotInfo, Update
-from typing import Callable, TypeVar, Generic, Awaitable, get_type_hints, get_args
+from typing import (
+    Callable,
+    TypeVar,
+    Generic,
+    Awaitable,
+    get_type_hints,
+    get_args,
+    Union,
+)
 from dataclasses import dataclass
 
 if TYPE_CHECKING:
@@ -21,8 +29,8 @@ UpdateT = TypeVar("UpdateT", bound=UpdateBase)
 
 @dataclass(frozen=True)
 class _Handler(Generic[UpdateT]):
-    handler: Callable[[UpdateT], Awaitable[None]]
-    filter: Callable[[UpdateT], bool]
+    handler: Callable[[UpdateT, "Bot"], Awaitable[None]]
+    filter: Union[Callable[[UpdateT], bool], Callable[[UpdateT], Awaitable[bool]]]
 
 
 class Bot:
@@ -97,8 +105,10 @@ class Bot:
 
     def register_handler(
         self,
-        handler: Callable[[UpdateT], Awaitable[None]],
-        filter: Callable[[UpdateT], bool] = lambda _: True,
+        handler: Callable[[UpdateT, "Bot"], Awaitable[None]],
+        filter: Union[
+            Callable[[UpdateT], bool], Callable[[UpdateT], Awaitable[bool]]
+        ] = lambda _: True,
     ) -> None:
         handler_type_hints = get_type_hints(handler)
         update_type = handler_type_hints.get("update") or next(
@@ -164,12 +174,15 @@ class Bot:
                 continue
 
             for handler in self._handlers[update_type]:
-                if handler.filter(update):
+                filter_result = handler.filter(update)
+                if asyncio.iscoroutine(filter_result):
+                    filter_result = await filter_result
+                if filter_result:
                     try:
                         self.logger.debug(
                             f"Calling handler: {handler.handler.__name__}"
                         )
-                        await handler.handler(update)
+                        await handler.handler(update, self)
                         break
                     except Exception as _:
                         self.logger.error(

@@ -1,4 +1,5 @@
 from aiomax.types.updates import MessageCallbackUpdate
+from aiomax import Bot
 from aiomax.types import (
     NewMessageBody,
     TextFormat,
@@ -10,10 +11,10 @@ from aiomax.types import (
 )
 from aiomax.methods import AnswerCallback
 from ...utils import Texts, UserState
-from ...bot import bot, state_machine
+from ...bot import state_machine
 
 
-async def confirm_city(update: MessageCallbackUpdate):
+async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "confirm_city":
         await bot(
             AnswerCallback(

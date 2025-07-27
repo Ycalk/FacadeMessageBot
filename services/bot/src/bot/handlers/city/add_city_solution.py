@@ -1,4 +1,5 @@
 from aiomax.types.updates import MessageCallbackUpdate
+from aiomax import Bot
 from aiomax.types import (
     InlineKeyboardAttachmentRequest,
     TextFormat,
@@ -10,10 +11,10 @@ from aiomax.types import (
 )
 from aiomax.methods import AnswerCallback
 from ...utils import Texts, UserState
-from ...bot import bot, state_machine
+from ...bot import state_machine
 
 
-async def add_city_solution(update: MessageCallbackUpdate):
+async def add_city_solution(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "add_city":
         await bot(
             AnswerCallback(

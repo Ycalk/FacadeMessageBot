@@ -7,12 +7,13 @@ from aiomax.types import (
     ButtonIntent,
     LocationAttachment,
 )
+from aiomax import Bot
 from aiomax.methods import SendMessage
 from ...utils import Texts, UserState
-from ...bot import bot, state_machine, city_extractor
+from ...bot import state_machine, city_extractor
 
 
-async def get_city(update: MessageCreatedUpdate):
+async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
     if (

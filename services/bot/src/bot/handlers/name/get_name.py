@@ -6,12 +6,13 @@ from aiomax.types import (
     CallbackButton,
     ButtonIntent,
 )
+from aiomax import Bot
 from aiomax.methods import SendMessage
 from ...utils import Texts, UserState
-from ...bot import bot, state_machine
+from ...bot import state_machine
 
 
-async def get_name(update: MessageCreatedUpdate):
+async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
 

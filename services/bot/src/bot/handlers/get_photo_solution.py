@@ -7,9 +7,10 @@ from aiomax.types import (
     CallbackButton,
     ButtonIntent,
 )
+from aiomax import Bot
 from aiomax.methods import AnswerCallback, SendMessage
 from ..utils import Texts, UserState
-from ..bot import bot, state_machine
+from ..bot import state_machine
 
 
 def get_date_attachment() -> InlineKeyboardAttachmentRequest:
@@ -35,7 +36,7 @@ def get_date_attachment() -> InlineKeyboardAttachmentRequest:
     )
 
 
-async def get_photo_solution(update: MessageCallbackUpdate):
+async def get_photo_solution(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "get_photo":
         await bot(
             AnswerCallback(

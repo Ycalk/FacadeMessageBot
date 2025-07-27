@@ -1,12 +1,13 @@
 from aiomax.types.updates import MessageCallbackUpdate
 from aiomax.types import NewMessageBody, TextFormat
 from aiomax.methods import AnswerCallback
+from aiomax import Bot
 from ...utils import Texts, UserState
-from ...bot import bot, state_machine
+from ...bot import state_machine
 from datetime import datetime
 
 
-async def set_date(update: MessageCallbackUpdate):
+async def set_date(update: MessageCallbackUpdate, bot: Bot) -> None:
     await bot(
         AnswerCallback(
             callback_id=update.callback.callback_id,

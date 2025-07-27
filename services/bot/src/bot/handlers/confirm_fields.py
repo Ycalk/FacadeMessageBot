@@ -1,11 +1,12 @@
 from aiomax.types.updates import MessageCallbackUpdate
 from aiomax.types import NewMessageBody, TextFormat
 from aiomax.methods import AnswerCallback
+from aiomax import Bot
 from ..utils import Texts, UserState
-from ..bot import bot, state_machine
+from ..bot import state_machine
 
 
-async def confirm_fields(update: MessageCallbackUpdate):
+async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "start_over":
         await bot(
             AnswerCallback(

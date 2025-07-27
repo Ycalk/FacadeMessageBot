@@ -13,7 +13,7 @@ import logging
 load_dotenv()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def bot() -> Bot:
     return Bot(os.getenv("TOKEN", ""), logging_level=logging.DEBUG)
 
