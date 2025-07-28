@@ -1,5 +1,5 @@
 import csv
-from fuzzywuzzy import process
+from thefuzz import process
 import httpx
 
 
@@ -12,7 +12,7 @@ class CityExtractor:
             self.cities = [row[0].strip().lower() for row in reader if row]
 
     def extract_from_text(self, text: str) -> str:
-        return process.extract(text.lower(), self.cities, limit=1)[0][0].capitalize()
+        return process.extractOne(text.lower(), self.cities)[0].capitalize()
 
     async def extract_from_coordinates(
         self, latitude: float, longitude: float
