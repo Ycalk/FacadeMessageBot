@@ -25,11 +25,11 @@ class CityExtractor:
                 "lon": str(longitude),
                 "format": "json",
             }
-            response = await client.get(self.coordinate_extractor_url, params=params)
-        if response.status_code == 200:
             try:
+                response = await client.get(
+                    self.coordinate_extractor_url, params=params
+                )
                 data = response.json()
                 return data.get("address", {}).get("city")
             except Exception:
                 return None
-        return None
