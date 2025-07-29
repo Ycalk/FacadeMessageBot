@@ -1,18 +1,23 @@
 import csv
-from fuzzywuzzy import process
+from thefuzz import process
 import httpx
+from ..config import Config
 
 
 class CityExtractor:
     def __init__(self, csv_file_path: str) -> None:
-        self.coordinate_extractor_url = "https://nominatim.openstreetmap.org/reverse"
-
         with open(csv_file_path, mode="r", encoding="utf-8") as file:
             reader = csv.reader(file)
-            self.cities = [row[0].strip().lower() for row in reader if row]
+            self.cities: list[str] = []
+            for row in reader:
+                if not row or len(row) == 0:
+                    continue
+                city = row[0].strip().lower()
+                if len(city) < Config.MAX_CITY_LENGTH:
+                    self.cities.append(city)
 
     def extract_from_text(self, text: str) -> str:
-        return process.extract(text.lower(), self.cities, limit=1)[0][0].capitalize()
+        return process.extractOne(text.lower().strip(), self.cities)[0].capitalize()
 
     async def extract_from_coordinates(
         self, latitude: float, longitude: float
@@ -25,11 +30,13 @@ class CityExtractor:
                 "lon": str(longitude),
                 "format": "json",
             }
-            response = await client.get(self.coordinate_extractor_url, params=params)
-        if response.status_code == 200:
             try:
+                response = await client.get(
+                    Config.COORDINATE_EXTRACTOR_URL, params=params
+                )
                 data = response.json()
-                return data.get("address", {}).get("city")
+                city = data.get("address", {}).get("city")
+                if len(city) < Config.MAX_CITY_LENGTH:
+                    return city.capitalize()
             except Exception:
                 return None
-        return None

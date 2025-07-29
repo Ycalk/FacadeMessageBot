@@ -61,8 +61,10 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
                     ],
                 )
             )
-        state_machine.set_state(update.message.sender.user_id, UserState.CONFIRM_CITY)
-        state_machine.update_context(update.message.sender.user_id, city=city)
+            state_machine.set_state(
+                update.message.sender.user_id, UserState.CONFIRM_CITY
+            )
+            state_machine.update_context(update.message.sender.user_id, city=city)
         return
 
     if not update.message.body.text:
