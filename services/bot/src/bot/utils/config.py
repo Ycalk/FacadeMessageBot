@@ -17,13 +17,15 @@ class Config:
     COORDINATE_EXTRACTOR_URL: Final[str] = os.getenv(
         "COORDINATE_EXTRACTOR_URL", "https://nominatim.openstreetmap.org/reverse"
     )
-    
+
     NAME_API_URL: Final[str] = os.getenv(
         "NAME_API_URL", "https://api.nameapi.org/rest/v5.3/parser/personnameparser"
     )
     NAME_API_KEY: Final[str] = os.getenv("NAME_API_KEY", "")
-    MINIMAL_NAME_CONFIDENCE: Final[float] = float(os.getenv("MINIMAL_NAME_CONFIDENCE", 0.6))
-    
+    MINIMAL_NAME_CONFIDENCE: Final[float] = float(
+        os.getenv("MINIMAL_NAME_CONFIDENCE", 0.6)
+    )
+
     if BOT_TOKEN == "":
         raise ValueError("BOT_TOKEN environment variable is not set")
 
