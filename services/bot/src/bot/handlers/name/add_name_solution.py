@@ -10,32 +10,36 @@ from aiomax.types import (
 )
 from aiomax.methods import AnswerCallback
 from ...utils import Texts, UserState
-from ...bot import state_machine
+from ...bot import state_machine, name_validator
 from aiomax import Bot
 
 
 async def add_name_solution(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "add_name":
+        if await name_validator(update.callback.user.first_name):
+            attachments = [
+                InlineKeyboardAttachmentRequest(
+                    payload=Keyboard(
+                        buttons=[
+                            [
+                                MessageButton(text=update.callback.user.first_name),
+                            ]
+                        ]
+                    )
+                )
+            ]
+        else:
+            attachments = []
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,
                 message=NewMessageBody(
-                    text=Texts.Messages.get_name,
+                    text=Texts.Messages.get_name_with_name_from_profile
+                    if attachments
+                    else Texts.Messages.get_name,
                     format=TextFormat.MARKDOWN,
                     notify=True,
-                    attachments=[
-                        InlineKeyboardAttachmentRequest(
-                            payload=Keyboard(
-                                buttons=[
-                                    [
-                                        MessageButton(
-                                            text=update.callback.user.first_name
-                                        ),
-                                    ]
-                                ]
-                            )
-                        )
-                    ],
+                    attachments=attachments,  # type: ignore
                 ),
             )
         )

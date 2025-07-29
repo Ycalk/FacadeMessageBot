@@ -9,14 +9,18 @@ from aiomax.types import (
 from aiomax import Bot
 from aiomax.methods import SendMessage
 from ...utils import Texts, UserState
-from ...bot import state_machine
+from ...bot import state_machine, name_validator
 
 
 async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
 
-    if not update.message.body.text or len(update.message.body.text) < 1:
+    if (
+        not update.message.body.text
+        or len(update.message.body.text) < 1
+        or not await name_validator(update.message.body.text)
+    ):
         await bot(
             SendMessage(
                 user_id=update.message.sender.user_id,
@@ -56,7 +60,7 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
 
     state_machine.set_state(update.message.sender.user_id, UserState.ADD_CITY_SOLUTION)
     state_machine.update_context(
-        update.message.sender.user_id, name=update.message.body.text
+        update.message.sender.user_id, name=update.message.body.text.capitalize()
     )
 
 
