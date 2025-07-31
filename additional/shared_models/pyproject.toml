@@ -7,8 +7,20 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.11,<4.0"
-dependencies = [
-    "faststream[rabbit] (>=0.5.48,<0.6.0)"
+dependencies = []
+
+[project.optional-dependencies]
+messaging = [
+    "faststream[rabbit]>=0.5.48,<0.6.0"
+]
+database = [
+    "tortoise-orm[asyncpg]>=0.25.1,<0.26.0",
+    "aerich (>=0.9.1,<0.10.0)"
+]
+full = [
+    "faststream[rabbit]>=0.5.48,<0.6.0",
+    "tortoise-orm[asyncpg]>=0.25.1,<0.26.0",
+    "aerich (>=0.9.1,<0.10.0)"
 ]
 
 [tool.poetry]
@@ -18,3 +30,8 @@ packages = [{include = "shared_models", from = "src"}]
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.aerich]
+tortoise_orm = "shared_models.database.TORTOISE_ORM_FROM_ENV"
+location = "./migrations"
+src_folder = "./."

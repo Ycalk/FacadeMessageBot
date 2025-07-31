@@ -1,3 +1,12 @@
+import importlib
+
+try:
+    importlib.import_module("faststream")
+except ImportError:
+    raise RuntimeError(
+        "To use messaging, install package with [messaging] or [full] extra."
+    )
+
 from .models import (
     Message,
     MessageNotification,
@@ -15,7 +24,7 @@ from .queues import (
     vision_notification_queue,
     vision_notification_dlx_queue,
 )
-from exchanges import moderator_exchange, dlx_exchange, vision_exchange
+from .exchanges import moderator_exchange, dlx_exchange, vision_exchange
 
 
 __all__ = [
