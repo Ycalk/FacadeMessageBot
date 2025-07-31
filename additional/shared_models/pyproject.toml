@@ -6,8 +6,9 @@ authors = [
     {name = "ycalk",email = "alosev752@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<4.0"
 dependencies = [
+    "faststream[rabbit] (>=0.5.48,<0.6.0)"
 ]
 
 [tool.poetry]
