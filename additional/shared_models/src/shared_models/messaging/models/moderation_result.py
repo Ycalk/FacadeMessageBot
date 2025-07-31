@@ -1,11 +1,11 @@
-from .message_notification import MessageNotification
+from .message_input import MessageInput
 from typing import Annotated, Optional
 from pydantic import Field
 from shared_models.enums import ModeratorType
 from shared_models.enums import ModerationResult as ModerationResultEnum
 
 
-class ModerationResult(MessageNotification):
+class ModerationResult(MessageInput):
     source: Annotated[
         ModeratorType,
         Field(

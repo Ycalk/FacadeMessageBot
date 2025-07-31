@@ -1,9 +1,9 @@
-from .message_notification import MessageNotification
+from .message_input import MessageInput
 from typing import Annotated, Literal
 from pydantic import Field
 
 
-class NoAvailableTime(MessageNotification):
+class NoAvailableTime(MessageInput):
     exception: Annotated[
         Literal["no_available_time"],
         Field(

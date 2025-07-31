@@ -9,7 +9,7 @@ except ImportError:
 
 from .models import (
     Message,
-    MessageNotification,
+    MessageInput,
     MessageShown,
     ModerationResult,
     NoAvailableTime,
@@ -29,7 +29,7 @@ from .exchanges import moderator_exchange, dlx_exchange, vision_exchange
 
 __all__ = [
     "Message",
-    "MessageNotification",
+    "MessageInput",
     "MessageShown",
     "ModerationResult",
     "NoAvailableTime",
