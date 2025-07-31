@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Annotated
-from ...message import Message
+from .message import Message
 
 
 class MessageNotification(BaseModel):
