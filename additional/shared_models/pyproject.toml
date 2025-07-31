@@ -1,5 +1,5 @@
 [project]
-name = "shared-models"
+name = "facade-message-bot-shared-models"
 version = "0.1.0"
 description = ""
 authors = [
