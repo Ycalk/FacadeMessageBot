@@ -10,14 +10,14 @@ auto_moderator_queue = RabbitQueue(
     arguments=QuorumQueueArgs(
         {
             "x-dead-letter-exchange": "dlx",
-            "x-dead-letter-routing-key": "moderator.auto.dlx",
+            "x-dead-letter-routing-key": "dlx.moderator.auto",
             "x-dead-letter-strategy": "at-least-once",
         }
     ),
 )
 
 auto_moderator_dlx_queue = RabbitQueue(
-    "moderator.auto.dlx",
+    "dlx.moderator.auto",
     queue_type=QueueType.QUORUM,
     durable=True,
     declare=True,

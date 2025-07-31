@@ -10,14 +10,14 @@ vision_notification_queue = RabbitQueue(
     arguments=QuorumQueueArgs(
         {
             "x-dead-letter-exchange": "dlx",
-            "x-dead-letter-routing-key": "vision.notification.dlx",
+            "x-dead-letter-routing-key": "dlx.vision.notification",
             "x-dead-letter-strategy": "at-least-once",
         }
     ),
 )
 
 vision_notification_dlx_queue = RabbitQueue(
-    "vision.notification.dlx",
+    "dlx.vision.notification",
     queue_type=QueueType.QUORUM,
     durable=True,
     declare=True,

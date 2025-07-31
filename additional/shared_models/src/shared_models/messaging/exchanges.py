@@ -7,14 +7,20 @@ moderator_exchange = RabbitExchange(
     durable=True,
 )
 
-dlx_exchange = RabbitExchange(
-    "dlx",
+bot_exchange = RabbitExchange(
+    "bot",
     type=ExchangeType.DIRECT,
     durable=True,
 )
 
 vision_exchange = RabbitExchange(
     "vision",
+    type=ExchangeType.DIRECT,
+    durable=True,
+)
+
+dlx_exchange = RabbitExchange(
+    "dlx",
     type=ExchangeType.DIRECT,
     durable=True,
 )
