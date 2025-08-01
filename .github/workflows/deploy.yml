@@ -23,6 +23,7 @@ jobs:
         run: |
           echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> secrets.env
           echo "NAME_API_KEY=${{ secrets.NAME_API_KEY }}" >> secrets.env
+          echo "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}" >> secrets.env
 
       - name: Transfer files to server
         uses: appleboy/scp-action@v1
