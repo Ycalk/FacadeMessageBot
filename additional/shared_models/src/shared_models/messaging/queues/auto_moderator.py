@@ -12,6 +12,7 @@ auto_moderator_queue = RabbitQueue(
             "x-dead-letter-exchange": "dlx",
             "x-dead-letter-routing-key": "dlx.moderator.auto",
             "x-dead-letter-strategy": "at-least-once",
+            "x-overflow": "reject-publish",
         }
     ),
 )

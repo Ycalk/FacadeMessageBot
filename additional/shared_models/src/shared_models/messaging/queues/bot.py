@@ -12,6 +12,7 @@ bot_moderate_response_queue = RabbitQueue(
             "x-dead-letter-exchange": "dlx",
             "x-dead-letter-routing-key": "dlx.bot.moderate.response",
             "x-dead-letter-strategy": "at-least-once",
+            "x-overflow": "reject-publish",
         }
     ),
 )
@@ -33,6 +34,7 @@ bot_message_shown_queue = RabbitQueue(
             "x-dead-letter-exchange": "dlx",
             "x-dead-letter-routing-key": "dlx.bot.message.shown",
             "x-dead-letter-strategy": "at-least-once",
+            "x-overflow": "reject-publish",
         }
     ),
 )

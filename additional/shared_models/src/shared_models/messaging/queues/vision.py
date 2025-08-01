@@ -12,6 +12,7 @@ vision_notification_queue = RabbitQueue(
             "x-dead-letter-exchange": "dlx",
             "x-dead-letter-routing-key": "dlx.vision.notification",
             "x-dead-letter-strategy": "at-least-once",
+            "x-overflow": "reject-publish",
         }
     ),
 )
