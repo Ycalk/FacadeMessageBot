@@ -1,0 +1,24 @@
+[project]
+name = "auto-moderator"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "ycalk",email = "alosev752@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "mistralai (>=1.9.3,<2.0.0)",
+    "facade-message-bot-shared-models[messaging] (>=0.5.0,<0.6.0)"
+]
+
+[tool.poetry]
+packages = [{include = "auto_moderator", from = "src"}]
+
+[tool.poetry.scripts]
+moderator = "auto_moderator:run"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
