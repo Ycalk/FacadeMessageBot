@@ -9,8 +9,8 @@ class ModerationResult(StrEnum):
         - APPROVED: Message is approved.
     """
 
-    REJECTED = "auto"
-    APPROVED = "manual"
+    REJECTED = "rejected"
+    APPROVED = "approved"
 
     def __str__(self) -> str:
         return self.value
