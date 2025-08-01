@@ -114,14 +114,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "facade-message-bot-shared-models"
-version = "0.3.0"
+version = "0.5.0"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "facade_message_bot_shared_models-0.3.0-py3-none-any.whl", hash = "sha256:4f9befa782d6df1306d2f716a282c365c26d2bf958f706e3cd2aea847779f341"},
-    {file = "facade_message_bot_shared_models-0.3.0.tar.gz", hash = "sha256:a6795b01a8718f12da0ea61eac8e48e6fa54b88b98b28754c13d7dba47222676"},
+    {file = "facade_message_bot_shared_models-0.5.0-py3-none-any.whl", hash = "sha256:55b3373e38643114c3da75ee84d26be4c58b4358a64867f0cfa4b61c6198c266"},
+    {file = "facade_message_bot_shared_models-0.5.0.tar.gz", hash = "sha256:2620d21c9f875452d9477778bbf610cd01523b2f5f713afadd4bd5fe2a8b5dc3"},
 ]
 
 [package.dependencies]
@@ -861,4 +861,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "6f05b34ed5c316f6d9e3a32fb7a2b1f84f6232a50a87748a8d312b5c0db969fe"
+content-hash = "89505c53feeed1c5fc3b815ac675014242c76d163126b910c73deab0e8205524"
