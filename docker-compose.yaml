@@ -1,8 +1,23 @@
 services:
+  rabbitmq:
+    image: rabbitmq:4.1-alpine
+    restart: always
+    ports:
+      - "5672:5672"
   bot:
     build:
       context: services/bot
       dockerfile: Dockerfile
     restart: always
+    env_file:
+      - secrets.env
+  
+  auto-moderator:
+    build:
+      context: services/auto_moderator
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - RABBIT_HOST=rabbitmq
     env_file:
       - secrets.env
