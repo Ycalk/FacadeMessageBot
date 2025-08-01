@@ -25,9 +25,7 @@ async def moderate(
     mistral: Mistral = Context(),
     logger: Logger = Context(),
 ) -> ModerationResult:
-    logger.info(
-        f"Received message {message_input.message.message_id} for moderation."
-    )
+    logger.info(f"Received message {message_input.message.message_id} for moderation.")
     response = await mistral.classifiers.moderate_async(
         model="mistral-moderation-latest", inputs=[message_input.message.text]
     )
@@ -49,7 +47,7 @@ async def moderate(
             await manual_moderation.publish(message_input)
         return result
     else:
-        logger.warning(
+        logger.error(
             f"Moderation response for message {message_input.message.message_id} did not contain categories."
         )
         await manual_moderation.publish(message_input)
