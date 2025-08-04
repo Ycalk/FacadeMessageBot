@@ -13,6 +13,7 @@ class Message(Model):
     text = fields.CharField(max_length=255)
     name = fields.CharField(max_length=255, null=True)
     city = fields.CharField(max_length=255, null=True)
+    send_photo = fields.BooleanField()
     show_at = fields.DatetimeField(null=True)
     state = fields.CharEnumField(MessageState)
     created_at = fields.DatetimeField(auto_now_add=True)

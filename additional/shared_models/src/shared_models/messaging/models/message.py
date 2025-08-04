@@ -22,3 +22,6 @@ class Message(BaseModel):
     name: Annotated[
         Optional[str], Field(None, description="Provided name for the message")
     ] = None
+    send_photo: Annotated[
+        bool, Field(..., description="Flag to indicate if a photo should be sent")
+    ]
