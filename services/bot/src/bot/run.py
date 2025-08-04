@@ -1,4 +1,7 @@
 import asyncio
+
+from .utils import Config
+from .notification_processor import app
 from .handlers import (
     start_handler,
     confirm_start,
@@ -25,6 +28,8 @@ from .handlers import (
     confirm_fields_filter,
 )
 from .bot import bot
+from shared_models.database import get_tortoise_orm_config
+from tortoise import Tortoise
 
 
 async def main():
@@ -40,7 +45,26 @@ async def main():
     bot.register_handler(set_date, filter=set_date_filter)
     bot.register_handler(set_time, filter=set_time_filter)
     bot.register_handler(confirm_fields, filter=confirm_fields_filter)
-    await bot.start_polling()
+
+    await Tortoise.init(
+        config=get_tortoise_orm_config(
+            user=Config.POSTGRES_USER,
+            password=Config.POSTGRES_PASSWORD,
+            database=Config.POSTGRES_DB,
+            host=Config.POSTGRES_HOST,
+            port=Config.POSTGRES_PORT,
+        )
+    )
+    await Tortoise.generate_schemas()
+
+    notification_processor_task = asyncio.create_task(app.run())
+    polling_task = asyncio.create_task(bot.start_polling())
+
+    await notification_processor_task
+
+    polling_task.cancel()
+    notification_processor_task.cancel()
+    await Tortoise.close_connections()
 
 
 def run():
