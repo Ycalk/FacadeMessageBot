@@ -1,11 +1,11 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0" version="28.0.6">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0" version="28.0.7">
   <diagram name="Страница — 1" id="RNkWqcu_Yp0QN5_10Zar">
-    <mxGraphModel dx="-3920" dy="-593" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="-794" dy="1135" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-133" value="shared-models" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=36;tabPosition=left;html=1;boundedLbl=1;labelInHeader=1;container=0;collapsible=0;recursiveResize=0;whiteSpace=wrap;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
-          <mxGeometry x="5090" y="1980" width="1590" height="1282.75" as="geometry" />
+          <mxGeometry x="5090" y="2150" width="1590" height="1112.75" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-585" value="enums" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=36;tabPosition=left;html=1;boundedLbl=1;labelInHeader=1;container=0;collapsible=0;recursiveResize=0;whiteSpace=wrap;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="6070" y="2826.25" width="570" height="370" as="geometry" />
@@ -210,7 +210,7 @@
           <mxGeometry x="7510" y="3380" width="5" height="10" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-475" value="database" style="shape=folder;fontStyle=1;tabWidth=160;tabHeight=36;tabPosition=left;html=1;boundedLbl=1;labelInHeader=1;container=0;collapsible=0;recursiveResize=0;whiteSpace=wrap;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
-          <mxGeometry x="5140" y="2060" width="790" height="642.5" as="geometry" />
+          <mxGeometry x="5140" y="2220" width="790" height="482.5" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-476" value="User" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillStyle=cross-hatch;fillColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="5160" y="2412.5" width="180" height="210" as="geometry" />
@@ -589,7 +589,7 @@
           <mxGeometry x="7010" y="3450" width="5" height="10" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-598" value="" style="group" parent="1" vertex="1" connectable="0">
-          <mxGeometry x="7760" y="3060" width="180" height="90" as="geometry" />
+          <mxGeometry x="7650" y="3070" width="180" height="90" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-599" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;&lt;b&gt;Database&lt;/b&gt;" style="html=1;dropTarget=0;whiteSpace=wrap;container=0;" parent="H9bcBR6qPRvxeY8WmCTQ-598" vertex="1">
           <mxGeometry width="180" height="90" as="geometry" />
@@ -757,7 +757,7 @@
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-658" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;startArrow=classic;startFill=1;startSize=10;" parent="1" source="H9bcBR6qPRvxeY8WmCTQ-657" target="H9bcBR6qPRvxeY8WmCTQ-659" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="H9bcBR6qPRvxeY8WmCTQ-660" value="MessageNotification (On message shown)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="H9bcBR6qPRvxeY8WmCTQ-660" value="Message (On message shown)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="7580" y="3400" width="240" height="30" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-662" value="" style="html=1;rounded=0;" parent="1" vertex="1">
@@ -786,7 +786,7 @@
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-668" value="MessageShown" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="7479" y="3527" width="150" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="uq-GUNMcKlEvzSwkHj1_-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=10;" edge="1" parent="1" source="uq-GUNMcKlEvzSwkHj1_-1" target="H9bcBR6qPRvxeY8WmCTQ-428">
+        <mxCell id="uq-GUNMcKlEvzSwkHj1_-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=10;" parent="1" source="uq-GUNMcKlEvzSwkHj1_-1" target="H9bcBR6qPRvxeY8WmCTQ-428" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="5838" y="3018.75" />
@@ -794,7 +794,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="uq-GUNMcKlEvzSwkHj1_-1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;NoAvailableTime&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ exception: Literal[&quot;no_available_time&quot;]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="1">
+        <mxCell id="uq-GUNMcKlEvzSwkHj1_-1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;NoAvailableTime&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ exception: Literal[&quot;no_available_time&quot;]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="5768" y="2944.5" width="220" height="52.5" as="geometry" />
         </mxCell>
       </root>
