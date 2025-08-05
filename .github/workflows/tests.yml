@@ -36,6 +36,9 @@ jobs:
     env:
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
       NAME_API_KEY: ${{ secrets.NAME_API_KEY }}
+      POSTGRES_USER: some user
+      POSTGRES_PASSWORD: some password
+      POSTGRES_DB: some database
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
