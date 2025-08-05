@@ -9,78 +9,64 @@ from aiomax.types import (
 )
 from aiomax import Bot
 from aiomax.methods import AnswerCallback, SendMessage
-from ..utils import Texts, UserState
-from ..bot import state_machine
-
-
-def get_date_attachment() -> InlineKeyboardAttachmentRequest:
-    return InlineKeyboardAttachmentRequest(
-        payload=Keyboard(
-            buttons=[
-                [
-                    CallbackButton(
-                        text="30 августа",
-                        payload="30.08.2025",
-                        intent=ButtonIntent.DEFAULT,
-                    )
-                ],
-                [
-                    CallbackButton(
-                        text="31 августа",
-                        payload="31.08.2025",
-                        intent=ButtonIntent.DEFAULT,
-                    )
-                ],
-            ]
-        )
-    )
+from bot.utils import Texts, UserState
+from bot.bot import state_machine
 
 
 async def get_photo_solution(update: MessageCallbackUpdate, bot: Bot) -> None:
-    if update.callback.payload == "get_photo":
-        await bot(
-            AnswerCallback(
-                callback_id=update.callback.callback_id,
-                message=NewMessageBody(
-                    text=Texts.Messages.get_photo_confirm,
-                    format=TextFormat.MARKDOWN,
-                    notify=True,
-                    attachments=[],
-                ),
-            )
-        )
+    get_photo = update.callback.payload == "get_photo"
+    message = state_machine.get_context(update.callback.user.user_id, "message")
+    if not message:
         await bot(
             SendMessage(
                 user_id=update.callback.user.user_id,
-                text=Texts.Messages.choose_date,
-                attachments=[get_date_attachment()],
+                text=Texts.Messages.missing_fields,
+                text_format=TextFormat.MARKDOWN,
+                attachments=[],
             )
         )
-        state_machine.update_context(update.callback.user.user_id, get_photo=True)
-        state_machine.set_state(update.callback.user.user_id, UserState.SET_DATE)
+        return
 
-    elif update.callback.payload == "cancel":
-        await bot(
-            AnswerCallback(
-                callback_id=update.callback.callback_id,
-                message=NewMessageBody(
-                    text=Texts.Messages.get_photo_cancel,
-                    format=TextFormat.MARKDOWN,
-                    notify=True,
-                    attachments=[],
+    await bot(
+        AnswerCallback(
+            callback_id=update.callback.callback_id,
+            message=NewMessageBody(
+                text=Texts.Messages.confirm_fields_with_instruction.format(
+                    message=message,
+                    name=state_machine.get_context(update.callback.user.user_id, "name")
+                    or "",
+                    city=state_machine.get_context(update.callback.user.user_id, "city")
+                    or "",
+                    get_photo="Да" if get_photo else "Нет",
                 ),
-            )
+                format=TextFormat.MARKDOWN,
+                notify=True,
+                attachments=[
+                    InlineKeyboardAttachmentRequest(
+                        payload=Keyboard(
+                            buttons=[
+                                [
+                                    CallbackButton(
+                                        text="Подтвердить",
+                                        payload="confirm_fields",
+                                        intent=ButtonIntent.POSITIVE,
+                                    ),
+                                    CallbackButton(
+                                        text="Начать заново",
+                                        payload="start_over",
+                                        intent=ButtonIntent.DEFAULT,
+                                    ),
+                                ]
+                            ]
+                        )
+                    )
+                ],
+            ),
         )
+    )
 
-        await bot(
-            SendMessage(
-                user_id=update.callback.user.user_id,
-                text=Texts.Messages.choose_date,
-                attachments=[get_date_attachment()],
-            )
-        )
-        state_machine.update_context(update.callback.user.user_id, get_photo=False)
-        state_machine.set_state(update.callback.user.user_id, UserState.SET_DATE)
+    state_machine.set_state(update.callback.user.user_id, UserState.CONFIRM_FIELDS)
+    state_machine.update_context(update.callback.user.user_id, get_photo=get_photo)
 
 
 def get_photo_solution_filter(update: MessageCallbackUpdate) -> bool:
