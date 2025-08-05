@@ -10,8 +10,8 @@ from aiomax.types import (
     RequestGeoLocationButton,
 )
 from aiomax.methods import AnswerCallback
-from ...utils import Texts, UserState
-from ...bot import state_machine
+from bot.utils import Texts, UserState
+from bot.bot import state_machine
 
 
 async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:

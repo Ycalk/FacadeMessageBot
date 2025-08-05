@@ -2,8 +2,17 @@ from aiomax.types.updates import MessageCallbackUpdate
 from aiomax.types import NewMessageBody, TextFormat
 from aiomax.methods import AnswerCallback
 from aiomax import Bot
-from ..utils import Texts, UserState
-from ..bot import state_machine
+from bot.utils import Texts, UserState
+from bot.bot import state_machine
+from shared_models.database import Message, User
+from shared_models.enums import MessageState
+from bot.notification_processor.app import broker
+from shared_models.messaging import (
+    auto_moderator_queue,
+    moderator_exchange,
+    MessageInput,
+)
+from shared_models.messaging import Message as MessageSharedModel
 
 
 async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
@@ -23,12 +32,13 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
         state_machine.clear_context(update.callback.user.user_id)
 
     elif update.callback.payload == "confirm_fields":
+        user = await User.get_or_none(max_id=update.callback.user.user_id)
         message = state_machine.get_context(update.callback.user.user_id, "message")
-        date = state_machine.get_context(update.callback.user.user_id, "date")
-        time = state_machine.get_context(update.callback.user.user_id, "time")
         get_photo = state_machine.get_context(update.callback.user.user_id, "get_photo")
+        name = state_machine.get_context(update.callback.user.user_id, "name")
+        city = state_machine.get_context(update.callback.user.user_id, "city")
 
-        if not message or not date or not time or (get_photo is None):
+        if not message or (get_photo is None) or not user:
             await bot(
                 AnswerCallback(
                     callback_id=update.callback.callback_id,
@@ -41,29 +51,44 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
                 )
             )
             return
+
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,
                 message=NewMessageBody(
-                    text=Texts.Messages.fields.format(
+                    text=Texts.Messages.confirm_fields.format(
                         message=message,
-                        name=state_machine.get_context(
-                            update.callback.user.user_id, "name"
-                        )
-                        or "",
-                        city=state_machine.get_context(
-                            update.callback.user.user_id, "city"
-                        )
-                        or "",
+                        name=name or "",
+                        city=city or "",
                         get_photo="Да" if get_photo else "Нет",
-                        date=date,
-                        time=time,
                     ),
                     attachments=[],
                     notify=True,
                     format=TextFormat.MARKDOWN,
                 ),
             )
+        )
+        new_message = await Message.create(
+            user=user,
+            text=message,
+            name=name,
+            city=city,
+            send_photo=get_photo,
+            state=MessageState.PENDING_AUTO_MODERATION,
+        )
+
+        await broker.publish(
+            MessageInput(
+                message=MessageSharedModel(
+                    message_id=new_message.id,
+                    text=new_message.text,
+                    city=new_message.city,
+                    name=new_message.name,
+                    send_photo=new_message.send_photo,
+                )
+            ),
+            auto_moderator_queue,
+            moderator_exchange,
         )
 
 

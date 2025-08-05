@@ -16,15 +16,17 @@ moderate_router = RabbitRouter()
 manual_moderation = moderate_router.publisher(
     manual_moderator_queue, moderator_exchange
 )
+bot_moderate_response = moderate_router.publisher(
+    bot_moderate_response_queue, bot_exchange
+)
 
 
-@moderate_router.publisher(bot_moderate_response_queue, bot_exchange)
 @moderate_router.subscriber(auto_moderator_queue, moderator_exchange)
 async def moderate(
     message_input: MessageInput,
     mistral: Mistral = Context(),
     logger: Logger = Context(),
-) -> ModerationResult:
+):
     logger.info(f"Received message {message_input.message.message_id} for moderation.")
     response = await mistral.classifiers.moderate_async(
         model="mistral-moderation-latest", inputs=[message_input.message.text]
@@ -45,7 +47,11 @@ async def moderate(
         )
         if result.result == ModerationResultEnum.APPROVED:
             await manual_moderation.publish(message_input)
-        return result
+        logger.info(
+            f"Moderation result for message {message_input.message.message_id}: {result.result}, "
+            f"reason: {result.reason}"
+        )
+        await bot_moderate_response.publish(result)
     else:
         logger.error(
             f"Moderation response for message {message_input.message.message_id} did not contain categories."
