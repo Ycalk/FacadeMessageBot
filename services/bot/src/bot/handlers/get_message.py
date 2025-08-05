@@ -8,8 +8,8 @@ from aiomax.types import (
 )
 from aiomax import Bot
 from aiomax.methods import SendMessage
-from ..utils import Texts, UserState, Config
-from ..bot import state_machine
+from bot.utils import Texts, UserState, Config
+from bot.bot import state_machine
 
 
 async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:

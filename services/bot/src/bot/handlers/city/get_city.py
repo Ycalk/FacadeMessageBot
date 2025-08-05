@@ -9,8 +9,8 @@ from aiomax.types import (
 )
 from aiomax import Bot
 from aiomax.methods import SendMessage
-from ...utils import Texts, UserState
-from ...bot import state_machine, city_extractor
+from bot.utils import Texts, UserState
+from bot.bot import state_machine, city_extractor
 
 
 async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:

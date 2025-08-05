@@ -9,8 +9,8 @@ from aiomax.types import (
     ButtonIntent,
 )
 from aiomax.methods import AnswerCallback
-from ...utils import Texts, UserState
-from ...bot import state_machine, name_validator
+from bot.utils import Texts, UserState
+from bot.bot import state_machine, name_validator
 from aiomax import Bot
 
 
