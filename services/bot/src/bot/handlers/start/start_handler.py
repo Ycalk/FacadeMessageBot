@@ -17,7 +17,7 @@ async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
             text_format=TextFormat.MARKDOWN,
         )
     )
-    if User.get_or_none(max_id=update.user.user_id) is None:
+    if await User.get_or_none(max_id=update.user.user_id) is None:
         await bot(
             SendMessage(
                 user_id=update.user.user_id,
