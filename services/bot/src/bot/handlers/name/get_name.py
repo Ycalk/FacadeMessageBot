@@ -8,8 +8,8 @@ from aiomax.types import (
 )
 from aiomax import Bot
 from aiomax.methods import SendMessage
-from ...utils import Texts, UserState
-from ...bot import state_machine, name_validator
+from bot.utils import Texts, UserState
+from bot.bot import state_machine, name_validator
 
 
 async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:

@@ -3,10 +3,10 @@ from faststream.rabbit import RabbitBroker
 from faststream import Context, ContextRepo
 from faststream.security import SASLPlaintext
 from importlib.metadata import version
-from mistralai import Mistral
 from logging import Logger
-from auto_moderator.handlers import moderate_router
-from .utils import Config
+from bot.bot import bot
+from bot.notification_processor.handlers import moderation_result_router
+from bot.utils import Config
 
 
 broker = RabbitBroker(
@@ -20,18 +20,20 @@ broker = RabbitBroker(
 
 app = FastStream(
     broker,
-    title="Auto Moderator",
-    version=version("auto_moderator"),
-    description="A service for moderating messages in Facade Message Bot",
+    title="Max bot notification processor",
+    version=version("bot"),
+    description="Notification processor for Max bot",
 )
-broker.include_router(moderate_router)
+broker.include_router(moderation_result_router)
 
 
 @app.on_startup
 async def on_startup(context: ContextRepo):
-    context.set_global("mistral", Mistral(Config.MISTRAL_API_KEY))
+    context.set_global("bot", bot)
 
 
 @app.after_startup
 async def after_startup(logger: Logger = Context()):
-    logger.info(f"Auto Moderator version {app.version} started successfully.")
+    logger.info(
+        f"Max bot notification processor version {app.version} started successfully."
+    )

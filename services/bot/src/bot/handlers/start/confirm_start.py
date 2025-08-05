@@ -3,7 +3,8 @@ from aiomax.types import NewMessageBody, TextFormat
 from aiomax.methods import AnswerCallback, SendMessage
 from ...utils import Texts, UserState
 from aiomax import Bot
-from ...bot import state_machine
+from shared_models.database import User
+from bot.bot import state_machine
 
 
 async def confirm_start(update: MessageCallbackUpdate, bot: Bot) -> None:
@@ -24,6 +25,14 @@ async def confirm_start(update: MessageCallbackUpdate, bot: Bot) -> None:
             text=Texts.Messages.get_message,
             text_format=TextFormat.MARKDOWN,
         )
+    )
+    await User.update_or_create(
+        defaults={
+            "first_name": update.callback.user.first_name,
+            "last_name": update.callback.user.last_name,
+            "username": update.callback.user.username,
+        },
+        max_id=update.callback.user.user_id,
     )
 
     state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
