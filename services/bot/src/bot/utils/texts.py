@@ -55,7 +55,7 @@ class Texts:
         get_photo_solution: Final[str] = (
             "Хотите получить фотографию вашего сообщения на медиафасаде?\n"
         )
-        
+
         confirm_fields: Final[str] = (
             "Ваше сообщение:\n"
             "{message}\n\n"
@@ -72,7 +72,7 @@ class Texts:
             "Некоторые обязательные поля не были сохранены.\n"
             "Используйте команду /create, чтобы начать заново."
         )
-        
+
         fields: Final[str] = (
             "Ваше сообщение:\n"
             "{message}\n\n"
@@ -86,6 +86,14 @@ class Texts:
         no_messages: Final[str] = (
             "У вас нет сообщений.\n"
             "Чтобы создать новое сообщение, используйте команду /create."
+        )
+
+        moderation_failed: Final[str] = (
+            "Ваше сообщение не прошло модерацию.\n"
+            "Пожалуйста, измените его и попробуйте снова."
+        )
+        auto_moderation_completed: Final[str] = (
+            "Ваше сообщение прошло автоматическую модерацию."
         )
 
     class Buttons:
