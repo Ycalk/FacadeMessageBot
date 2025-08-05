@@ -2,13 +2,27 @@ services:
   rabbitmq:
     image: rabbitmq:4.1-alpine
     restart: always
-    ports:
-      - "5672:5672"
+  
+  postgres:
+    image: postgres:17.5-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydatabase
+
   bot:
     build:
       context: services/bot
       dockerfile: Dockerfile
     restart: always
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydatabase
+      - RABBIT_HOST=rabbitmq
     env_file:
       - secrets.env
   
