@@ -14,6 +14,7 @@ from aiomax.types import (
 )
 from aiomax.methods import SendMessage, AnswerCallback
 from aiomax.types.updates import MessageCallbackUpdate
+from shared_models.database import User
 from tests.test_models import callback_factory, message_factory
 
 
@@ -67,6 +68,13 @@ async def test_confirm_start_handler_behavior(
         assert test_session.requests[1].text == Texts.Messages.get_message
         assert test_session.requests[1].user_id == user_with_photo.user_id
         assert test_session.requests[1].attachments is None
+        
+        # Add to database
+        user = await User.get_or_none(max_id=user_with_photo.user_id)
+        assert user is not None
+        assert user.first_name == user_with_photo.first_name
+        assert user.last_name == user_with_photo.last_name
+        assert user.username == user_with_photo.username
 
 
 @pytest.mark.asyncio
@@ -114,6 +122,10 @@ async def test_confirm_start_handler_incorrect_state(
 
     # No requests should be made since the handler should not process the update
     assert len(test_session.requests) == 0
+    
+    # Ensure no user is added to the database
+    user = await User.get_or_none(max_id=user_with_photo.user_id)
+    assert user is None
 
 
 @pytest.mark.asyncio
@@ -157,3 +169,7 @@ async def test_confirm_start_handler_incorrect_callback_payload(
 
     # No requests should be made since the handler should not process the update
     assert len(test_session.requests) == 0
+    
+    # Ensure no user is added to the database
+    user = await User.get_or_none(max_id=user_with_photo.user_id)
+    assert user is None

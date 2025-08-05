@@ -1,8 +1,9 @@
 import pytest
 import logging
 import asyncio
-from functools import wraps
 import pytest_asyncio
+from functools import wraps
+from tortoise import Tortoise
 from aiomax import Bot
 from aiomax.types import BotInfo
 from aiomax.methods import GetMe
@@ -50,3 +51,21 @@ async def bot(test_session: TestSession) -> AsyncGenerator[Bot, None]:
 @pytest.fixture(scope="function", autouse=True)
 def clear_user_state():
     state_machine.clear()
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def setup_database():
+    config = {
+        "connections": {"default": "sqlite://:memory:"},
+        "apps": {
+            "models": {
+                "models": ["shared_models.database.models"],
+                "default_connection": "default",
+            }
+        },
+    }
+    await Tortoise.init(config)
+    await Tortoise.generate_schemas()
+    yield
+    await Tortoise._drop_databases()
+    await Tortoise.close_connections()
