@@ -13,4 +13,10 @@ async def cmd_start(message: Message, state: FSMContext):
         return
     await state.clear()
     if await Admin.get_or_none(message.from_user.id):
+        await Admin(
+            telegram_id=message.from_user.id,
+            first_name=message.from_user.first_name,
+            username=message.from_user.username,
+            last_name=message.from_user.last_name,
+        ).save()
         await message.answer(Texts.Messages.admin_start)

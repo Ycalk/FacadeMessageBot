@@ -14,7 +14,7 @@ class Config:
 
     # Secrets
     BOT_TOKEN: Final[str] = os.getenv("BOT_TOKEN", "")
-    ADMIN_ID: Final[int] = int(os.getenv("ADMIN_ID", 0))
+    MAIN_ADMIN_ID: Final[int] = int(os.getenv("MAIN_ADMIN_ID", 0))
 
     # Redis configuration
     REDIS_HOST: Final[str] = os.getenv("REDIS_HOST", "localhost")
@@ -25,5 +25,5 @@ class Config:
     if BOT_TOKEN == "":
         raise ValueError("BOT_TOKEN must be set in the environment variables.")
 
-    if ADMIN_ID == 0:
+    if MAIN_ADMIN_ID == 0:
         raise ValueError("ADMIN_ID must be set in the environment variables.")

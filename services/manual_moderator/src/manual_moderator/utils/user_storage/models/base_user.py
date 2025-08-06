@@ -4,8 +4,13 @@ from ..user_storage import UserStorage
 from typing import Annotated, Self
 
 
-class UserStorageBaseModel(BaseModel, ABC):
+class BaseUser(BaseModel, ABC):
     telegram_id: Annotated[int, Field(description="Telegram user ID")]
+    username: Annotated[str | None, Field(description="Username in Telegram")] = None
+    first_name: Annotated[str, Field(description="First name")]
+    last_name: Annotated[str | None, Field(description="Last name", default=None)] = (
+        None
+    )
 
     @classmethod
     async def get(cls, telegram_id: int) -> Self:
@@ -36,7 +41,7 @@ class UserStorageBaseModel(BaseModel, ABC):
         return await UserStorage.redis.exists(f"{cls.__name__.lower()}:{telegram_id}")
 
     @classmethod
-    async def create(cls, telegram_id: int, exist_ok: bool = True, **kwargs) -> Self:
+    async def create(cls, telegram_id: int, **kwargs) -> Self:
         if await cls.exists(telegram_id):
             raise ValueError(
                 f"{cls.__name__} with telegram_id {telegram_id} already exists"
@@ -46,13 +51,12 @@ class UserStorageBaseModel(BaseModel, ABC):
         await instance.save()
         return instance
 
+    @classmethod
+    async def delete(cls, telegram_id: int) -> None:
+        await UserStorage.redis.delete(f"{cls.__name__.lower()}:{telegram_id}")
+
     async def save(self) -> None:
         data = self.model_dump_json()
         await UserStorage.redis.set(
             f"{self.__class__.__name__.lower()}:{self.telegram_id}", data
-        )
-
-    async def delete(self) -> None:
-        await UserStorage.redis.delete(
-            f"{self.__class__.__name__.lower()}:{self.telegram_id}"
         )
