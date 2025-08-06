@@ -8,7 +8,7 @@ from aiogram.types import (
     CallbackQuery,
     InaccessibleMessage,
 )
-from manual_moderator.utils import Admin, Texts, Config
+from manual_moderator.utils import Admin, Texts, Config, Moderator
 from manual_moderator.filters import AdminState
 
 admin_router = Router()
@@ -96,11 +96,11 @@ async def remove_admin_set_telegram_id(message: Message, state: FSMContext):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text=Texts.Buttons.remove_admin_confirm,
+                        text=Texts.Buttons.remove_confirm,
                         callback_data=f"confirm:{removing_admin.telegram_id}",
                     ),
                     InlineKeyboardButton(
-                        text=Texts.Buttons.remove_admin_cancel,
+                        text=Texts.Buttons.remove_cancel,
                         callback_data="cancel",
                     ),
                 ],
@@ -155,5 +155,157 @@ async def cmd_list_admins(message: Message, state: FSMContext):
                 first_name=admin.first_name or "",
                 last_name=admin.last_name or "",
                 username=f"@{admin.username}" if admin.username else "",
+            )
+        )
+
+
+# region Add Moderator
+
+
+@admin_router.message(Command("add_moderator"))
+async def cmd_add_moderator(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+    await state.clear()
+
+    await state.set_state(AdminState.add_moderator_set_telegram_id)
+    await message.answer(Texts.Messages.add_moderator_set_telegram_id)
+
+
+@admin_router.message(AdminState.add_moderator_set_telegram_id)
+async def add_moderator_set_telegram_id(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+
+    if not message.text or not message.text.isdigit():
+        await message.answer(Texts.Messages.add_moderator_invalid_telegram_id)
+        return
+
+    telegram_id = int(message.text)
+    await Moderator(telegram_id=telegram_id, first_name="New Moderator").save()
+    await message.answer(
+        Texts.Messages.add_moderator_success.format(telegram_id=telegram_id)
+    )
+    await state.clear()
+
+
+# region Remove Moderator
+
+
+@admin_router.message(Command("remove_moderator"))
+async def cmd_remove_moderator(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+    await state.clear()
+    await state.set_state(AdminState.remove_moderator_set_telegram_id)
+    await message.answer(Texts.Messages.remove_moderator_set_telegram_id)
+
+
+@admin_router.message(AdminState.remove_moderator_set_telegram_id)
+async def remove_moderator_set_telegram_id(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+
+    if (
+        not message.text
+        or not message.text.isdigit()
+        or not await Moderator.exists(telegram_id=int(message.text))
+    ):
+        await message.answer(
+            Texts.Messages.remove_moderator_not_found.format(telegram_id=message.text)
+        )
+        await state.clear()
+        return
+
+    removing_moderator = await Moderator.get(telegram_id=int(message.text))
+    moderators = [m for m in await Moderator.all() if m.is_active]
+    if len(moderators) == 1 and await removing_moderator.get_queue_length() > 0:
+        await message.answer(Texts.Messages.remove_moderator_no_other_moderators)
+        await state.clear()
+        return
+
+    for index, moderator_message in enumerate(
+        await removing_moderator.get_all_messages()
+    ):
+        await moderators[index % len(moderators)].add_message(moderator_message)
+
+    await message.answer(
+        Texts.Messages.remove_moderator_confirm.format(
+            telegram_id=removing_moderator.telegram_id,
+            first_name=removing_moderator.first_name or "",
+            last_name=removing_moderator.last_name or "",
+            username=f"@{removing_moderator.username}"
+            if removing_moderator.username
+            else "",
+            is_active="Да" if removing_moderator.is_active else "Нет",
+            queue_length=await removing_moderator.get_queue_length(),
+        ),
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=Texts.Buttons.remove_confirm,
+                        callback_data=f"confirm:{removing_moderator.telegram_id}",
+                    ),
+                    InlineKeyboardButton(
+                        text=Texts.Buttons.remove_cancel,
+                        callback_data="cancel",
+                    ),
+                ],
+            ]
+        ),
+    )
+    await state.set_state(AdminState.remove_moderator_confirm)
+
+
+@admin_router.callback_query(AdminState.remove_moderator_confirm)
+async def remove_moderator_confirm(callback_query: CallbackQuery, state: FSMContext):
+    if (
+        not callback_query.from_user
+        or not (await Admin.get_or_none(callback_query.from_user.id))
+        or not callback_query.data
+        or not callback_query.message
+        or isinstance(callback_query.message, InaccessibleMessage)
+    ):
+        return
+    if callback_query.data.startswith("confirm:"):
+        telegram_id = int(callback_query.data.split(":")[1])
+        await Moderator.delete(telegram_id=telegram_id)
+        await callback_query.message.edit_text(
+            text=Texts.Messages.remove_moderator_success.format(
+                telegram_id=telegram_id
+            ),
+            reply_markup=None,
+        )
+        await state.clear()
+    elif callback_query.data == "cancel":
+        await callback_query.message.edit_text(
+            text=Texts.Messages.remove_moderator_cancelled, reply_markup=None
+        )
+        await state.clear()
+
+
+# region List Moderators
+
+
+@admin_router.message(Command("list_moderators"))
+async def cmd_list_moderators(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+    await state.clear()
+    moderators = await Moderator.all()
+    if len(moderators) == 0:
+        await message.answer(Texts.Messages.list_moderators_no_moderators)
+        return
+
+    for moderator in moderators:
+        await message.answer(
+            Texts.Messages.list_moderators_moderator_info.format(
+                telegram_id=moderator.telegram_id,
+                first_name=moderator.first_name or "",
+                last_name=moderator.last_name or "",
+                username=f"@{moderator.username}" if moderator.username else "",
+                is_active="Да" if moderator.is_active else "Нет",
+                queue_length=await moderator.get_queue_length(),
             )
         )

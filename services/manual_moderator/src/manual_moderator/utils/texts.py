@@ -4,11 +4,20 @@ from typing import Final
 class Texts:
     class Messages:
         admin_start: Final[str] = (
-            "Панель администратора\n"
+            "Панель администратора\n\n"
             "Доступные команды:\n"
             "/add_admin - добавить администратора\n"
             "/remove_admin - удалить администратора\n"
-            "/list_admins - список администраторов"
+            "/list_admins - список администраторов\n\n"
+            "/add_moderator - добавить модератора\n"
+            "/remove_moderator - удалить модератора\n"
+            "/list_moderators - список модераторов"
+        )
+        moderator_start: Final[str] = (
+            "Панель модератора\n\n"
+            "Доступные команды:\n"
+            "/stop_moderation - остановить модерацию. Вы будете отмечены как неактивный модератор.\n"
+            "/start_moderation - начать модерацию. Вы будете отмечены как активный модератор."
         )
 
         # add admin
@@ -25,7 +34,7 @@ class Texts:
             "Введите Telegram ID администратора, которого вы хотите удалить."
         )
         remove_admin_confirm: Final[str] = (
-            "Подтвердите удаление администратора: "
+            "Подтвердите удаление администратора:\n"
             "Telegram ID: {telegram_id}\n"
             "Имя: {first_name} {last_name}\n"
             "Username: {username}"
@@ -47,7 +56,50 @@ class Texts:
         list_admins_admin_info: Final[str] = (
             "Telegram ID: {telegram_id}\nИмя: {first_name} {last_name}\nUsername: {username}\n"
         )
-    
+
+        # add moderator
+        add_moderator_set_telegram_id: Final[str] = (
+            "Введите Telegram ID модератора, которого вы хотите добавить."
+        )
+        add_moderator_success: Final[str] = "Модератор {telegram_id} успешно добавлен."
+        add_moderator_invalid_telegram_id: Final[str] = (
+            "Некорректный Telegram ID. Пожалуйста, введите числовой ID."
+        )
+
+        # remove moderator
+        remove_moderator_set_telegram_id: Final[str] = (
+            "Введите Telegram ID модератора, которого вы хотите удалить."
+        )
+        remove_moderator_confirm: Final[str] = (
+            "Подтвердите удаление модератора:\n"
+            "Telegram ID: {telegram_id}\n"
+            "Имя: {first_name} {last_name}\n"
+            "Username: {username}\n"
+            "Активен: {is_active}\n"
+            "Сообщений в очереди: {queue_length}\n\n"
+            "<i>При удаление модератора, сообщения закрепленные за ним будут распределены между активными модераторами.</i>"
+        )
+        remove_moderator_success: Final[str] = "Модератор {telegram_id} успешно удален."
+        remove_moderator_cancelled: Final[str] = "Удаление модератора отменено."
+        remove_moderator_not_found: Final[str] = (
+            "Модератор с Telegram ID {telegram_id} не найден."
+        )
+        remove_moderator_no_other_moderators: Final[str] = (
+            "Вы не можете удалить последнего модератора.\n"
+            "<i>При удаление последнего модератора, сообщения предназначенные для него будут утеряны.</i>"
+            "<i>Пожалуйста, добавьте нового активного модератора перед удалением текущего.</i>"
+        )
+
+        # list moderators
+        list_moderators_no_moderators: Final[str] = "Нет модераторов в системе."
+        list_moderators_moderator_info: Final[str] = (
+            "Telegram ID: {telegram_id}\n"
+            "Имя: {first_name} {last_name}\n"
+            "Username: {username}\n"
+            "Активен: {is_active}\n"
+            "Сообщений в очереди: {queue_length}"
+        )
+
     class Buttons:
-        remove_admin_confirm: Final[str] = "Подтвердить удаление"
-        remove_admin_cancel: Final[str] = "Отмена"
+        remove_confirm: Final[str] = "Подтвердить удаление"
+        remove_cancel: Final[str] = "Отмена"
