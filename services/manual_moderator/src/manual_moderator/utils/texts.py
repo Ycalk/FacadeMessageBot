@@ -76,18 +76,14 @@ class Texts:
             "Имя: {first_name} {last_name}\n"
             "Username: {username}\n"
             "Активен: {is_active}\n"
-            "Сообщений в очереди: {queue_length}\n\n"
-            "<i>При удаление модератора, сообщения закрепленные за ним будут распределены между активными модераторами.</i>"
+            "Сообщений обработано: {messages_processed}\n"
+            "Последняя активность: {last_activity}\n\n"
+            "<i>При удаление модератора, в том числе удаляется информация о обработанных им сообщений.</i>"
         )
         remove_moderator_success: Final[str] = "Модератор {telegram_id} успешно удален."
         remove_moderator_cancelled: Final[str] = "Удаление модератора отменено."
         remove_moderator_not_found: Final[str] = (
             "Модератор с Telegram ID {telegram_id} не найден."
-        )
-        remove_moderator_no_other_moderators: Final[str] = (
-            "Вы не можете удалить последнего модератора.\n"
-            "<i>При удаление последнего модератора, сообщения предназначенные для него будут утеряны.</i>"
-            "<i>Пожалуйста, добавьте нового активного модератора перед удалением текущего.</i>"
         )
 
         # list moderators
@@ -97,7 +93,25 @@ class Texts:
             "Имя: {first_name} {last_name}\n"
             "Username: {username}\n"
             "Активен: {is_active}\n"
-            "Сообщений в очереди: {queue_length}"
+            "Сообщений обработано: {messages_processed}\n"
+            "Последняя активность: {last_activity}"
+        )
+
+        # start moderation
+        start_moderation_success: Final[str] = (
+            "Вы успешно начали модерацию. Теперь вы отмечены как активный модератор."
+        )
+        start_moderation_already_active: Final[str] = (
+            "Вы уже находитесь в режиме активного модератора."
+        )
+
+        # stop moderation
+        stop_moderation_success: Final[str] = (
+            "Вы успешно остановили модерацию.\n"
+            "Теперь вы отмечены как неактивный модератор и не будете получать новые сообщения для обработки."
+        )
+        stop_moderation_already_inactive: Final[str] = (
+            "Вы уже находитесь в режиме неактивного модератора."
         )
 
     class Buttons:

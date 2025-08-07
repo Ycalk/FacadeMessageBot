@@ -8,7 +8,8 @@ from aiogram.types import (
     CallbackQuery,
     InaccessibleMessage,
 )
-from manual_moderator.utils import Admin, Texts, Config, Moderator
+from datetime import datetime
+from manual_moderator.utils import Admin, Texts, Config, Moderator, BotData
 from manual_moderator.filters import AdminState
 
 admin_router = Router()
@@ -182,7 +183,9 @@ async def add_moderator_set_telegram_id(message: Message, state: FSMContext):
         return
 
     telegram_id = int(message.text)
-    await Moderator(telegram_id=telegram_id, first_name="New Moderator").save()
+    await Moderator(
+        telegram_id=telegram_id, first_name="New Moderator", processing_message=None
+    ).save()
     await message.answer(
         Texts.Messages.add_moderator_success.format(telegram_id=telegram_id)
     )
@@ -218,16 +221,6 @@ async def remove_moderator_set_telegram_id(message: Message, state: FSMContext):
         return
 
     removing_moderator = await Moderator.get(telegram_id=int(message.text))
-    moderators = [m for m in await Moderator.all() if m.is_active]
-    if len(moderators) == 1 and await removing_moderator.get_queue_length() > 0:
-        await message.answer(Texts.Messages.remove_moderator_no_other_moderators)
-        await state.clear()
-        return
-
-    for index, moderator_message in enumerate(
-        await removing_moderator.get_all_messages()
-    ):
-        await moderators[index % len(moderators)].add_message(moderator_message)
 
     await message.answer(
         Texts.Messages.remove_moderator_confirm.format(
@@ -238,7 +231,12 @@ async def remove_moderator_set_telegram_id(message: Message, state: FSMContext):
             if removing_moderator.username
             else "",
             is_active="Да" if removing_moderator.is_active else "Нет",
-            queue_length=await removing_moderator.get_queue_length(),
+            messages_processed=await removing_moderator.get_processed_messages_count(),
+            last_activity=datetime.fromtimestamp(
+                removing_moderator.last_activity
+            ).strftime("%Y-%m-%d %H:%M:%S")
+            if removing_moderator.last_activity
+            else "",
         ),
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
@@ -270,6 +268,13 @@ async def remove_moderator_confirm(callback_query: CallbackQuery, state: FSMCont
         return
     if callback_query.data.startswith("confirm:"):
         telegram_id = int(callback_query.data.split(":")[1])
+        
+        removing_moderator = await Moderator.get(telegram_id=telegram_id)
+        if removing_moderator.processing_message:
+            await BotData.add_message_to_processing_queue(
+                removing_moderator.processing_message
+            )
+            
         await Moderator.delete(telegram_id=telegram_id)
         await callback_query.message.edit_text(
             text=Texts.Messages.remove_moderator_success.format(
@@ -306,6 +311,11 @@ async def cmd_list_moderators(message: Message, state: FSMContext):
                 last_name=moderator.last_name or "",
                 username=f"@{moderator.username}" if moderator.username else "",
                 is_active="Да" if moderator.is_active else "Нет",
-                queue_length=await moderator.get_queue_length(),
+                messages_processed=await moderator.get_processed_messages_count(),
+                last_activity=datetime.fromtimestamp(moderator.last_activity).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+                if moderator.last_activity
+                else "",
             )
         )

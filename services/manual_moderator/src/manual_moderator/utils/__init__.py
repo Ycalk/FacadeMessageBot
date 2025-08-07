@@ -1,6 +1,6 @@
 from .config import Config
 from .texts import Texts
-from .user_storage import UserStorage, Admin, Moderator
+from .user_storage import UserStorage, Admin, Moderator, BotData
 
 
 __all__ = [
@@ -9,4 +9,5 @@ __all__ = [
     "UserStorage",
     "Admin",
     "Moderator",
+    "BotData",
 ]
