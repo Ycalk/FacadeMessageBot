@@ -1,5 +1,12 @@
 from aiomax.types.updates import MessageCallbackUpdate
-from aiomax.types import NewMessageBody, TextFormat
+from aiomax.types import (
+    NewMessageBody,
+    TextFormat,
+    InlineKeyboardAttachmentRequest,
+    Keyboard,
+    CallbackButton,
+    ButtonIntent,
+)
 from aiomax.methods import AnswerCallback
 from aiomax import Bot
 from bot.utils import Texts, UserState
@@ -62,7 +69,21 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
                         city=city or "",
                         get_photo="Да" if get_photo else "Нет",
                     ),
-                    attachments=[],
+                    attachments=[
+                        InlineKeyboardAttachmentRequest(
+                            payload=Keyboard(
+                                buttons=[
+                                    [
+                                        CallbackButton(
+                                            text=Texts.Buttons.new_message,
+                                            payload="new_message",
+                                            intent=ButtonIntent.POSITIVE,
+                                        )
+                                    ],
+                                ],
+                            )
+                        )
+                    ],
                     notify=True,
                     format=TextFormat.MARKDOWN,
                 ),

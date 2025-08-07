@@ -17,6 +17,7 @@ from .commands import (
     message_command_filter,
     message_command_handler,
 )
+from .new_message import new_message, new_message_filter
 
 
 __all__ = [
@@ -43,4 +44,6 @@ __all__ = [
     "create_command_handler",
     "message_command_filter",
     "message_command_handler",
+    "new_message",
+    "new_message_filter",
 ]
