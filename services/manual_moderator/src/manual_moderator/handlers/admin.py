@@ -268,13 +268,13 @@ async def remove_moderator_confirm(callback_query: CallbackQuery, state: FSMCont
         return
     if callback_query.data.startswith("confirm:"):
         telegram_id = int(callback_query.data.split(":")[1])
-        
+
         removing_moderator = await Moderator.get(telegram_id=telegram_id)
         if removing_moderator.processing_message:
             await BotData.add_message_to_processing_queue(
                 removing_moderator.processing_message
             )
-            
+
         await Moderator.delete(telegram_id=telegram_id)
         await callback_query.message.edit_text(
             text=Texts.Messages.remove_moderator_success.format(
@@ -319,3 +319,53 @@ async def cmd_list_moderators(message: Message, state: FSMContext):
                 else "",
             )
         )
+
+
+# region Enable Auto Approve
+
+
+@admin_router.message(Command("enable_auto_approve"))
+async def cmd_enable_auto_approve(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+    await state.clear()
+    if await BotData.is_auto_approve_enabled():
+        await message.answer(Texts.Messages.enable_auto_approve_already_enabled)
+        return
+    await BotData.enable_auto_approve()
+    await message.answer(Texts.Messages.enable_auto_approve_success)
+
+
+# region Disable Auto Approve
+
+
+@admin_router.message(Command("disable_auto_approve"))
+async def cmd_disable_auto_approve(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+    await state.clear()
+    if not await BotData.is_auto_approve_enabled():
+        await message.answer(Texts.Messages.disable_auto_approve_already_disabled)
+        return
+    await BotData.disable_auto_approve()
+    await message.answer(Texts.Messages.disable_auto_approve_success)
+
+
+# region Bot Status
+
+
+@admin_router.message(Command("bot_status"))
+async def cmd_bot_status(message: Message, state: FSMContext):
+    if not message.from_user or not (await Admin.get_or_none(message.from_user.id)):
+        return
+    await state.clear()
+    await message.answer(
+        Texts.Messages.bot_status.format(
+            auto_approve_status="Включено"
+            if await BotData.is_auto_approve_enabled()
+            else "Отключено",
+            admin_count=len(await Admin.all()),
+            moderator_count=len(await Moderator.all()),
+            processing_queue_count=await BotData.get_processing_queue_length(),
+        )
+    )

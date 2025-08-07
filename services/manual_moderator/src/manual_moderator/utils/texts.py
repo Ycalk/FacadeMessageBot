@@ -11,7 +11,10 @@ class Texts:
             "/list_admins - список администраторов\n\n"
             "/add_moderator - добавить модератора\n"
             "/remove_moderator - удалить модератора\n"
-            "/list_moderators - список модераторов"
+            "/list_moderators - список модераторов\n\n"
+            "/enable_auto_approve - включить автоматическое одобрение сообщений\n"
+            "/disable_auto_approve - отключить автоматическое одобрение сообщений\n"
+            "/bot_status - статус бота"
         )
         moderator_start: Final[str] = (
             "Панель модератора\n\n"
@@ -95,6 +98,31 @@ class Texts:
             "Активен: {is_active}\n"
             "Сообщений обработано: {messages_processed}\n"
             "Последняя активность: {last_activity}"
+        )
+
+        # enable auto approve
+        enable_auto_approve_success: Final[str] = (
+            "Автоматическое одобрение сообщений успешно включено."
+        )
+        enable_auto_approve_already_enabled: Final[str] = (
+            "Автоматическое одобрение сообщений уже включено."
+        )
+
+        # disable auto approve
+        disable_auto_approve_success: Final[str] = (
+            "Автоматическое одобрение сообщений успешно отключено."
+        )
+        disable_auto_approve_already_disabled: Final[str] = (
+            "Автоматическое одобрение сообщений уже отключено."
+        )
+
+        # bot status
+        bot_status: Final[str] = (
+            "Статус бота:\n"
+            "Автоматическое одобрение сообщений: {auto_approve_status}\n"
+            "Количество администраторов: {admin_count}\n"
+            "Количество модераторов: {moderator_count}\n"
+            "Количество сообщений в очереди на обработку: {processing_queue_count}"
         )
 
         # start moderation

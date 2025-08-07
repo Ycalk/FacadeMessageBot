@@ -21,3 +21,18 @@ class BotData:
         if message_json:
             return Message.model_validate_json(message_json)  # type: ignore
         return None
+
+    @classmethod
+    async def enable_auto_approve(cls) -> None:
+        await UserStorage.redis.set(f"{cls.__name__.lower()}:auto_approve", "1")
+
+    @classmethod
+    async def disable_auto_approve(cls) -> None:
+        await UserStorage.redis.set(f"{cls.__name__.lower()}:auto_approve", "0")
+
+    @classmethod
+    async def is_auto_approve_enabled(cls) -> bool:
+        auto_approve = await UserStorage.redis.get(
+            f"{cls.__name__.lower()}:auto_approve"
+        )  # type: ignore
+        return auto_approve == b"1" if auto_approve else False
