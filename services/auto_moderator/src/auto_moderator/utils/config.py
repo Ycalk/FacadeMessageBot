@@ -7,6 +7,9 @@ load_dotenv()
 
 class Config:
     MISTRAL_API_KEY: Final[str] = os.getenv("MISTRAL_API_KEY", "")
+    MAXIMAL_CATEGORY_SCORE_FOR_APPROVE: Final[float] = float(
+        os.getenv("MAXIMAL_CATEGORY_SCORE_FOR_APPROVE", 0.3)
+    )
 
     # RabbitMQ configuration
     RABBIT_PORT: Final[int] = int(os.getenv("RABBIT_PORT", 5672))
