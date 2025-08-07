@@ -26,6 +26,8 @@ from .handlers import (
     create_command_handler,
     message_command_filter,
     message_command_handler,
+    new_message,
+    new_message_filter,
 )
 from .bot import bot
 from shared_models.database import get_tortoise_orm_config
@@ -45,6 +47,7 @@ async def main():
     bot.register_handler(confirm_city, filter=confirm_city_filter)
     bot.register_handler(get_photo_solution, filter=get_photo_solution_filter)
     bot.register_handler(confirm_fields, filter=confirm_fields_filter)
+    bot.register_handler(new_message, filter=new_message_filter)
 
     await Tortoise.init(
         config=get_tortoise_orm_config(
