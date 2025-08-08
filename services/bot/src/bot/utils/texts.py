@@ -98,3 +98,4 @@ class Texts:
 
     class Buttons:
         confirm_start: Final[str] = "Подтвердить"
+        new_message: Final[str] = "Новое сообщение"

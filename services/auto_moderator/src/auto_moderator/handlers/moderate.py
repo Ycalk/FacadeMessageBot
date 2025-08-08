@@ -1,5 +1,6 @@
 from faststream.rabbit import RabbitRouter
 from logging import Logger
+from auto_moderator.utils import Config
 from shared_models.messaging.queues.auto_moderator import auto_moderator_queue
 from shared_models.messaging.queues.manual_moderator import manual_moderator_queue
 from shared_models.messaging.queues.bot import bot_moderate_response_queue
@@ -31,11 +32,12 @@ async def moderate(
     response = await mistral.classifiers.moderate_async(
         model="mistral-moderation-latest", inputs=[message_input.message.text]
     )
-    if response.results[0].categories:
+    if response.results[0].category_scores:
         failed_categories = [
             category
-            for category in response.results[0].categories
-            if response.results[0].categories[category]
+            for category in response.results[0].category_scores
+            if response.results[0].category_scores[category]
+            > Config.MAXIMAL_CATEGORY_SCORE_FOR_APPROVE
         ]
         result = ModerationResult(
             message=message_input.message,
