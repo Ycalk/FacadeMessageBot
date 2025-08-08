@@ -270,10 +270,7 @@ async def remove_moderator_confirm(callback_query: CallbackQuery, state: FSMCont
         telegram_id = int(callback_query.data.split(":")[1])
 
         removing_moderator = await Moderator.get(telegram_id=telegram_id)
-        if removing_moderator.processing_message:
-            await BotData.add_message_to_processing_queue(
-                removing_moderator.processing_message
-            )
+        await removing_moderator.mark_inactive()
 
         await Moderator.delete(telegram_id=telegram_id)
         await callback_query.message.edit_text(
