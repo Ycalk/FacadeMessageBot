@@ -95,6 +95,9 @@ class Texts:
         auto_moderation_completed: Final[str] = (
             "Ваше сообщение прошло автоматическую модерацию."
         )
+        manual_moderation_completed: Final[str] = (
+            "Ваше сообщение прошло ручную модерацию."
+        )
 
     class Buttons:
         confirm_start: Final[str] = "Подтвердить"

@@ -14,6 +14,18 @@ services:
       - POSTGRES_DB=mydatabase
     volumes:
       - postgres-data:/var/lib/postgresql/data
+  
+  redis:
+    image: redis:8.2.0-alpine
+    restart: always
+    volumes:
+      - redis-data:/data
+    command: >
+      redis-server
+      --save 60 1
+      --save 300 10
+      --appendonly yes
+      --appendfsync everysec
 
   bot:
     build:
@@ -39,7 +51,20 @@ services:
       - RABBIT_HOST=rabbitmq
     env_file:
       - secrets.env
+  
+  manual-moderator:
+    build:
+      context: services/manual_moderator
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - REDIS_HOST=redis
+    env_file:
+      - secrets.env
+  
 
 volumes:
   rabbitmq-data:
   postgres-data:
+  redis-data:
