@@ -60,7 +60,10 @@ async def moderation_result_handler(
                     )
 
             elif moderation_result.source == ModeratorType.MANUAL:
-                if message.state == MessageState.PENDING_MANUAL_MODERATION:
+                if message.state in (
+                    MessageState.PENDING_MANUAL_MODERATION,
+                    MessageState.PENDING_AUTO_MODERATION,
+                ):
                     message.state = MessageState.PENDING_MEDIA_FACADE_MODERATION
                     await message.save()
 
