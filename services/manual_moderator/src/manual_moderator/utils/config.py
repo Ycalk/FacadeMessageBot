@@ -19,7 +19,7 @@ class Config:
     RABBIT_PASSWORD: Final[str] = os.getenv("RABBIT_PASSWORD", "guest")
 
     # Secrets
-    BOT_TOKEN: Final[str] = os.getenv("BOT_TOKEN", "")
+    BOT_TOKEN: Final[str] = os.getenv("TELEGRAM_BOT_TOKEN", "")
     MAIN_ADMIN_ID: Final[int] = int(os.getenv("MAIN_ADMIN_ID", 0))
 
     # Redis configuration
