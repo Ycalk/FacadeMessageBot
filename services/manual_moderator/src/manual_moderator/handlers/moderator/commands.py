@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from manual_moderator.utils import Moderator, Texts, BotData
+from manual_moderator.utils import Moderator, Texts
 
 moderator_commands_router = Router()
 
@@ -36,9 +36,5 @@ async def cmd_stop_moderation(message: Message, state: FSMContext):
     if not moderator.is_active:
         await message.answer(Texts.Messages.stop_moderation_already_inactive)
     else:
-        moderator.is_active = False
-        await moderator.save()
-        if moderator.processing_message:
-            await BotData.add_message_to_processing_queue(moderator.processing_message)
-        moderator.processing_message = None
+        await moderator.mark_inactive()
         await message.answer(Texts.Messages.stop_moderation_success)

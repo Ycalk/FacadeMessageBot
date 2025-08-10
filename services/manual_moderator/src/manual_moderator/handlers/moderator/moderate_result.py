@@ -27,7 +27,6 @@ async def moderate_result_callback_handler(callback_query: CallbackQuery):
         or not callback_query.data
     ):
         return
-
     if not moderator.processing_message:
         if moderator.is_active:
             await callback_query.answer(
