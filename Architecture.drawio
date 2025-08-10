@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0" version="28.0.7">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" version="28.0.7">
   <diagram name="Страница — 1" id="RNkWqcu_Yp0QN5_10Zar">
-    <mxGraphModel dx="-3659" dy="-449" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="-1985" dy="437" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -11,7 +11,7 @@
           <mxGeometry x="6070" y="2826.25" width="570" height="370" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-101" value="&lt;b&gt;ManualModerator&lt;/b&gt;" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;container=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="6370" y="3360" width="490" height="290" as="geometry" />
+          <mxGeometry x="5470" y="3360" width="1400" height="800" as="geometry" />
         </mxCell>
         <mxCell id="H9bcBR6qPRvxeY8WmCTQ-69" value="&lt;b&gt;Bot&lt;/b&gt;" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;container=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="6740" y="2640" width="720" height="650" as="geometry" />
@@ -361,15 +361,15 @@
             <mxRectangle width="150" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="qpRpZEOFs-68HZz7kUn_-1" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;fillStyle=cross-hatch;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="H9bcBR6qPRvxeY8WmCTQ-495">
+        <mxCell id="qpRpZEOFs-68HZz7kUn_-1" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;fillStyle=cross-hatch;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="H9bcBR6qPRvxeY8WmCTQ-495" vertex="1">
           <mxGeometry y="180" width="180" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="qpRpZEOFs-68HZz7kUn_-2" style="shape=partialRectangle;connectable=1;fillColor=none;top=0;left=0;bottom=0;right=0;editable=1;overflow=hidden;whiteSpace=wrap;html=1;fillStyle=cross-hatch;movable=1;resizable=1;rotatable=1;deletable=1;locked=0;" vertex="1" parent="qpRpZEOFs-68HZz7kUn_-1">
+        <mxCell id="qpRpZEOFs-68HZz7kUn_-2" style="shape=partialRectangle;connectable=1;fillColor=none;top=0;left=0;bottom=0;right=0;editable=1;overflow=hidden;whiteSpace=wrap;html=1;fillStyle=cross-hatch;movable=1;resizable=1;rotatable=1;deletable=1;locked=0;" parent="qpRpZEOFs-68HZz7kUn_-1" vertex="1">
           <mxGeometry width="30" height="30" as="geometry">
             <mxRectangle width="30" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="qpRpZEOFs-68HZz7kUn_-3" value="send_photo: bool" style="shape=partialRectangle;connectable=1;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;whiteSpace=wrap;html=1;fillStyle=cross-hatch;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;" vertex="1" parent="qpRpZEOFs-68HZz7kUn_-1">
+        <mxCell id="qpRpZEOFs-68HZz7kUn_-3" value="send_photo: bool" style="shape=partialRectangle;connectable=1;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;whiteSpace=wrap;html=1;fillStyle=cross-hatch;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;" parent="qpRpZEOFs-68HZz7kUn_-1" vertex="1">
           <mxGeometry x="30" width="150" height="30" as="geometry">
             <mxRectangle width="150" height="30" as="alternateBounds" />
           </mxGeometry>
@@ -809,6 +809,98 @@
         </mxCell>
         <mxCell id="uq-GUNMcKlEvzSwkHj1_-1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;NoAvailableTime&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ exception: Literal[&quot;no_available_time&quot;]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="5768" y="2944.5" width="220" height="52.5" as="geometry" />
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;ModerationLoop&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- bot: Bot&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;start():&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CoroutineType[&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- _check_for_activity():&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CoroutineType[&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-&amp;nbsp;_auto_approve_messages():&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CoroutineType[&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;None]&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="5988" y="3430" width="360" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-2" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;UserStorage&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ redis: Redis&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ broker: RabbitBroker&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;init(cls, redis_host: str, redis_port: int, redis_db: int, broker: RabbitBroker):&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CoroutineType[&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ close(): CoroutineType[None]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="6184" y="3642" width="532" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-3" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;BaseUser&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ telegram_id: int&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;username: str | None&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;first_name: str&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;last_name: str | None&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;get(cls, telegram_id: int):&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CoroutineType[&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;BaseUser]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;+ get_or_none(cls, telegram_id: int): CoroutineType[BaseUser | None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ all(cls): CoroutineType[list[BaseUser]]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;exists&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;(cls): CoroutineType[bool]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;create&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;(cls, telegram_id: int, **kwargs)&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;: CoroutineType[BaseUser]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;delete(cls, telegram_id: int)&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;: CoroutineType[None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;save()&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;: CoroutineType[None]&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="6230" y="3882" width="440" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;startArrow=diamondThin;startFill=0;startSize=15;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="qRXKTPkaxq0Stw_BH7tz-2" target="qRXKTPkaxq0Stw_BH7tz-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="6704" y="3946" as="sourcePoint" />
+            <mxPoint x="6594" y="3792" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-5" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Admin&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="6666" y="3812" width="177" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="qRXKTPkaxq0Stw_BH7tz-5" target="qRXKTPkaxq0Stw_BH7tz-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="6732" y="3962" />
+              <mxPoint x="6732" y="3962" />
+              <mxPoint x="6732" y="3987" />
+            </Array>
+            <mxPoint x="6944" y="3940" as="sourcePoint" />
+            <mxPoint x="6625" y="3927" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-7" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Moderator&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ is_active: bool&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;last_activity: int | None&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;message_processing_start: int | None&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;processing_message: shared_models.messaging.Message | None&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;add_processed_message(message: Message):&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CoroutineType[&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;+ get_processed_messages_count(): CoroutineType[int]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_all_processed_messages(): CoroutineType[list[Message]]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;approve_message(): CoroutineType[None]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;reject_message(): CoroutineType[None]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+&amp;nbsp;mark_inactive():&amp;nbsp;CoroutineType[None]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="5704" y="3882" width="440" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=0;endSize=10;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="qRXKTPkaxq0Stw_BH7tz-7" target="qRXKTPkaxq0Stw_BH7tz-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="6200" y="3987" />
+              <mxPoint x="6200" y="3987" />
+            </Array>
+            <mxPoint x="6272" y="4002" as="sourcePoint" />
+            <mxPoint x="6210" y="4032" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;startArrow=diamondThin;startFill=0;startSize=15;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="qRXKTPkaxq0Stw_BH7tz-2" target="qRXKTPkaxq0Stw_BH7tz-5">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="6450" y="3772" as="sourcePoint" />
+            <mxPoint x="6630" y="3952" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;startArrow=diamondThin;startFill=0;startSize=15;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.807;entryY=0.001;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="qRXKTPkaxq0Stw_BH7tz-2" target="qRXKTPkaxq0Stw_BH7tz-7">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="6450" y="3762" as="sourcePoint" />
+            <mxPoint x="6060" y="3872" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="6450" y="3824" />
+              <mxPoint x="6059" y="3824" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-11" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;BotData&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;get_processing_queue_length(cls)&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;: CoroutineType[int]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+&amp;nbsp;add_message_to_processing_queue(cls, message: Message):&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CoroutineType[&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;+ get_new_processing_message(cls): CoroutineType[Message | None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ enable_auto_approve(cls)&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;: CoroutineType[None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;disable_auto_approve(cls)&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;: CoroutineType[None]&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;+&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;is_auto_approve_enabled(cls)&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;: CoroutineType[bool]&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="5530" y="3692" width="490" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;startArrow=diamondThin;startFill=0;startSize=15;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="qRXKTPkaxq0Stw_BH7tz-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="6451" y="3752" as="sourcePoint" />
+            <mxPoint x="6060" y="3882" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="6451" y="3824" />
+              <mxPoint x="6060" y="3824" />
+              <mxPoint x="6060" y="3772" />
+              <mxPoint x="6020" y="3772" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;startArrow=diamondThin;startFill=0;startSize=15;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="H9bcBR6qPRvxeY8WmCTQ-104" target="qRXKTPkaxq0Stw_BH7tz-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="6170" y="3580" as="sourcePoint" />
+            <mxPoint x="6386" y="3663" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="6500" y="3620" />
+              <mxPoint x="6168" y="3620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="qRXKTPkaxq0Stw_BH7tz-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.591;entryY=0.004;entryDx=0;entryDy=0;endArrow=none;endFill=0;startArrow=diamondThin;startFill=0;startSize=15;entryPerimeter=0;" edge="1" parent="1" target="qRXKTPkaxq0Stw_BH7tz-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="6500" y="3590" as="sourcePoint" />
+            <mxPoint x="6438" y="3620" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="6500" y="3642" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
