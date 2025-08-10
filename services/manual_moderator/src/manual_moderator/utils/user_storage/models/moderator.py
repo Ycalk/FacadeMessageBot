@@ -19,11 +19,14 @@ class Moderator(BaseUser):
     last_activity: Annotated[
         int | None, Field(description="Timestamp of the last activity of the moderator")
     ] = None
+    message_processing_start: Annotated[
+        int | None,
+        Field(description="Timestamp when the message processing started"),
+    ] = None
     processing_message: Annotated[
         Message | None,
         Field(
             description="Message currently being processed by the moderator",
-            exclude=True,
         ),
     ] = None
 
@@ -70,7 +73,9 @@ class Moderator(BaseUser):
 
     async def mark_inactive(self) -> None:
         self.is_active = False
-        if self.processing_message:
-            await BotData.add_message_to_processing_queue(self.processing_message)
+        message = self.processing_message
         self.processing_message = None
+        self.message_processing_start = None
         await self.save()
+        if message:
+            await BotData.add_message_to_processing_queue(message)

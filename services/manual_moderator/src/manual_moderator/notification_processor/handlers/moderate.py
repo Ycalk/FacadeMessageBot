@@ -1,7 +1,7 @@
 from faststream.rabbit import RabbitRouter
 from logging import Logger
 from aiogram import Bot
-from shared_models.messaging.queues.auto_moderator import auto_moderator_queue
+from shared_models.messaging.queues.manual_moderator import manual_moderator_queue
 from shared_models.messaging.queues.bot import bot_moderate_response_queue
 from shared_models.messaging.exchanges import moderator_exchange, bot_exchange
 from shared_models.messaging import MessageInput, ModerationResult
@@ -18,7 +18,7 @@ bot_moderate_response = moderate_router.publisher(
 )
 
 
-@moderate_router.subscriber(auto_moderator_queue, moderator_exchange)
+@moderate_router.subscriber(manual_moderator_queue, moderator_exchange)
 async def moderate(
     message_input: MessageInput, logger: Logger = Context(), bot: Bot = Context()
 ):
@@ -33,6 +33,7 @@ async def moderate(
                 reason="Auto-approve is enabled.",
             )
         )
+        return
 
     moderators = [
         moderator for moderator in await Moderator.all() if moderator.is_active

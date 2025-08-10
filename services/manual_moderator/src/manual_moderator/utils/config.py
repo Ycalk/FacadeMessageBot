@@ -9,7 +9,7 @@ load_dotenv()
 class Config:
     TIME_ZONE: Final[ZoneInfo] = ZoneInfo(os.getenv("TIME_ZONE", "Europe/Moscow"))
     INACTIVITY_TIMEOUT_MINUTES: Final[int] = int(
-        os.getenv("INACTIVITY_TIMEOUT_MINUTES", 10)
+        os.getenv("INACTIVITY_TIMEOUT_MINUTES", 1)
     )
 
     # RabbitMQ configuration
