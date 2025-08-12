@@ -12,8 +12,6 @@ from .handlers import (
     write_message_filter,
     get_message,
     get_message_filter,
-    add_name_solution,
-    add_name_solution_filter,
     get_name,
     get_name_filter,
     add_city_solution,
@@ -46,7 +44,6 @@ async def main():
     bot.register_handler(send_message_handler, filter=send_message_filter)
     bot.register_handler(write_message_handler, filter=write_message_filter)
     bot.register_handler(get_message, filter=get_message_filter)
-    bot.register_handler(add_name_solution, filter=add_name_solution_filter)
     bot.register_handler(get_name, filter=get_name_filter)
     bot.register_handler(add_city_solution, filter=add_city_solution_filter)
     bot.register_handler(get_city, filter=get_city_filter)

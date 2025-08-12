@@ -3,13 +3,12 @@ from aiomax.types import (
     InlineKeyboardAttachmentRequest,
     TextFormat,
     Keyboard,
-    CallbackButton,
-    ButtonIntent,
+    MessageButton,
 )
 from aiomax import Bot
 from aiomax.methods import SendMessage
 from bot.utils import Texts, UserState, Config
-from bot.bot import state_machine
+from bot.bot import state_machine, name_validator
 
 
 async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
@@ -29,38 +28,33 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
         )
         return
 
+    if await name_validator(update.message.sender.first_name):
+        attachments = [
+            InlineKeyboardAttachmentRequest(
+                payload=Keyboard(
+                    buttons=[
+                        [
+                            MessageButton(text=update.message.sender.first_name),
+                        ]
+                    ]
+                )
+            )
+        ]
+    else:
+        attachments = []
     await bot(
         SendMessage(
             user_id=update.message.sender.user_id,
-            text=Texts.Messages.add_name,
+            text=Texts.Messages.get_name_with_name_from_profile
+            if attachments
+            else Texts.Messages.get_name,
             text_format=TextFormat.MARKDOWN,
-            attachments=[
-                InlineKeyboardAttachmentRequest(
-                    payload=Keyboard(
-                        buttons=[
-                            [
-                                CallbackButton(
-                                    text="Да",
-                                    payload="add_name",
-                                    intent=ButtonIntent.POSITIVE,
-                                ),
-                                CallbackButton(
-                                    text="Нет",
-                                    payload="cancel",
-                                    intent=ButtonIntent.NEGATIVE,
-                                ),
-                            ]
-                        ]
-                    )
-                )
-            ],
-        )
+            notify=True,
+            attachments=attachments,
+        ),
     )
 
-    state_machine.set_state(update.message.sender.user_id, UserState.ADD_NAME_SOLUTION)
-    state_machine.update_context(
-        update.message.sender.user_id, message=update.message.body.text
-    )
+    state_machine.set_state(update.message.sender.user_id, UserState.GET_NAME)
 
 
 def get_message_filter(update: MessageCreatedUpdate) -> bool:
