@@ -4,8 +4,12 @@ from .utils import Config
 from .notification_processor import app
 from .handlers import (
     start_handler,
-    confirm_start,
-    confirm_start_filter,
+    confirm_terms_of_use,
+    confirm_terms_of_use_filter,
+    send_message_handler,
+    send_message_filter,
+    write_message_handler,
+    write_message_filter,
     get_message,
     get_message_filter,
     add_name_solution,
@@ -38,7 +42,9 @@ async def main():
     bot.register_handler(create_command_handler, filter=create_command_filter)
     bot.register_handler(message_command_handler, filter=message_command_filter)
     bot.register_handler(start_handler)
-    bot.register_handler(confirm_start, filter=confirm_start_filter)
+    bot.register_handler(confirm_terms_of_use, filter=confirm_terms_of_use_filter)
+    bot.register_handler(send_message_handler, filter=send_message_filter)
+    bot.register_handler(write_message_handler, filter=write_message_filter)
     bot.register_handler(get_message, filter=get_message_filter)
     bot.register_handler(add_name_solution, filter=add_name_solution_filter)
     bot.register_handler(get_name, filter=get_name_filter)

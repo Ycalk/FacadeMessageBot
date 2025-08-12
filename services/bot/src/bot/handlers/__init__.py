@@ -1,4 +1,12 @@
-from .start import start_handler, confirm_start, confirm_start_filter
+from .start import (
+    start_handler,
+    confirm_terms_of_use,
+    confirm_terms_of_use_filter,
+    send_message_handler,
+    send_message_filter,
+    write_message_handler,
+    write_message_filter,
+)
 from .get_message import get_message, get_message_filter
 from .name import add_name_solution, add_name_solution_filter, get_name, get_name_filter
 from .city import (
@@ -22,8 +30,8 @@ from .new_message import new_message, new_message_filter
 
 __all__ = [
     "start_handler",
-    "confirm_start",
-    "confirm_start_filter",
+    "confirm_terms_of_use",
+    "confirm_terms_of_use_filter",
     "get_message",
     "get_message_filter",
     "add_name_solution",
@@ -46,4 +54,8 @@ __all__ = [
     "message_command_handler",
     "new_message",
     "new_message_filter",
+    "send_message_handler",
+    "send_message_filter",
+    "write_message_handler",
+    "write_message_filter",
 ]
