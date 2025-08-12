@@ -91,7 +91,9 @@ async def moderation_result_handler(
             await bot(
                 SendMessage(
                     user_id=message.user.max_id,
-                    text=Texts.Messages.moderation_failed,
+                    text=Texts.Messages.auto_moderation_rejected
+                    if moderation_result.source == ModeratorType.AUTO
+                    else Texts.Messages.manual_moderation_rejected,
                     text_format=TextFormat.MARKDOWN,
                 )
             )
