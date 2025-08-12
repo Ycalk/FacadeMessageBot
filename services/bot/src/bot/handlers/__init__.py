@@ -17,11 +17,9 @@ from .city import (
 )
 from .get_photo_solution import get_photo_solution, get_photo_solution_filter
 from .confirm_fields import confirm_fields, confirm_fields_filter
-from .commands import (
+from .create_command import (
     create_command_filter,
     create_command_handler,
-    message_command_filter,
-    message_command_handler,
 )
 from .new_message import new_message, new_message_filter
 
@@ -44,8 +42,6 @@ __all__ = [
     "confirm_fields_filter",
     "create_command_filter",
     "create_command_handler",
-    "message_command_filter",
-    "message_command_handler",
     "new_message",
     "new_message_filter",
     "send_message_handler",

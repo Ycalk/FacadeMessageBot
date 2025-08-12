@@ -24,8 +24,6 @@ from .handlers import (
     confirm_fields_filter,
     create_command_filter,
     create_command_handler,
-    message_command_filter,
-    message_command_handler,
     new_message,
     new_message_filter,
 )
@@ -36,7 +34,6 @@ from tortoise import Tortoise
 
 async def main():
     bot.register_handler(create_command_handler, filter=create_command_filter)
-    bot.register_handler(message_command_handler, filter=message_command_filter)
     bot.register_handler(start_handler)
     bot.register_handler(confirm_terms_of_use, filter=confirm_terms_of_use_filter)
     bot.register_handler(send_message_handler, filter=send_message_filter)
