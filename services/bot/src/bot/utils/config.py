@@ -35,6 +35,15 @@ class Config:
     TERMS_OF_USE_URL: Final[str] = os.getenv(
         "TERMS_OF_USE_URL", "https://example.com/terms-of-use"
     )
+    MESSAGES_TIME_OUT_MINUTES: Final[int] = int(
+        os.getenv("MESSAGES_TIME_OUT_MINUTES", 1)
+    )
+    MAXIMUM_MESSAGES_PER_USER: Final[int] = int(
+        os.getenv("MAXIMUM_MESSAGES_PER_USER", 3)
+    )
+    MAXIMUM_ATTEMPTS_PER_MESSAGE: Final[int] = int(
+        os.getenv("MAXIMUM_ATTEMPTS_PER_MESSAGE", 3)
+    )
 
     COORDINATE_EXTRACTOR_URL: Final[str] = os.getenv(
         "COORDINATE_EXTRACTOR_URL", "https://nominatim.openstreetmap.org/reverse"
