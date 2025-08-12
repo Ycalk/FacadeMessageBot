@@ -11,6 +11,7 @@ from bot.bot import state_machine
 
 
 async def confirm_terms_of_use(update: MessageCallbackUpdate, bot: Bot) -> None:
+    # Отправляем ответ о том что сообщение пройдет модерацию
     await bot(
         AnswerCallback(
             callback_id=update.callback.callback_id,
@@ -38,6 +39,8 @@ async def confirm_terms_of_use(update: MessageCallbackUpdate, bot: Bot) -> None:
     )
 
     state_machine.set_state(update.callback.user.user_id, UserState.WRITE_MESSAGE)
+    # Создаем пользователя
+    # Используется update_or_create чтобы не было дубликатов (на всякий случай)
     await User.update_or_create(
         defaults={
             "first_name": update.callback.user.first_name,

@@ -1,6 +1,6 @@
 from aiomax.types.updates import MessageCallbackUpdate
 from aiomax.types import NewMessageBody, TextFormat
-from aiomax.methods import AnswerCallback, SendMessage
+from aiomax.methods import AnswerCallback
 from ..utils import Texts, UserState
 from aiomax import Bot
 from shared_models.database import User
@@ -12,20 +12,14 @@ async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
         AnswerCallback(
             callback_id=update.callback.callback_id,
             message=NewMessageBody(
-                text=None,
+                text=Texts.Messages.get_message,
                 attachments=[],
                 notify=True,
                 format=TextFormat.MARKDOWN,
             ),
         )
     )
-    await bot(
-        SendMessage(
-            user_id=update.callback.user.user_id,
-            text=Texts.Messages.get_message,
-            text_format=TextFormat.MARKDOWN,
-        )
-    )
+
     await User.update_or_create(
         defaults={
             "first_name": update.callback.user.first_name,

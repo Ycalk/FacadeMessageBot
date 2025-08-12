@@ -14,6 +14,8 @@ from bot.bot import state_machine, name_validator
 async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
+
+    # Валидация текста сообщения
     if (
         not update.message.body.text
         or len(update.message.body.text) > Config.MAX_MESSAGE_LENGTH
@@ -28,7 +30,10 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
         )
         return
 
+    # Следующий шаг - запрос имени пользователя
+
     if await name_validator(update.message.sender.first_name):
+        # Если имя пользователя валидно, добавляем кнопку с именем
         attachments = [
             InlineKeyboardAttachmentRequest(
                 payload=Keyboard(
@@ -54,7 +59,12 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
         ),
     )
 
+    # Устанавливаем состояние пользователя на получение имени
     state_machine.set_state(update.message.sender.user_id, UserState.GET_NAME)
+    # Обновляем контекст пользователя: сохраняем текст сообщения
+    state_machine.update_context(
+        update.message.sender.user_id, message=update.message.body.text
+    )
 
 
 def get_message_filter(update: MessageCreatedUpdate) -> bool:
