@@ -10,7 +10,9 @@ from shared_models.database import User
 
 
 async def send_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None:
+    # Проверяем, новый пользователь или нет
     if await User.get_or_none(max_id=update.callback.user.user_id) is None:
+        # Если пользователь новый, отправляем сообщение с условиями использования
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,
@@ -43,10 +45,14 @@ async def send_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None:
             )
         )
 
+        # Устанавливаем состояние пользователя на реакцию
+        # на кнопку подтверждения условий использования
         state_machine.set_state(
             update.callback.user.user_id, UserState.CONFIRM_TERMS_OF_USE
         )
     else:
+        # Если пользователь не новый, отправляем сообщение с кнопкой "Написать сообщение"
+        # и подписью с предупреждением, что сообщение пройдет модерацию
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,

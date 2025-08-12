@@ -15,6 +15,7 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
 
+    # Проверяем корректность имени пользователя
     if (
         not update.message.body.text
         or len(update.message.body.text) < 1
@@ -50,7 +51,9 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
         )
     )
 
+    # Устанавливаем состояние пользователя на получение города
     state_machine.set_state(update.message.sender.user_id, UserState.GET_CITY)
+    # Обновляем контекст пользователя: сохраняем имя пользователя
     state_machine.update_context(
         update.message.sender.user_id, name=update.message.body.text.capitalize()
     )

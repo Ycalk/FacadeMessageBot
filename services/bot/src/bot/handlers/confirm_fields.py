@@ -7,7 +7,7 @@ from aiomax.types import (
     CallbackButton,
     ButtonIntent,
 )
-from aiomax.methods import AnswerCallback
+from aiomax.methods import AnswerCallback, SendMessage
 from aiomax import Bot
 from bot.utils import Texts, UserState
 from bot.bot import state_machine
@@ -24,6 +24,8 @@ from shared_models.messaging import Message as MessageSharedModel
 
 async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "start_over":
+        # Пользователь хочет начать заново,
+        # сбрасываем контекст и устанавливаем состояние на ввод сообщения
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,
@@ -41,11 +43,11 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
     elif update.callback.payload == "confirm_fields":
         user = await User.get_or_none(max_id=update.callback.user.user_id)
         message = state_machine.get_context(update.callback.user.user_id, "message")
-        get_photo = state_machine.get_context(update.callback.user.user_id, "get_photo")
         name = state_machine.get_context(update.callback.user.user_id, "name")
         city = state_machine.get_context(update.callback.user.user_id, "city")
 
-        if not message or (get_photo is None) or not user:
+        if not message or not name or not city or not user:
+            # Если какое-то из полей пустое, отправляем сообщение об ошибке
             await bot(
                 AnswerCallback(
                     callback_id=update.callback.callback_id,
@@ -65,39 +67,48 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
                 message=NewMessageBody(
                     text=Texts.Messages.confirm_fields.format(
                         message=message,
-                        name=name or "",
-                        city=city or "",
-                        get_photo="Да" if get_photo else "Нет",
+                        name=name,
+                        city=city,
                     ),
-                    attachments=[
-                        InlineKeyboardAttachmentRequest(
-                            payload=Keyboard(
-                                buttons=[
-                                    [
-                                        CallbackButton(
-                                            text=Texts.Buttons.new_message,
-                                            payload="new_message",
-                                            intent=ButtonIntent.POSITIVE,
-                                        )
-                                    ],
-                                ],
-                            )
-                        )
-                    ],
+                    attachments=[],
                     notify=True,
                     format=TextFormat.MARKDOWN,
                 ),
             )
         )
+        await bot(
+            SendMessage(
+                user_id=update.callback.user.user_id,
+                text=Texts.Messages.start_moderation,
+                attachments=[
+                    InlineKeyboardAttachmentRequest(
+                        payload=Keyboard(
+                            buttons=[
+                                [
+                                    CallbackButton(
+                                        text=Texts.Buttons.new_message,
+                                        payload="new_message",
+                                        intent=ButtonIntent.POSITIVE,
+                                    )
+                                ],
+                            ],
+                        )
+                    )
+                ],
+            )
+        )
+
+        # Создаем новое сообщение с подтвержденными полями
         new_message = await Message.create(
             user=user,
             text=message,
             name=name,
             city=city,
-            send_photo=get_photo,
+            send_photo=True,
             state=MessageState.PENDING_AUTO_MODERATION,
         )
 
+        # Отправляем новое сообщение в очередь авто-модерации
         await broker.publish(
             MessageInput(
                 message=MessageSharedModel(

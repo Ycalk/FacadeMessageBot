@@ -7,6 +7,7 @@ from bot.utils import Texts, UserState
 
 
 async def write_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None:
+    # Реакция на сообщение о том, что сообщение пройдет модерацию
     await bot(
         AnswerCallback(
             callback_id=update.callback.callback_id,
@@ -18,6 +19,8 @@ async def write_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None
             ),
         )
     )
+    # Начинаем сбор послания пользователя
+    # Сначала спрашиваем сообщение, которое пользователь хочет отправить
     await bot(
         SendMessage(
             user_id=update.callback.user.user_id,
