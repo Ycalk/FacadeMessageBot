@@ -2,7 +2,9 @@ from enum import StrEnum
 
 
 class UserState(StrEnum):
-    CONFIRM_START = "confirm_start"
+    SEND_MESSAGE = "send_message"
+    CONFIRM_TERMS_OF_USE = "confirm_terms_of_use"
+    WRITE_MESSAGE = "write_message"
     GET_MESSAGE = "get_message"
     ADD_NAME_SOLUTION = "add_name_solution"
     GET_NAME = "get_name"

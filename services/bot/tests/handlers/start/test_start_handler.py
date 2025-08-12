@@ -30,7 +30,8 @@ async def test_start_handler_behavior(
         await asyncio.wait_for(event.wait(), timeout=2)
     finally:
         assert (
-            state_machine.get_state(user_with_photo.user_id) == UserState.CONFIRM_START
+            state_machine.get_state(user_with_photo.user_id)
+            == UserState.CONFIRM_TERMS_OF_USE
         )
 
         assert len(test_session.requests) == 2
@@ -54,5 +55,5 @@ async def test_start_handler_behavior(
 
         button = buttons[0][0]
         assert isinstance(button, CallbackButton)
-        assert button.text == Texts.Buttons.confirm_start
+        assert button.text == Texts.Buttons.confirm_terms_of_use
         assert button.payload == "confirm_start"

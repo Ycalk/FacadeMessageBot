@@ -1,12 +1,11 @@
 from aiomax.types.updates import BotStartedUpdate
 from aiomax.types.attachment_requests import InlineKeyboardAttachmentRequest
-from aiomax.types.keyboard import CallbackButton, Keyboard, LinkButton
+from aiomax.types.keyboard import CallbackButton, Keyboard
 from aiomax.types import TextFormat, ButtonIntent
 from aiomax.methods import SendMessage
 from aiomax import Bot
 from bot.bot import state_machine
-from bot.utils import Texts, UserState, Config
-from shared_models.database import User
+from bot.utils import Texts, UserState
 
 
 async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
@@ -15,36 +14,21 @@ async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
             user_id=update.user.user_id,
             text=Texts.Messages.start,
             text_format=TextFormat.MARKDOWN,
+            attachments=[
+                InlineKeyboardAttachmentRequest(
+                    payload=Keyboard(
+                        buttons=[
+                            [
+                                CallbackButton(
+                                    text=Texts.Buttons.send_message,
+                                    payload="send_message",
+                                    intent=ButtonIntent.POSITIVE,
+                                )
+                            ],
+                        ]
+                    )
+                )
+            ],
         )
     )
-    if await User.get_or_none(max_id=update.user.user_id) is None:
-        await bot(
-            SendMessage(
-                user_id=update.user.user_id,
-                text=Texts.Messages.ask_confirm,
-                text_format=TextFormat.MARKDOWN,
-                attachments=[
-                    InlineKeyboardAttachmentRequest(
-                        payload=Keyboard(
-                            buttons=[
-                                [
-                                    LinkButton(
-                                        text=Texts.Buttons.terms_of_use,
-                                        url=Config.TERMS_OF_USE_URL,
-                                    )
-                                ],
-                                [
-                                    CallbackButton(
-                                        text=Texts.Buttons.confirm_start,
-                                        payload="confirm_start",
-                                        intent=ButtonIntent.POSITIVE,
-                                    )
-                                ],
-                            ]
-                        )
-                    )
-                ],
-            )
-        )
-
-        state_machine.set_state(update.user.user_id, UserState.CONFIRM_START)
+    state_machine.set_state(update.user.user_id, UserState.SEND_MESSAGE)

@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from bot.handlers import confirm_start, confirm_start_filter
+from bot.handlers import confirm_terms_of_use, confirm_terms_of_use_filter
 from tests.conftest import handler_with_event
 from bot.bot import state_machine
 from bot.utils import UserState, Texts
@@ -28,11 +28,12 @@ async def test_confirm_start_handler_behavior(
     result: Result,
 ):
     """Test the behavior of the confirm_start handler. With correct state and callback payload."""
-    state_machine.set_state(user_with_photo.user_id, UserState.CONFIRM_START)
+    state_machine.set_state(user_with_photo.user_id, UserState.CONFIRM_TERMS_OF_USE)
 
     event = asyncio.Event()
     bot.register_handler(
-        handler_with_event(confirm_start, event), filter=confirm_start_filter
+        handler_with_event(confirm_terms_of_use, event),
+        filter=confirm_terms_of_use_filter,
     )
 
     test_session.responses = [
@@ -60,7 +61,7 @@ async def test_confirm_start_handler_behavior(
         assert isinstance(test_session.requests[0], AnswerCallback)
         assert test_session.requests[0].callback_id == update_callback.callback_id
         assert test_session.requests[0].message is not None
-        assert test_session.requests[0].message.text == Texts.Messages.confirm_start
+        assert test_session.requests[0].message.text == Texts.Messages.write_message
         assert test_session.requests[0].message.attachments == []
 
         # Send get message request
@@ -93,7 +94,8 @@ async def test_confirm_start_handler_incorrect_state(
 
     event = asyncio.Event()
     bot.register_handler(
-        handler_with_event(confirm_start, event), filter=confirm_start_filter
+        handler_with_event(confirm_terms_of_use, event),
+        filter=confirm_terms_of_use_filter,
     )
 
     test_session.responses = [
@@ -142,7 +144,8 @@ async def test_confirm_start_handler_incorrect_callback_payload(
 
     event = asyncio.Event()
     bot.register_handler(
-        handler_with_event(confirm_start, event), filter=confirm_start_filter
+        handler_with_event(confirm_terms_of_use, event),
+        filter=confirm_terms_of_use_filter,
     )
 
     test_session.responses = [
