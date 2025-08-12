@@ -32,7 +32,10 @@ class Config:
     MINIMAL_NAME_CONFIDENCE: Final[float] = float(
         os.getenv("MINIMAL_NAME_CONFIDENCE", 0.6)
     )
-
+    TERMS_OF_USE_URL: Final[str] = os.getenv(
+        "TERMS_OF_USE_URL", "https://example.com/terms-of-use"
+    )
+    
     COORDINATE_EXTRACTOR_URL: Final[str] = os.getenv(
         "COORDINATE_EXTRACTOR_URL", "https://nominatim.openstreetmap.org/reverse"
     )

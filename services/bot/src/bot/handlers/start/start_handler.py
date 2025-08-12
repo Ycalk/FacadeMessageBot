@@ -1,11 +1,11 @@
 from aiomax.types.updates import BotStartedUpdate
 from aiomax.types.attachment_requests import InlineKeyboardAttachmentRequest
-from aiomax.types.keyboard import CallbackButton, Keyboard
+from aiomax.types.keyboard import CallbackButton, Keyboard, LinkButton
 from aiomax.types import TextFormat, ButtonIntent
 from aiomax.methods import SendMessage
 from aiomax import Bot
 from bot.bot import state_machine
-from bot.utils import Texts, UserState
+from bot.utils import Texts, UserState, Config
 from shared_models.database import User
 
 
@@ -28,12 +28,18 @@ async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
                         payload=Keyboard(
                             buttons=[
                                 [
+                                    LinkButton(
+                                        text=Texts.Buttons.terms_of_use,
+                                        url=Config.TERMS_OF_USE_URL,
+                                    )
+                                ],
+                                [
                                     CallbackButton(
                                         text=Texts.Buttons.confirm_start,
                                         payload="confirm_start",
                                         intent=ButtonIntent.POSITIVE,
                                     )
-                                ]
+                                ],
                             ]
                         )
                     )
