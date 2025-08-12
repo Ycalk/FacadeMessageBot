@@ -1,22 +1,67 @@
 from aiomax.types.updates import MessageCallbackUpdate
 from aiomax.types import NewMessageBody, TextFormat
-from aiomax.methods import AnswerCallback
-from ..utils import Texts, UserState
+from aiomax.methods import AnswerCallback, SendMessage
+from ..utils import (
+    Texts,
+    UserState,
+    attempts_limit_reached,
+    messages_limit_reached,
+    messages_time_out_reached,
+)
 from aiomax import Bot
 from shared_models.database import User
 from bot.bot import state_machine
 
 
 async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
+    # Проверяем, достиг ли пользователь лимита попыток отправки сообщений
+    # или лимита количества сообщений
+    # Если достигнут, то отправляем соответствующее сообщение и выходим
+    if await attempts_limit_reached(update.callback.user.user_id):
+        await bot(
+            AnswerCallback(
+                callback_id=update.callback.callback_id,
+                message=NewMessageBody(
+                    text=Texts.Messages.attempts_limit,
+                    attachments=[],
+                    notify=True,
+                    format=TextFormat.MARKDOWN,
+                ),
+            )
+        )
+        return
+    if await messages_limit_reached(update.callback.user.user_id):
+        await bot(
+            SendMessage(
+                user_id=update.callback.user.user_id,
+                text=Texts.Messages.messages_limit,
+            )
+        )
+        return
+    if await messages_time_out_reached(update.callback.user.user_id):
+        await bot(
+            SendMessage(
+                user_id=update.callback.user.user_id,
+                text=Texts.Messages.messages_time_out,
+            )
+        )
+        return
+
     await bot(
         AnswerCallback(
             callback_id=update.callback.callback_id,
             message=NewMessageBody(
-                text=Texts.Messages.get_message,
+                text=None,
                 attachments=[],
                 notify=True,
                 format=TextFormat.MARKDOWN,
             ),
+        )
+    )
+    await bot(
+        SendMessage(
+            user_id=update.callback.user.user_id,
+            text=Texts.Messages.get_message,
         )
     )
 
