@@ -8,7 +8,7 @@ from .start import (
     write_message_filter,
 )
 from .get_message import get_message, get_message_filter
-from .name import add_name_solution, add_name_solution_filter, get_name, get_name_filter
+from .get_name import get_name, get_name_filter
 from .city import (
     add_city_solution,
     add_city_solution_filter,
@@ -34,8 +34,6 @@ __all__ = [
     "confirm_terms_of_use_filter",
     "get_message",
     "get_message_filter",
-    "add_name_solution",
-    "add_name_solution_filter",
     "get_name",
     "get_name_filter",
     "add_city_solution",
