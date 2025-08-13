@@ -22,6 +22,7 @@ from .create_command import (
     create_command_handler,
 )
 from .new_message import new_message, new_message_filter
+from .stop import stop_handler
 
 
 __all__ = [
@@ -48,4 +49,5 @@ __all__ = [
     "send_message_filter",
     "write_message_handler",
     "write_message_filter",
+    "stop_handler",
 ]
