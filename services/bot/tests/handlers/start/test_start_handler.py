@@ -30,30 +30,24 @@ async def test_start_handler_behavior(
         await asyncio.wait_for(event.wait(), timeout=2)
     finally:
         assert (
-            state_machine.get_state(user_with_photo.user_id)
-            == UserState.CONFIRM_TERMS_OF_USE
+            state_machine.get_state(user_with_photo.user_id) == UserState.SEND_MESSAGE
         )
 
-        assert len(test_session.requests) == 2
+        assert len(test_session.requests) == 1
 
         # Send start message
         assert isinstance(test_session.requests[0], SendMessage)
         assert test_session.requests[0].text == Texts.Messages.start
         assert test_session.requests[0].user_id == user_with_photo.user_id
-
-        # Send confirmation message
-        assert isinstance(test_session.requests[1], SendMessage)
-        assert test_session.requests[1].text == Texts.Messages.ask_confirm
-        assert test_session.requests[1].user_id == user_with_photo.user_id
-        assert test_session.requests[1].attachments is not None
-        assert test_session.requests[1].attachments[0].type == "inline_keyboard"
+        assert test_session.requests[0].attachments is not None
+        assert test_session.requests[0].attachments[0].type == "inline_keyboard"
 
         # Confirmation message contains a button with confirm
-        buttons = test_session.requests[1].attachments[0].payload.buttons
+        buttons = test_session.requests[0].attachments[0].payload.buttons
         assert len(buttons) == 1
         assert len(buttons[0]) == 1
 
         button = buttons[0][0]
         assert isinstance(button, CallbackButton)
-        assert button.text == Texts.Buttons.confirm_terms_of_use
-        assert button.payload == "confirm_start"
+        assert button.text == Texts.Buttons.send_message
+        assert button.payload == "send_message"
