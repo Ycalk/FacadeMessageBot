@@ -6,7 +6,6 @@ from aiomax.methods import SendMessage
 from aiomax import Bot
 from bot.bot import state_machine
 from bot.utils import Texts, UserState
-from shared_models.database import User
 
 
 async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
@@ -15,30 +14,26 @@ async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
             user_id=update.user.user_id,
             text=Texts.Messages.start,
             text_format=TextFormat.MARKDOWN,
+            attachments=[
+                InlineKeyboardAttachmentRequest(
+                    payload=Keyboard(
+                        buttons=[
+                            [
+                                CallbackButton(
+                                    text=Texts.Buttons.send_message,
+                                    payload="send_message",
+                                    intent=ButtonIntent.POSITIVE,
+                                )
+                            ],
+                        ]
+                    )
+                )
+            ],
         )
     )
-    if await User.get_or_none(max_id=update.user.user_id) is None:
-        await bot(
-            SendMessage(
-                user_id=update.user.user_id,
-                text=Texts.Messages.ask_confirm,
-                text_format=TextFormat.MARKDOWN,
-                attachments=[
-                    InlineKeyboardAttachmentRequest(
-                        payload=Keyboard(
-                            buttons=[
-                                [
-                                    CallbackButton(
-                                        text=Texts.Buttons.confirm_start,
-                                        payload="confirm_start",
-                                        intent=ButtonIntent.POSITIVE,
-                                    )
-                                ]
-                            ]
-                        )
-                    )
-                ],
-            )
-        )
-
-        state_machine.set_state(update.user.user_id, UserState.CONFIRM_START)
+    # Устанавливаем состояние пользователя на SEND_MESSAGE
+    # Сначала реакция на кнопку "Отправить сообщение" ->
+    # подтверждение условий использования (если пользователь новый) ->
+    # Отправка сообщения о том, что сообщение пройдет модерацию ->
+    # реакция на кнопку "Написать сообщение"
+    state_machine.set_state(update.user.user_id, UserState.SEND_MESSAGE)

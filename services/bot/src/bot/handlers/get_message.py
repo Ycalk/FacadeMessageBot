@@ -3,18 +3,19 @@ from aiomax.types import (
     InlineKeyboardAttachmentRequest,
     TextFormat,
     Keyboard,
-    CallbackButton,
-    ButtonIntent,
+    MessageButton,
 )
 from aiomax import Bot
 from aiomax.methods import SendMessage
 from bot.utils import Texts, UserState, Config
-from bot.bot import state_machine
+from bot.bot import state_machine, name_validator
 
 
 async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
+
+    # Валидация текста сообщения
     if (
         not update.message.body.text
         or len(update.message.body.text) > Config.MAX_MESSAGE_LENGTH
@@ -29,35 +30,38 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
         )
         return
 
+    # Следующий шаг - запрос имени пользователя
+
+    if await name_validator(update.message.sender.first_name):
+        # Если имя пользователя валидно, добавляем кнопку с именем
+        attachments = [
+            InlineKeyboardAttachmentRequest(
+                payload=Keyboard(
+                    buttons=[
+                        [
+                            MessageButton(text=update.message.sender.first_name),
+                        ]
+                    ]
+                )
+            )
+        ]
+    else:
+        attachments = []
     await bot(
         SendMessage(
             user_id=update.message.sender.user_id,
-            text=Texts.Messages.add_name,
+            text=Texts.Messages.get_name_with_name_from_profile
+            if attachments
+            else Texts.Messages.get_name,
             text_format=TextFormat.MARKDOWN,
-            attachments=[
-                InlineKeyboardAttachmentRequest(
-                    payload=Keyboard(
-                        buttons=[
-                            [
-                                CallbackButton(
-                                    text="Да",
-                                    payload="add_name",
-                                    intent=ButtonIntent.POSITIVE,
-                                ),
-                                CallbackButton(
-                                    text="Нет",
-                                    payload="cancel",
-                                    intent=ButtonIntent.NEGATIVE,
-                                ),
-                            ]
-                        ]
-                    )
-                )
-            ],
-        )
+            notify=True,
+            attachments=attachments,
+        ),
     )
 
-    state_machine.set_state(update.message.sender.user_id, UserState.ADD_NAME_SOLUTION)
+    # Устанавливаем состояние пользователя на получение имени
+    state_machine.set_state(update.message.sender.user_id, UserState.GET_NAME)
+    # Обновляем контекст пользователя: сохраняем текст сообщения
     state_machine.update_context(
         update.message.sender.user_id, message=update.message.body.text
     )
