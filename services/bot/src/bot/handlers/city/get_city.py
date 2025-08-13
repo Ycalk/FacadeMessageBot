@@ -16,6 +16,9 @@ from bot.bot import state_machine, city_extractor
 async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
+
+    # Проверяем, что пользователь отправил сообщение с вложением локации
+    # Если вложение есть, значит пользователь нажал "Определить автоматически"
     if (
         update.message.body.attachments
         and len(update.message.body.attachments) == 1
@@ -67,6 +70,8 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
             state_machine.update_context(update.message.sender.user_id, city=city)
         return
 
+    # Если вложения нет, значит пользователь ввел текстовое сообщение
+    # Проверяем, что текст сообщения не пустой
     if not update.message.body.text:
         await bot(
             SendMessage(

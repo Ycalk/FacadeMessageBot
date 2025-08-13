@@ -3,8 +3,7 @@ from aiomax.types import (
     InlineKeyboardAttachmentRequest,
     TextFormat,
     Keyboard,
-    CallbackButton,
-    ButtonIntent,
+    RequestGeoLocationButton,
 )
 from aiomax import Bot
 from aiomax.methods import SendMessage
@@ -16,6 +15,7 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
 
+    # Проверяем корректность имени пользователя
     if (
         not update.message.body.text
         or len(update.message.body.text) < 1
@@ -33,22 +33,15 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     await bot(
         SendMessage(
             user_id=update.message.sender.user_id,
-            text=Texts.Messages.add_city_solution,
+            text=Texts.Messages.add_city,
             text_format=TextFormat.MARKDOWN,
             attachments=[
                 InlineKeyboardAttachmentRequest(
                     payload=Keyboard(
                         buttons=[
                             [
-                                CallbackButton(
-                                    text="Да",
-                                    payload="add_city",
-                                    intent=ButtonIntent.POSITIVE,
-                                ),
-                                CallbackButton(
-                                    text="Нет",
-                                    payload="cancel",
-                                    intent=ButtonIntent.NEGATIVE,
+                                RequestGeoLocationButton(
+                                    text="Определить автоматически", quick=False
                                 ),
                             ]
                         ]
@@ -58,7 +51,9 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
         )
     )
 
-    state_machine.set_state(update.message.sender.user_id, UserState.ADD_CITY_SOLUTION)
+    # Устанавливаем состояние пользователя на получение города
+    state_machine.set_state(update.message.sender.user_id, UserState.GET_CITY)
+    # Обновляем контекст пользователя: сохраняем имя пользователя
     state_machine.update_context(
         update.message.sender.user_id, name=update.message.body.text.capitalize()
     )
