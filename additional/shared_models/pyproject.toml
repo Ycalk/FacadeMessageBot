@@ -1,6 +1,6 @@
 [project]
 name = "facade-message-bot-shared-models"
-version = "0.8.0"
+version = "0.9.0"
 description = ""
 authors = [
     {name = "ycalk",email = "alosev752@gmail.com"}
