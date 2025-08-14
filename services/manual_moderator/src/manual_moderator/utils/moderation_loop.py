@@ -5,9 +5,12 @@ from .user_storage import BotData, Moderator
 from .config import Config
 from .texts import Texts
 from .user_storage import UserStorage
-from shared_models.messaging import ModerationResult
+from shared_models.messaging import ModerationResult, MessageInput
 from shared_models.messaging.queues.bot import bot_moderate_response_queue
-from shared_models.messaging.exchanges import bot_exchange
+from shared_models.messaging.exchanges import bot_exchange, moderator_exchange
+from shared_models.messaging.queues.facade_message_moderator import (
+    facade_message_moderator_queue,
+)
 from shared_models.enums import ModeratorType
 from shared_models.enums import ModerationResult as ModerationResultEnum
 from datetime import datetime
@@ -51,6 +54,13 @@ class ModerationLoop:
                 ),
                 bot_moderate_response_queue,
                 bot_exchange,
+            )
+            await UserStorage.broker.publish(
+                MessageInput(
+                    message=message,
+                ),
+                facade_message_moderator_queue,
+                moderator_exchange,
             )
             message = await BotData.get_new_processing_message()
 

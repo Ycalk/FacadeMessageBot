@@ -3,8 +3,12 @@ FROM python:3.11-slim-bookworm
 
 # Install regular dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gnupg ca-certificates \
+    curl gnupg ca-certificates tzdata \
     && rm -rf /var/lib/apt/lists/*
+
+# Set timezone
+ENV TZ=Europe/Moscow
+ENV TIME_ZONE=Europe/Moscow
 
 # Install Poetry
 RUN pip install --no-cache-dir poetry==2.1.3
