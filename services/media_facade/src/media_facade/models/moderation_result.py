@@ -3,7 +3,7 @@ from shared_models.enums import ModerationResult as ModerationResultEnum
 
 
 class ModerationResult(BaseModel):
-    id: int = Field(..., description="ID сообщения")
+    message_id: int = Field(..., description="ID сообщения")
     result: ModerationResultEnum = Field(..., description="Результат модерации")
     ts_from: int | None = Field(
         None,

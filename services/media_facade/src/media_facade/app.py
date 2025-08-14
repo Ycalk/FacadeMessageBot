@@ -27,7 +27,12 @@ async def lifespan(app: FastAPI):
         else Config.MEDIA_FACADE_API_MOCK_BASE_URL,
         headers={"x-token": Config.MEDIA_FACADE_API_TOKEN},
     )
+    httpx_mock_client = httpx.AsyncClient(
+        base_url=Config.SELF_MOCK_URL,
+        headers={"Authorization": f"Bearer {Config.SECRET_KEY}"},
+    )
     app.state.httpx_client = httpx_client
+    app.state.httpx_mock_client = httpx_mock_client
     context.set_global("httpx_client", httpx_client)
     yield
     await httpx_client.aclose()

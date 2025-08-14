@@ -19,6 +19,11 @@ class Config:
 
     USE_MOCK: Final[bool] = os.getenv("USE_MOCK", "0") == "1"
     MEDIA_FACADE_API_MOCK_BASE_URL: Final[str] = f"http://localhost:{PORT}/api/vk"
+    SELF_MOCK_URL: Final[str] = f"http://localhost:{PORT}/api/v1/webhook"
+    MAX_TEXT_LENGTH: Final[int] = int(os.getenv("MAX_TEXT_LENGTH", 80))
+    MAX_NAME_AND_CITY_LENGTH: Final[int] = int(
+        os.getenv("MAX_NAME_AND_CITY_LENGTH", 15)
+    )
 
     if MEDIA_FACADE_API_TOKEN == "":
         raise ValueError(
