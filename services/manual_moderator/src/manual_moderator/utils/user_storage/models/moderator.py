@@ -2,13 +2,16 @@ from .base_user import BaseUser
 from typing import Annotated
 from pydantic import Field
 from ..user_storage import UserStorage
-from shared_models.messaging import Message, ModerationResult
+from shared_models.messaging import Message, ModerationResult, MessageInput
 from shared_models.enums import ModeratorType
 from shared_models.enums import ModerationResult as ModerationResultEnum
 from manual_moderator.utils.config import Config
 from .bot_data import BotData
 from shared_models.messaging.queues.bot import bot_moderate_response_queue
-from shared_models.messaging.exchanges import bot_exchange
+from shared_models.messaging.exchanges import bot_exchange, moderator_exchange
+from shared_models.messaging.queues.facade_message_moderator import (
+    facade_message_moderator_queue,
+)
 from datetime import datetime
 
 
@@ -59,6 +62,13 @@ class Moderator(BaseUser):
             ),
             bot_moderate_response_queue,
             bot_exchange,
+        )
+        await UserStorage.broker.publish(
+            MessageInput(
+                message=self.processing_message,
+            ),
+            facade_message_moderator_queue,
+            moderator_exchange,
         )
         await self.add_processed_message(self.processing_message)
         self.processing_message = None
