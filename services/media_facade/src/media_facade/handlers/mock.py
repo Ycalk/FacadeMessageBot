@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import asyncio
+from datetime import datetime, timedelta
+from httpx import AsyncClient
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Request
 from fastapi.security import APIKeyHeader
 from media_facade.utils import Config
-from media_facade.models import AddMessage
+from shared_models.enums import ModerationResult as ModerationResultEnum
+from media_facade.models import AddMessage, ModerationResult
 
 security = APIKeyHeader(
     name="x-token",
-    scheme_name="Аутентификация, которая ожидается от сервиса",
+    scheme_name="Авторизация, которая ожидается от сервиса",
     description="Передается токен в заголовке x-token.",
 )
 
@@ -25,17 +29,52 @@ mock_router = APIRouter(
     responses={
         401: {"description": "Unauthorized"},
         403: {"description": "Forbidden"},
-        430: {"description": "Message text is more, than 80 symbols"},
-        431: {"description": "Message name or city is more, than 15 symbols"},
+        410: {"description": "No available time"},
+        430: {
+            "description": f"Message text is more, than {Config.MAX_TEXT_LENGTH} symbols"
+        },
+        431: {
+            "description": f"Message name or city is more, than {Config.MAX_NAME_AND_CITY_LENGTH} symbols"
+        },
     },
 )
 
 
 @mock_router.post("/message", summary="Добавление нового сообщения на модерацию")
 async def add_message(
-    request: AddMessage,
+    request: Request,
+    message: AddMessage = Body(...),
 ):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="This endpoint is not implemented yet",
+    client: AsyncClient = request.app.state.httpx_mock_client
+    if len(message.text) > Config.MAX_TEXT_LENGTH:
+        raise HTTPException(
+            status_code=430,
+            detail=f"Message text is more, than {Config.MAX_TEXT_LENGTH} symbols",
+        )
+    if (
+        len(message.name) > Config.MAX_NAME_AND_CITY_LENGTH
+        or len(message.city) > Config.MAX_NAME_AND_CITY_LENGTH
+    ):
+        raise HTTPException(
+            status_code=431,
+            detail=f"Message name or city is more, than {Config.MAX_NAME_AND_CITY_LENGTH} symbols",
+        )
+    await asyncio.create_task(mock_moderate(message, client))
+
+
+async def mock_moderate(request: AddMessage, client: AsyncClient) -> None:
+    await asyncio.sleep(5)
+    await client.post(
+        "/moderation_result",
+        json=ModerationResult(
+            message_id=request.id,
+            result=ModerationResultEnum.APPROVED,
+            ts_from=int((datetime.now() + timedelta(minutes=1)).timestamp()),
+            ts_to=int((datetime.now() + timedelta(minutes=2)).timestamp()),
+        ).model_dump(),
+    )
+    await asyncio.sleep(60)
+    await client.post(
+        "/message_shown",
+        json={"message_id": request.id},
     )
