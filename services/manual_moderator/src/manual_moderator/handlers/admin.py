@@ -233,7 +233,7 @@ async def remove_moderator_set_telegram_id(message: Message, state: FSMContext):
             is_active="Да" if removing_moderator.is_active else "Нет",
             messages_processed=await removing_moderator.get_processed_messages_count(),
             last_activity=datetime.fromtimestamp(
-                removing_moderator.last_activity
+                removing_moderator.last_activity, tz=Config.TIME_ZONE
             ).strftime("%Y-%m-%d %H:%M:%S")
             if removing_moderator.last_activity
             else "",
@@ -309,9 +309,9 @@ async def cmd_list_moderators(message: Message, state: FSMContext):
                 username=f"@{moderator.username}" if moderator.username else "",
                 is_active="Да" if moderator.is_active else "Нет",
                 messages_processed=await moderator.get_processed_messages_count(),
-                last_activity=datetime.fromtimestamp(moderator.last_activity).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                last_activity=datetime.fromtimestamp(
+                    moderator.last_activity, tz=Config.TIME_ZONE
+                ).strftime("%Y-%m-%d %H:%M:%S")
                 if moderator.last_activity
                 else "",
             )
