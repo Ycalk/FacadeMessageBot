@@ -13,6 +13,10 @@ class ModerationResult(BaseModel):
         None,
         description="Конечное время показа (timestamp in seconds)",
     )
+    reason: str | None = Field(
+        None,
+        description="Причина отклонения, если результат REJECTED",
+    )
 
     @model_validator(mode="after")
     def check_time_required_for_approved(self):
