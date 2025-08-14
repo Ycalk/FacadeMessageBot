@@ -3,17 +3,25 @@ from shared_models.enums import ModerationResult as ModerationResultEnum
 
 
 class ModerationResult(BaseModel):
-    message_id: int = Field(..., description="ID сообщения")
+    id: int = Field(..., description="ID сообщения")
     result: ModerationResultEnum = Field(..., description="Результат модерации")
-    time: int | None = Field(
+    ts_from: int | None = Field(
         None,
-        description="Время, когда будет опубликовано сообщение (timestamp in seconds)",
+        description="Начальное время показа (timestamp in seconds)",
+    )
+    ts_to: int | None = Field(
+        None,
+        description="Конечное время показа (timestamp in seconds)",
     )
 
     @model_validator(mode="after")
     def check_time_required_for_approved(self):
-        if self.result == ModerationResultEnum.APPROVED and self.time is None:
-            raise ValueError("Time field required, if result is APPROVED")
-        if self.result == ModerationResultEnum.REJECTED and self.time is not None:
-            raise ValueError("Time field must be None, if result is REJECTED")
+        if self.result == ModerationResultEnum.APPROVED and (
+            self.ts_from is None or self.ts_to is None
+        ):
+            raise ValueError("ts_from and ts_to must be set if result is APPROVED")
+        if self.result == ModerationResultEnum.REJECTED and (
+            self.ts_from is not None or self.ts_to is not None
+        ):
+            raise ValueError("ts_from and ts_to must not be set if result is REJECTED")
         return self

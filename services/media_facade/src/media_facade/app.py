@@ -1,6 +1,6 @@
 import httpx
 from fastapi import FastAPI
-from .utils import Config, MockTransport
+from .utils import Config
 from faststream.security import SASLPlaintext
 from faststream.rabbit.fastapi import RabbitRouter
 from importlib.metadata import version
@@ -21,12 +21,11 @@ main_router = RabbitRouter(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if Config.MEDIA_FACADE_API_MOCK_BASE_URL == Config.MEDIA_FACADE_API_BASE_URL:
-        transport = MockTransport()
-    else:
-        transport = None
     httpx_client = httpx.AsyncClient(
-        base_url=Config.MEDIA_FACADE_API_BASE_URL, transport=transport
+        base_url=Config.MEDIA_FACADE_API_BASE_URL
+        if not Config.USE_MOCK
+        else Config.MEDIA_FACADE_API_MOCK_BASE_URL,
+        headers={"x-token": Config.MEDIA_FACADE_API_TOKEN},
     )
     app.state.httpx_client = httpx_client
     context.set_global("httpx_client", httpx_client)
@@ -40,3 +39,8 @@ app = FastAPI(
 main_router.include_router(moderate_router)
 app.include_router(main_router)
 app.include_router(webhooks_router)
+
+if Config.USE_MOCK:
+    from .handlers import mock_router
+
+    app.include_router(mock_router)
