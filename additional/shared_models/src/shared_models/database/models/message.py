@@ -11,8 +11,8 @@ class Message(Model):
         on_delete=fields.CASCADE,
     )
     text = fields.CharField(max_length=255)
-    name = fields.CharField(max_length=255, null=True)
-    city = fields.CharField(max_length=255, null=True)
+    name = fields.CharField(max_length=255)
+    city = fields.CharField(max_length=255)
     send_photo = fields.BooleanField()
     show_at = fields.DatetimeField(null=True)
     state = fields.CharEnumField(MessageState)
