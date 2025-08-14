@@ -88,8 +88,8 @@ class ModerationLoop:
                 chosen_moderator.telegram_id,
                 Texts.Messages.new_message_for_moderation.format(
                     text=message.text,
-                    name=message.name or "",
-                    city=message.city or "",
+                    name=message.name,
+                    city=message.city,
                 ),
                 reply_markup=InlineKeyboardMarkup(
                     inline_keyboard=[
