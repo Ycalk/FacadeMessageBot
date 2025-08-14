@@ -4,16 +4,16 @@ from .utils import Config
 from .notification_processor import app
 from .handlers import (
     start_handler,
-    confirm_start,
-    confirm_start_filter,
+    confirm_terms_of_use,
+    confirm_terms_of_use_filter,
+    send_message_handler,
+    send_message_filter,
+    write_message_handler,
+    write_message_filter,
     get_message,
     get_message_filter,
-    add_name_solution,
-    add_name_solution_filter,
     get_name,
     get_name_filter,
-    add_city_solution,
-    add_city_solution_filter,
     get_city,
     get_city_filter,
     confirm_city,
@@ -24,10 +24,9 @@ from .handlers import (
     confirm_fields_filter,
     create_command_filter,
     create_command_handler,
-    message_command_filter,
-    message_command_handler,
     new_message,
     new_message_filter,
+    stop_handler,
 )
 from .bot import bot
 from shared_models.database import get_tortoise_orm_config
@@ -36,13 +35,13 @@ from tortoise import Tortoise
 
 async def main():
     bot.register_handler(create_command_handler, filter=create_command_filter)
-    bot.register_handler(message_command_handler, filter=message_command_filter)
     bot.register_handler(start_handler)
-    bot.register_handler(confirm_start, filter=confirm_start_filter)
+    bot.register_handler(stop_handler)
+    bot.register_handler(confirm_terms_of_use, filter=confirm_terms_of_use_filter)
+    bot.register_handler(send_message_handler, filter=send_message_filter)
+    bot.register_handler(write_message_handler, filter=write_message_filter)
     bot.register_handler(get_message, filter=get_message_filter)
-    bot.register_handler(add_name_solution, filter=add_name_solution_filter)
     bot.register_handler(get_name, filter=get_name_filter)
-    bot.register_handler(add_city_solution, filter=add_city_solution_filter)
     bot.register_handler(get_city, filter=get_city_filter)
     bot.register_handler(confirm_city, filter=confirm_city_filter)
     bot.register_handler(get_photo_solution, filter=get_photo_solution_filter)
