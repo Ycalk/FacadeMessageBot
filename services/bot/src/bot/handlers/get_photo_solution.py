@@ -21,7 +21,8 @@ async def get_photo_solution(update: MessageCallbackUpdate, bot: Bot) -> None:
     message = await Message.get_or_none(id=message_id).prefetch_related("user")
     if (
         not message
-        or not message.show_at
+        or not message.show_time_start
+        or not message.show_time_end
         or message.user.max_id != update.callback.user.user_id
     ):
         return
