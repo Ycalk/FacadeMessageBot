@@ -96,8 +96,12 @@ async def moderation_result(request: Request, message: ModerationResult):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="ts_to and ts_from must be provided for approved messages",
             )
-        message_model.show_time_start = datetime.fromtimestamp(message.ts_from)
-        message_model.show_time_end = datetime.fromtimestamp(message.ts_to)
+        message_model.show_time_start = datetime.fromtimestamp(
+            message.ts_from, tz=Config.TIME_ZONE
+        )
+        message_model.show_time_end = datetime.fromtimestamp(
+            message.ts_to, tz=Config.TIME_ZONE
+        )
         await message_model.save()
 
     message_shared_model = Message(

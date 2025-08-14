@@ -69,8 +69,12 @@ async def mock_moderate(request: AddMessage, client: AsyncClient) -> None:
         json=ModerationResult(
             message_id=request.id,
             result=ModerationResultEnum.APPROVED,
-            ts_from=int((datetime.now() + timedelta(minutes=1)).timestamp()),
-            ts_to=int((datetime.now() + timedelta(minutes=2)).timestamp()),
+            ts_from=int(
+                (datetime.now(tz=Config.TIME_ZONE) + timedelta(minutes=1)).timestamp()
+            ),
+            ts_to=int(
+                (datetime.now(tz=Config.TIME_ZONE) + timedelta(minutes=2)).timestamp()
+            ),
             reason=None,
         ).model_dump(),
     )

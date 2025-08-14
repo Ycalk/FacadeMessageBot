@@ -15,7 +15,8 @@ from shared_models.enums import ModeratorType, MessageState
 from shared_models.enums import ModerationResult as ModerationResultEnum
 from aiomax.methods import SendMessage
 from shared_models.database import Message, ModerationLog
-from bot.utils import Texts
+from bot.utils import Texts, Config
+from babel.dates import format_datetime
 
 
 moderation_result_router = RabbitRouter()
@@ -137,10 +138,12 @@ async def moderation_result_handler(
                     )
                     return
 
+                start_local = message.show_time_start.astimezone(Config.TIME_ZONE)
+                end_local = message.show_time_end.astimezone(Config.TIME_ZONE)
+
                 show_at = (
-                    f"{message.show_time_start.strftime('%-d %B')}, "
-                    f"с {message.show_time_start.strftime('%H:%M')} до "
-                    f"{message.show_time_end.strftime('%H:%M')}"
+                    f"{format_datetime(start_local, 'd MMMM, HH:mm', locale='ru')} до "
+                    f"{format_datetime(end_local, 'HH:mm', locale='ru')}"
                 )
 
                 keyboard = InlineKeyboardAttachmentRequest(

@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from typing import Final
+from zoneinfo import ZoneInfo
 
 load_dotenv()
 
@@ -8,6 +9,7 @@ load_dotenv()
 class Config:
     """Service configuration class."""
 
+    TIME_ZONE: Final[ZoneInfo] = ZoneInfo(os.getenv("TIME_ZONE", "Europe/Moscow"))
     # RabbitMQ configuration
     RABBIT_HOST: Final[str] = os.getenv("RABBIT_HOST", "localhost")
     RABBIT_PORT: Final[int] = int(os.getenv("RABBIT_PORT", 5672))

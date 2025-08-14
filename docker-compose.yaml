@@ -12,6 +12,7 @@ services:
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
+      - TZ=Europe/Moscow
     volumes:
       - postgres-data:/var/lib/postgresql/data
   
@@ -39,6 +40,22 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
+    env_file:
+      - secrets.env
+  
+  media-facade:
+    build:
+      context: services/media_facade
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydatabase
+      - RABBIT_HOST=rabbitmq
+      - USE_MOCK=1
     env_file:
       - secrets.env
   
