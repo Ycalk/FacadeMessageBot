@@ -15,6 +15,9 @@ class Config:
     MEDIA_FACADE_API_BASE_URL: Final[str] = os.getenv("MEDIA_FACADE_API_BASE_URL", "")
     MEDIA_FACADE_API_TOKEN: Final[str] = os.getenv("MEDIA_FACADE_API_TOKEN", "")
     SECRET_KEY: Final[str] = os.getenv("SECRET_KEY", "")
+    MEDIA_FACADE_API_MOCK_BASE_URL: Final[str] = os.getenv(
+        "MEDIA_FACADE_API_MOCK_BASE_URL", ""
+    )
 
     PORT: Final[int] = int(os.getenv("PORT", 8000))
 
