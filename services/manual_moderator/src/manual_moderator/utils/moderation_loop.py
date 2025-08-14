@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from .user_storage import BotData, Moderator
@@ -65,56 +66,62 @@ class ModerationLoop:
             message = await BotData.get_new_processing_message()
 
     async def start(self) -> None:
+        logger = logging.getLogger(__name__)
+        logger.info("Starting moderation loop")
         while True:
-            await asyncio.sleep(self.iteration_delay)
-            await self._check_for_activity()
+            try:
+                await asyncio.sleep(self.iteration_delay)
+                await self._check_for_activity()
 
-            moderators = [
-                moderator
-                for moderator in await Moderator.all()
-                if moderator.is_active and not moderator.processing_message
-            ]
+                moderators = [
+                    moderator
+                    for moderator in await Moderator.all()
+                    if moderator.is_active and not moderator.processing_message
+                ]
 
-            if await BotData.is_auto_approve_enabled():
-                await self._auto_approve_messages()
-                continue
+                if await BotData.is_auto_approve_enabled():
+                    await self._auto_approve_messages()
+                    continue
 
-            if len(moderators) == 0:
-                continue
+                if len(moderators) == 0:
+                    continue
 
-            message = await BotData.get_new_processing_message()
+                message = await BotData.get_new_processing_message()
 
-            if not message:
-                continue
+                if not message:
+                    continue
 
-            chosen_moderator = moderators[message.message_id % len(moderators)]
-            chosen_moderator.processing_message = message
-            chosen_moderator.message_processing_start = int(
-                datetime.now(tz=Config.TIME_ZONE).timestamp()
-            )
+                chosen_moderator = moderators[message.message_id % len(moderators)]
+                chosen_moderator.processing_message = message
+                chosen_moderator.message_processing_start = int(
+                    datetime.now(tz=Config.TIME_ZONE).timestamp()
+                )
 
-            await chosen_moderator.save()
-            await self.bot.send_message(
-                chosen_moderator.telegram_id,
-                Texts.Messages.new_message_for_moderation.format(
-                    text=message.text,
-                    name=message.name,
-                    city=message.city,
-                ),
-                reply_markup=InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [
-                            InlineKeyboardButton(
-                                text="Утвердить",
-                                callback_data=f"approve:{message.message_id}",
-                            )
-                        ],
-                        [
-                            InlineKeyboardButton(
-                                text="Отклонить",
-                                callback_data=f"reject:{message.message_id}",
-                            )
-                        ],
-                    ]
-                ),
-            )
+                await chosen_moderator.save()
+                await self.bot.send_message(
+                    chosen_moderator.telegram_id,
+                    Texts.Messages.new_message_for_moderation.format(
+                        text=message.text,
+                        name=message.name,
+                        city=message.city,
+                    ),
+                    reply_markup=InlineKeyboardMarkup(
+                        inline_keyboard=[
+                            [
+                                InlineKeyboardButton(
+                                    text="Утвердить",
+                                    callback_data=f"approve:{message.message_id}",
+                                )
+                            ],
+                            [
+                                InlineKeyboardButton(
+                                    text="Отклонить",
+                                    callback_data=f"reject:{message.message_id}",
+                                )
+                            ],
+                        ]
+                    ),
+                )
+            except Exception as e:
+                logger.error(f"Error in moderation loop: {e}", exc_info=True)
+        logger.info("Moderation loop stopped")
