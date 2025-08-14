@@ -7,16 +7,51 @@ from shared_models.messaging import (
     ModerationResult,
 )
 from aiomax import Bot
+from aiomax.types.attachment_requests import InlineKeyboardAttachmentRequest
+from aiomax.types.keyboard import Keyboard, CallbackButton
+from aiomax.types import ButtonIntent, TextFormat
 from faststream import Context
 from shared_models.enums import ModeratorType, MessageState
 from shared_models.enums import ModerationResult as ModerationResultEnum
 from aiomax.methods import SendMessage
-from aiomax.types import TextFormat
 from shared_models.database import Message, ModerationLog
-from bot.utils import Texts
+from bot.utils import Texts, Config
+from babel.dates import format_datetime
 
 
 moderation_result_router = RabbitRouter()
+
+
+async def send_user_message(bot: Bot, user_id: int, text: str, attachments=None):
+    """Отправка сообщения пользователю."""
+    await bot(
+        SendMessage(
+            user_id=user_id,
+            text=text,
+            text_format=TextFormat.MARKDOWN,
+            attachments=attachments or [],
+        )
+    )
+
+
+async def log_and_cancel(logger: Logger, message: Message, bot: Bot, reason: str):
+    """Логирует проблему, переводит сообщение в CANCELED и уведомляет пользователя."""
+    logger.warning(reason)
+    message.state = MessageState.CANCELED
+    await message.save()
+    await send_user_message(
+        bot, message.user.max_id, Texts.Messages.some_thing_went_wrong
+    )
+
+
+async def create_log(message: Message, moderation_result: ModerationResult):
+    """Создание записи в журнале модерации."""
+    await ModerationLog.create(
+        message=message,
+        source=moderation_result.source,
+        result=moderation_result.result,
+        reason=moderation_result.reason,
+    )
 
 
 @moderation_result_router.subscriber(bot_moderate_response_queue, bot_exchange)
@@ -29,71 +64,122 @@ async def moderation_result_handler(
         message = await Message.get_or_none(
             id=moderation_result.message.message_id
         ).prefetch_related("user")
+
         if not message:
             logger.warning(
                 f"Message with ID {moderation_result.message.message_id} not found."
             )
             return
-        if moderation_result.result == ModerationResultEnum.APPROVED:
-            if moderation_result.source == ModeratorType.AUTO:
-                if message.state == MessageState.PENDING_AUTO_MODERATION:
-                    message.state = MessageState.PENDING_MANUAL_MODERATION
-                    await message.save()
 
-                    await ModerationLog.create(
-                        message=message,
-                        source=moderation_result.source,
-                        result=moderation_result.result,
-                        reason=moderation_result.reason,
-                    )
-
-                    await bot(
-                        SendMessage(
-                            user_id=message.user.max_id,
-                            text=Texts.Messages.auto_moderation_completed,
-                            text_format=TextFormat.MARKDOWN,
-                        )
-                    )
-                else:
-                    logger.warning(
-                        f"Message {message.id} is not in pending auto-moderation state. Current state: {message.state}"
-                    )
-
-            elif moderation_result.source == ModeratorType.MANUAL:
-                if message.state in (
-                    MessageState.PENDING_MANUAL_MODERATION,
-                    MessageState.PENDING_AUTO_MODERATION,
-                ):
-                    message.state = MessageState.PENDING_MEDIA_FACADE_MODERATION
-                    await message.save()
-
-                    await ModerationLog.create(
-                        message=message,
-                        source=moderation_result.source,
-                        result=moderation_result.result,
-                        reason=moderation_result.reason,
-                    )
-
-                    await bot(
-                        SendMessage(
-                            user_id=message.user.max_id,
-                            text=Texts.Messages.manual_moderation_completed,
-                            text_format=TextFormat.MARKDOWN,
-                        )
-                    )
-                else:
-                    logger.warning(
-                        f"Message {message.id} is not in pending manual-moderation state. Current state: {message.state}"
-                    )
-        else:
+        if moderation_result.result != ModerationResultEnum.APPROVED:
             message.state = MessageState.REJECTED
             await message.save()
-            await bot(
-                SendMessage(
-                    user_id=message.user.max_id,
-                    text=Texts.Messages.auto_moderation_rejected
-                    if moderation_result.source == ModeratorType.AUTO
-                    else Texts.Messages.manual_moderation_rejected,
-                    text_format=TextFormat.MARKDOWN,
+            rejection_text = (
+                Texts.Messages.auto_moderation_rejected
+                if moderation_result.source == ModeratorType.AUTO
+                else Texts.Messages.manual_moderation_rejected
+            )
+            await send_user_message(bot, message.user.max_id, rejection_text)
+            return
+
+        # === APPROVED case ===
+        source, state = moderation_result.source, message.state
+
+        if source == ModeratorType.AUTO:
+            if state == MessageState.PENDING_AUTO_MODERATION:
+                message.state = MessageState.PENDING_MANUAL_MODERATION
+                await message.save()
+                await create_log(message, moderation_result)
+                await send_user_message(
+                    bot, message.user.max_id, Texts.Messages.auto_moderation_completed
                 )
+            else:
+                await log_and_cancel(
+                    logger,
+                    message,
+                    bot,
+                    f"Message {message.id} is not in pending auto-moderation state. Current state: {state}",
+                )
+
+        elif source == ModeratorType.MANUAL:
+            if state in (
+                MessageState.PENDING_MANUAL_MODERATION,
+                MessageState.PENDING_AUTO_MODERATION,
+            ):
+                message.state = MessageState.PENDING_MEDIA_FACADE_MODERATION
+                await message.save()
+                await create_log(message, moderation_result)
+                await send_user_message(
+                    bot, message.user.max_id, Texts.Messages.manual_moderation_completed
+                )
+            else:
+                await log_and_cancel(
+                    logger,
+                    message,
+                    bot,
+                    f"Message {message.id} is not in pending manual-moderation state. Current state: {state}",
+                )
+
+        elif source == ModeratorType.MEDIA_FACADE:
+            if state in (
+                MessageState.PENDING_MEDIA_FACADE_MODERATION,
+                MessageState.PENDING_MANUAL_MODERATION,
+            ):
+                message.state = MessageState.APPROVED
+                await message.save()
+                await create_log(message, moderation_result)
+
+                if not message.show_time_start or not message.show_time_end:
+                    await log_and_cancel(
+                        logger,
+                        message,
+                        bot,
+                        f"Message {message.id} has no show time set. Canceled.",
+                    )
+                    return
+
+                start_local = message.show_time_start.astimezone(Config.TIME_ZONE)
+                end_local = message.show_time_end.astimezone(Config.TIME_ZONE)
+
+                show_at = (
+                    f"{format_datetime(start_local, 'd MMMM, HH:mm', locale='ru')} до "
+                    f"{format_datetime(end_local, 'HH:mm', locale='ru')}"
+                )
+
+                keyboard = InlineKeyboardAttachmentRequest(
+                    payload=Keyboard(
+                        buttons=[
+                            [
+                                CallbackButton(
+                                    text=Texts.Buttons.accept_get_photo,
+                                    payload=f"accept_get_photo:{message.id}",
+                                    intent=ButtonIntent.POSITIVE,
+                                ),
+                                CallbackButton(
+                                    text=Texts.Buttons.reject_get_photo,
+                                    payload=f"reject_get_photo:{message.id}",
+                                    intent=ButtonIntent.NEGATIVE,
+                                ),
+                            ]
+                        ]
+                    )
+                )
+
+                await send_user_message(
+                    bot,
+                    message.user.max_id,
+                    Texts.Messages.moderation_completed.format(show_at=show_at),
+                    attachments=[keyboard],
+                )
+            else:
+                await log_and_cancel(
+                    logger,
+                    message,
+                    bot,
+                    f"Message {message.id} is not in pending media-facade-moderation state. Current state: {state}",
+                )
+
+        else:
+            await log_and_cancel(
+                logger, message, bot, f"Unknown moderation source: {source}"
             )

@@ -119,6 +119,11 @@ class Texts:
             "Оставайтесь всегда на связи с мессенджером МАХ!"
         )
 
+        some_thing_went_wrong: Final[str] = (
+            "Что-то пошло не так. Попробуйте, пожалуйста, отправить сообщение "
+            "чуть позже — всё обязательно получится!"
+        )
+
     class Buttons:
         send_message: Final[str] = "Отправить послание"
         confirm_terms_of_use: Final[str] = "Принимаю"
@@ -127,3 +132,5 @@ class Texts:
         terms_of_use: Final[str] = "Условия использования"
         confirm_fields: Final[str] = "Отправить"
         start_over: Final[str] = "Начать заново"
+        accept_get_photo: Final[str] = "Да"
+        reject_get_photo: Final[str] = "Нет"
