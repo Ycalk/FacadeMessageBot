@@ -2,16 +2,14 @@ from enum import StrEnum
 
 
 class UserState(StrEnum):
-    CONFIRM_START = "confirm_start"
+    SEND_MESSAGE = "send_message"
+    CONFIRM_TERMS_OF_USE = "confirm_terms_of_use"
+    WRITE_MESSAGE = "write_message"
     GET_MESSAGE = "get_message"
-    ADD_NAME_SOLUTION = "add_name_solution"
     GET_NAME = "get_name"
-    ADD_CITY_SOLUTION = "add_city_solution"
     GET_CITY = "get_city"
     CONFIRM_CITY = "confirm_city"
     GET_PHOTO_SOLUTION = "get_photo_solution"
-    SET_DATE = "set_date"
-    SET_TIME = "set_time"
     CONFIRM_FIELDS = "confirm_fields"
 
 

@@ -16,11 +16,35 @@ from bot.bot import state_machine
 
 async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "confirm_city":
+        # Проверяем, что все необходимые поля заполнены
+        message = state_machine.get_context(update.callback.user.user_id, "message")
+        name = state_machine.get_context(update.callback.user.user_id, "name")
+        city = state_machine.get_context(update.callback.user.user_id, "city")
+
+        # Если какое-то из полей пустое, отправляем сообщение об ошибке
+        if not message or not name or not city:
+            await bot(
+                AnswerCallback(
+                    callback_id=update.callback.callback_id,
+                    message=NewMessageBody(
+                        text=Texts.Messages.missing_fields,
+                        format=TextFormat.MARKDOWN,
+                        notify=True,
+                        attachments=[],
+                    ),
+                )
+            )
+            return
         await bot(
+            # Отправляем сообщение с подтверждением полей
             AnswerCallback(
                 callback_id=update.callback.callback_id,
                 message=NewMessageBody(
-                    text=Texts.Messages.get_photo_solution,
+                    text=Texts.Messages.confirm_fields_with_instruction.format(
+                        message=message,
+                        name=name,
+                        city=city,
+                    ),
                     format=TextFormat.MARKDOWN,
                     notify=True,
                     attachments=[
@@ -29,14 +53,14 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
                                 buttons=[
                                     [
                                         CallbackButton(
-                                            text="Да",
-                                            payload="get_photo",
+                                            text=Texts.Buttons.confirm_fields,
+                                            payload="confirm_fields",
                                             intent=ButtonIntent.POSITIVE,
                                         ),
                                         CallbackButton(
-                                            text="Нет",
-                                            payload="cancel",
-                                            intent=ButtonIntent.NEGATIVE,
+                                            text=Texts.Buttons.start_over,
+                                            payload="start_over",
+                                            intent=ButtonIntent.DEFAULT,
                                         ),
                                     ]
                                 ]
@@ -47,11 +71,10 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
             )
         )
 
-        state_machine.set_state(
-            update.callback.user.user_id, UserState.GET_PHOTO_SOLUTION
-        )
+        state_machine.set_state(update.callback.user.user_id, UserState.CONFIRM_FIELDS)
 
     elif update.callback.payload == "try_again_city":
+        # Пользователь ввел город вручную, но захотел попробовать определить снова
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,
@@ -79,6 +102,7 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
         state_machine.set_state(update.callback.user.user_id, UserState.GET_CITY)
 
     elif update.callback.payload == "write_city":
+        # Город определился автоматически, но пользователь хочет ввести его вручную
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,
