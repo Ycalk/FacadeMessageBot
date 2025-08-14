@@ -12,6 +12,13 @@ class Config:
     RABBIT_USER: Final[str] = os.getenv("RABBIT_USER", "guest")
     RABBIT_PASSWORD: Final[str] = os.getenv("RABBIT_PASSWORD", "guest")
 
+    # PostgreSQL configuration
+    POSTGRES_HOST: Final[str] = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_PORT: Final[int] = int(os.getenv("POSTGRES_PORT", 5432))
+    POSTGRES_USER: Final[str] = os.getenv("POSTGRES_USER", "")
+    POSTGRES_PASSWORD: Final[str] = os.getenv("POSTGRES_PASSWORD", "")
+    POSTGRES_DB: Final[str] = os.getenv("POSTGRES_DB", "")
+
     PORT: Final[int] = int(os.getenv("PORT", 8000))
     MEDIA_FACADE_API_BASE_URL: Final[str] = os.getenv("MEDIA_FACADE_API_BASE_URL", "")
     MEDIA_FACADE_API_TOKEN: Final[str] = os.getenv("MEDIA_FACADE_API_TOKEN", "")

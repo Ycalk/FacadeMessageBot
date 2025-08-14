@@ -59,7 +59,7 @@ async def add_message(
             status_code=431,
             detail=f"Message name or city is more, than {Config.MAX_NAME_AND_CITY_LENGTH} symbols",
         )
-    await asyncio.create_task(mock_moderate(message, client))
+    asyncio.create_task(mock_moderate(message, client))
 
 
 async def mock_moderate(request: AddMessage, client: AsyncClient) -> None:
@@ -71,6 +71,7 @@ async def mock_moderate(request: AddMessage, client: AsyncClient) -> None:
             result=ModerationResultEnum.APPROVED,
             ts_from=int((datetime.now() + timedelta(minutes=1)).timestamp()),
             ts_to=int((datetime.now() + timedelta(minutes=2)).timestamp()),
+            reason=None,
         ).model_dump(),
     )
     await asyncio.sleep(60)
