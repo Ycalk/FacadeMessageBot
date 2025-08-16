@@ -32,7 +32,7 @@ auto_moderator_black_list_queue = RabbitQueue(
     arguments=QuorumQueueArgs(
         {
             "x-dead-letter-exchange": "dlx",
-            "x-dead-letter-routing-key": "dlx.moderator.auto",
+            "x-dead-letter-routing-key": "dlx.moderator.auto.black_list",
             "x-dead-letter-strategy": "at-least-once",
             "x-overflow": "reject-publish",
         }
