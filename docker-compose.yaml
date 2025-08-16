@@ -27,18 +27,6 @@ services:
       - TZ=Europe/Moscow
     volumes:
       - postgres-data:/var/lib/postgresql/data
-  
-  redis:
-    image: redis:8.2.0-alpine
-    restart: always
-    volumes:
-      - redis-data:/data
-    command: >
-      redis-server
-      --save 60 1
-      --save 300 10
-      --appendonly yes
-      --appendfsync everysec
 
   bot:
     build:
@@ -71,6 +59,19 @@ services:
     env_file:
       - secrets.env
   
+  # Auto Moderator Service
+  auto-moderator-redis:
+    image: redis:8.2.0-alpine
+    restart: always
+    volumes:
+      - auto-moderator-redis:/data
+    command: >
+      redis-server
+      --save 60 1
+      --save 300 10
+      --appendonly yes
+      --appendfsync everysec
+
   auto-moderator:
     build:
       context: services/auto_moderator
@@ -78,9 +79,34 @@ services:
     restart: always
     environment:
       - RABBIT_HOST=rabbitmq
+      - REDIS_HOST=auto-moderator-redis
     env_file:
       - secrets.env
   
+  black-list-bot:
+    build:
+      context: services/black_list_bot
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - REDIS_HOST=auto-moderator-redis
+    env_file:
+      - secrets.env
+  
+  # Manual Moderator Service
+  manual-moderator-redis:
+    image: redis:8.2.0-alpine
+    restart: always
+    volumes:
+      - manual-moderator-redis:/data
+    command: >
+      redis-server
+      --save 60 1
+      --save 300 10
+      --appendonly yes
+      --appendfsync everysec
+
   manual-moderator:
     build:
       context: services/manual_moderator
@@ -88,7 +114,7 @@ services:
     restart: always
     environment:
       - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=redis
+      - REDIS_HOST=manual-moderator-redis
     env_file:
       - secrets.env
   
@@ -96,4 +122,5 @@ services:
 volumes:
   rabbitmq-data:
   postgres-data:
-  redis-data:
+  manual-moderator-redis:
+  auto-moderator-redis:

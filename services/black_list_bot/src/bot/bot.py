@@ -6,7 +6,7 @@ from faststream.security import SASLPlaintext
 from redis.asyncio import Redis
 
 
-bot = Bot(Config.BOT_TOKEN, logging_level=logging.DEBUG)
+bot = Bot(Config.BLACK_LIST_BOT_TOKEN, logging_level=logging.DEBUG)
 broker = RabbitBroker(
     host=Config.RABBIT_HOST,
     port=Config.RABBIT_PORT,

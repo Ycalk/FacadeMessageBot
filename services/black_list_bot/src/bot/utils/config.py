@@ -15,16 +15,16 @@ class Config:
     RABBIT_PASSWORD: Final[str] = os.getenv("RABBIT_PASSWORD", "guest")
 
     # Secrets
-    BOT_TOKEN: Final[str] = os.getenv("BOT_TOKEN", "")
-    SECRET_KEY: Final[str] = os.getenv("SECRET_KEY", "")
+    BLACK_LIST_BOT_TOKEN: Final[str] = os.getenv("BLACK_LIST_BOT_TOKEN", "")
+    BLACK_LIST_BOT_SECRET_KEY: Final[str] = os.getenv("BLACK_LIST_BOT_SECRET_KEY", "")
 
     # Redis configuration
     REDIS_HOST: Final[str] = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: Final[int] = int(os.getenv("REDIS_PORT", 6379))
     REDIS_USER_STORAGE_DB: Final[int] = int(os.getenv("REDIS_USER_STORAGE_DB", 0))
 
-    if BOT_TOKEN == "":
+    if BLACK_LIST_BOT_TOKEN == "":
         raise ValueError("BOT_TOKEN must be set in the environment variables.")
 
-    if SECRET_KEY == "":
+    if BLACK_LIST_BOT_SECRET_KEY == "":
         raise ValueError("SECRET_KEY must be set in the environment variables.")
