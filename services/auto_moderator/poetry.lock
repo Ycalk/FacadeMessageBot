@@ -68,6 +68,19 @@ test = ["anyio[trio]", "blockbuster (>=1.5.23)", "coverage[toml] (>=7)", "except
 trio = ["trio (>=0.26.1)"]
 
 [[package]]
+name = "async-timeout"
+version = "5.0.1"
+description = "Timeout context manager for asyncio programs"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+markers = "python_full_version < \"3.11.3\""
+files = [
+    {file = "async_timeout-5.0.1-py3-none-any.whl", hash = "sha256:39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c"},
+    {file = "async_timeout-5.0.1.tar.gz", hash = "sha256:d9321a7a3d5a6a5e187e824d2fa0793ce379a202935782d555d6e9d2735677d3"},
+]
+
+[[package]]
 name = "certifi"
 version = "2025.7.14"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -114,14 +127,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "facade-message-bot-shared-models"
-version = "0.9.0"
+version = "0.10.0"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.11"
 groups = ["main"]
 files = [
-    {file = "facade_message_bot_shared_models-0.9.0-py3-none-any.whl", hash = "sha256:69b2c27a302bc09d0ebd80e85801c67b809183f096beb070cd41b8033006b198"},
-    {file = "facade_message_bot_shared_models-0.9.0.tar.gz", hash = "sha256:cff96badfb9fbdcc939309a83bd1bd9be4784ba503c880b52c4439dddd7578ff"},
+    {file = "facade_message_bot_shared_models-0.10.0-py3-none-any.whl", hash = "sha256:1cf7e1ca070439926198700df0260148442a1f8062ad9852ef7bb683b640e468"},
+    {file = "facade_message_bot_shared_models-0.10.0.tar.gz", hash = "sha256:e0eda38ee56541881c047f96ca3f9e8c089f1fe23579400dfc657a5ad8a1f399"},
 ]
 
 [package.dependencies]
@@ -182,6 +195,17 @@ redis = ["redis (>=5.0.0,<7.0.0)"]
 test-core = ["coverage[toml] (==7.6.1) ; python_version < \"3.9\"", "coverage[toml] (==7.9.2) ; python_version >= \"3.9\"", "dirty-equals (==0.9.0)", "pytest (==8.3.5) ; python_version < \"3.9\"", "pytest (==8.4.1) ; python_version >= \"3.9\"", "pytest-asyncio (==0.24.0) ; python_version < \"3.9\"", "pytest-asyncio (==1.0.0) ; python_version >= \"3.9\"", "typing-extensions (>=4.8.0,<4.12.1) ; python_version < \"3.9\""]
 testing = ["coverage[toml] (==7.6.1) ; python_version < \"3.9\"", "coverage[toml] (==7.9.2) ; python_version >= \"3.9\"", "dirty-equals (==0.9.0)", "email-validator (==2.2.0)", "fastapi (==0.116.1)", "httpx (==0.28.1)", "psutil (==7.0.0)", "pydantic-settings (>=2.0.0,<3.0.0)", "pytest (==8.3.5) ; python_version < \"3.9\"", "pytest (==8.4.1) ; python_version >= \"3.9\"", "pytest-asyncio (==0.24.0) ; python_version < \"3.9\"", "pytest-asyncio (==1.0.0) ; python_version >= \"3.9\"", "pyyaml (==6.0.2)", "typing-extensions (>=4.8.0,<4.12.1) ; python_version < \"3.9\"", "uvicorn (==0.33.0) ; python_version < \"3.9\"", "uvicorn (>=0.34.3) ; python_version >= \"3.9\""]
 types = ["aio-pika (>=9,<10)", "aiokafka (>=0.9,<0.13)", "confluent-kafka (>=2,!=2.8.1,<3) ; python_version < \"3.13\"", "confluent-kafka (>=2.6,!=2.8.1,<3) ; python_version >= \"3.13\"", "confluent-kafka-stubs ; python_version >= \"3.11\"", "mypy (==1.16.1)", "nats-py (>=2.7.0,<=3.0.0)", "opentelemetry-sdk (>=1.24.0,<2.0.0)", "prometheus-client (>=0.20.0,<0.30.0)", "redis (>=5.0.0,<7.0.0)", "typer (>=0.9,!=0.12,<=0.16.0)", "types-aiofiles", "types-deprecated", "types-docutils", "types-pygments", "types-pyyaml", "types-redis", "types-setuptools", "types-ujson", "watchfiles (>=0.15.0,<1.2.0)"]
+
+[[package]]
+name = "flashtext"
+version = "2.7"
+description = "Extract/Replaces keywords in sentences."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "flashtext-2.7.tar.gz", hash = "sha256:a1be2b93e09d4f0deee4aad72b91a7127b61fb8b8034ca9a9c78ea745d8b05cf"},
+]
 
 [[package]]
 name = "h11"
@@ -689,6 +713,26 @@ files = [
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "redis"
+version = "6.4.0"
+description = "Python client for Redis database and key-value store"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "redis-6.4.0-py3-none-any.whl", hash = "sha256:f0544fa9604264e9464cdf4814e7d4830f74b165d52f2a330a760a88dd248b7f"},
+    {file = "redis-6.4.0.tar.gz", hash = "sha256:b01bc7282b8444e28ec36b261df5375183bb47a07eb9c603f284e89cbc5ef010"},
+]
+
+[package.dependencies]
+async-timeout = {version = ">=4.0.3", markers = "python_full_version < \"3.11.3\""}
+
+[package.extras]
+hiredis = ["hiredis (>=3.2.0)"]
+jwt = ["pyjwt (>=2.9.0)"]
+ocsp = ["cryptography (>=36.0.1)", "pyopenssl (>=20.0.1)", "requests (>=2.31.0)"]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -861,4 +905,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "4bb751f5f42b13fd439e29a459ce47455b8935809840eb7b71a139d67dcaf6c9"
+content-hash = "f6985093b017357a12a106ed5d74c5bcc4a78a4ea46135da62e8c985165c7524"
