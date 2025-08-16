@@ -17,5 +17,12 @@ class Config:
     RABBIT_USER: Final[str] = os.getenv("RABBIT_USER", "guest")
     RABBIT_PASSWORD: Final[str] = os.getenv("RABBIT_PASSWORD", "guest")
 
+    # Redis configuration
+    REDIS_HOST: Final[str] = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: Final[int] = int(os.getenv("REDIS_PORT", 6379))
+    REDIS_BLACK_LIST_STORAGE_DB: Final[int] = int(
+        os.getenv("REDIS_BLACK_LIST_STORAGE_DB", 0)
+    )
+
     if MISTRAL_API_KEY == "":
         raise ValueError("MISTRAL_KEY must be set in the environment variables.")

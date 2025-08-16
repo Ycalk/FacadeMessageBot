@@ -1,5 +1,5 @@
 [project]
-name = "auto-moderator"
+name = "black-list-bot"
 version = "0.1.0"
 description = ""
 authors = [
@@ -8,19 +8,20 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "python-dotenv (>=1.1.1,<2.0.0)",
-    "mistralai (>=1.9.3,<2.0.0)",
+    "async-max-api (>=0.1.0,<0.2.0)",
     "facade-message-bot-shared-models[messaging] (>=0.11.0,<0.12.0)",
-    "flashtext (>=2.7,<3.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
     "redis (>=6.4.0,<7.0.0)"
 ]
 
 [tool.poetry]
-packages = [{include = "auto_moderator", from = "src"}]
+packages = [{include = "bot", from = "src"}]
 
-[tool.poetry.scripts]
-moderator = "auto_moderator:run"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.scripts]
+bot = "bot:run"
