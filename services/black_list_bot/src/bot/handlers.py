@@ -15,7 +15,7 @@ async def message(update: MessageCreatedUpdate, bot: Bot) -> None:
         return
 
     if (await redis.sismember("registered_users", update.message.sender.user_id)) == 0:  # type: ignore
-        if update.message.body.text == Config.SECRET_KEY:
+        if update.message.body.text == Config.BLACK_LIST_BOT_SECRET_KEY:
             await redis.sadd("registered_users", update.message.sender.user_id)  # type: ignore
             await bot(
                 SendMessage(
