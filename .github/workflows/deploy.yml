@@ -30,6 +30,7 @@ jobs:
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> secrets.env
           echo "BLACK_LIST_BOT_TOKEN=${{ secrets.BLACK_LIST_BOT_TOKEN }}" >> secrets.env
           echo "BLACK_LIST_BOT_SECRET_KEY=${{ secrets.BLACK_LIST_BOT_SECRET_KEY }}" >> secrets.env
+          echo "START_MESSAGE_IMAGE_TOKEN=${{ secrets.START_MESSAGE_IMAGE_TOKEN }}" >> secrets.env
 
       - name: Transfer files to server
         uses: appleboy/scp-action@v1

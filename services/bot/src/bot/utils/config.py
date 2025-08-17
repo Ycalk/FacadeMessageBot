@@ -46,6 +46,9 @@ class Config:
     MAXIMUM_ATTEMPTS_PER_MESSAGE: Final[int] = int(
         os.getenv("MAXIMUM_ATTEMPTS_PER_MESSAGE", 3)
     )
+    START_MESSAGE_IMAGE_TOKEN: Final[str | None] = os.getenv(
+        "START_MESSAGE_IMAGE_TOKEN"
+    )
 
     COORDINATE_EXTRACTOR_URL: Final[str] = os.getenv(
         "COORDINATE_EXTRACTOR_URL", "https://nominatim.openstreetmap.org/reverse"

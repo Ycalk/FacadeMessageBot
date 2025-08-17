@@ -1,34 +1,47 @@
 from aiomax.types.updates import BotStartedUpdate
-from aiomax.types.attachment_requests import InlineKeyboardAttachmentRequest
+from aiomax.types.attachment_requests import (
+    InlineKeyboardAttachmentRequest,
+    ImageAttachmentRequest,
+)
+from aiomax.types import PhotoAttachmentRequestPayload, AttachmentRequest
 from aiomax.types.keyboard import CallbackButton, Keyboard
 from aiomax.types import TextFormat, ButtonIntent
 from aiomax.methods import SendMessage
 from aiomax import Bot
 from bot.bot import state_machine
-from bot.utils import Texts, UserState
+from bot.utils import Texts, UserState, Config
 
 
 async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
+    attachments: list[AttachmentRequest] = [
+        InlineKeyboardAttachmentRequest(
+            payload=Keyboard(
+                buttons=[
+                    [
+                        CallbackButton(
+                            text=Texts.Buttons.send_message,
+                            payload="send_message",
+                            intent=ButtonIntent.POSITIVE,
+                        )
+                    ],
+                ]
+            )
+        ),
+    ]
+    if Config.START_MESSAGE_IMAGE_TOKEN:
+        attachments.append(
+            ImageAttachmentRequest(
+                payload=PhotoAttachmentRequestPayload(
+                    url=None, photos=None, token=Config.START_MESSAGE_IMAGE_TOKEN
+                )
+            )
+        )
     await bot(
         SendMessage(
             user_id=update.user.user_id,
             text=Texts.Messages.start,
             text_format=TextFormat.MARKDOWN,
-            attachments=[
-                InlineKeyboardAttachmentRequest(
-                    payload=Keyboard(
-                        buttons=[
-                            [
-                                CallbackButton(
-                                    text=Texts.Buttons.send_message,
-                                    payload="send_message",
-                                    intent=ButtonIntent.POSITIVE,
-                                )
-                            ],
-                        ]
-                    )
-                )
-            ],
+            attachments=attachments,
         )
     )
     # Устанавливаем состояние пользователя на SEND_MESSAGE
