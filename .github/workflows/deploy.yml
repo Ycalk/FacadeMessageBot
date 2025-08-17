@@ -28,7 +28,7 @@ jobs:
           echo "MAIN_ADMIN_ID=${{ secrets.MAIN_ADMIN_ID }}" >> secrets.env
           echo "MEDIA_FACADE_API_TOKEN=${{ secrets.MEDIA_FACADE_API_TOKEN }}" >> secrets.env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> secrets.env
-          echo "BLACK_LIST_BOT_TOKEN=${{ secrets.BLACK_LIST_BOT_TOKEN }}"
+          echo "BLACK_LIST_BOT_TOKEN=${{ secrets.BLACK_LIST_BOT_TOKEN }}" >> secrets.env
           echo "BLACK_LIST_BOT_SECRET_KEY=${{ secrets.BLACK_LIST_BOT_SECRET_KEY }}" >> secrets.env
 
       - name: Transfer files to server
