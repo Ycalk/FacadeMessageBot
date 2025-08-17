@@ -40,6 +40,9 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
+      - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
+      - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
+      - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
     env_file:
       - secrets.env
   
