@@ -26,3 +26,6 @@ class Image(BaseModel):
             description="Datetime of when the image was created",
         ),
     ] = datetime.now(tz=Config.TIME_ZONE)
+
+    def __str__(self) -> str:
+        return self.text

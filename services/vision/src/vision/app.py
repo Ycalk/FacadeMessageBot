@@ -8,6 +8,7 @@ from logging import Logger
 from .utils import Config, RedisStorage
 from redis.asyncio import Redis
 from shared_models.messaging import bot_exchange, bot_message_shown_queue
+from .handlers import message_shown_router
 
 
 broker = RabbitBroker(
@@ -27,6 +28,7 @@ app = FastStream(
 )
 
 bot_publisher = broker.publisher(bot_message_shown_queue, bot_exchange)
+broker.include_router(message_shown_router)
 
 on_startup_finished_event = asyncio.Event()
 

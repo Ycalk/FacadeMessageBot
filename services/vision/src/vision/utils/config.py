@@ -17,6 +17,9 @@ class Config:
     VIDEO_CHANNELS: Final[int] = int(os.getenv("VIDEO_CHANNELS", 3))
     DEBUG_MODE: Final[bool] = os.getenv("DEBUG_MODE", "0").lower() == "1"
 
+    FONT_PATH: Final[str] = os.getenv(
+        "FONT_PATH", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    )
     # RabbitMQ configuration
     RABBIT_PORT: Final[int] = int(os.getenv("RABBIT_PORT", 5672))
     RABBIT_HOST: Final[str] = os.getenv("RABBIT_HOST", "localhost")
