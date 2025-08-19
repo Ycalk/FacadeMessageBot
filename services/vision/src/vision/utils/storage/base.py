@@ -44,6 +44,21 @@ class BaseStorage(ABC):
         ...
 
     @abstractmethod
+    async def find_shown_messages_by_show_at_time(
+        self, start: datetime, end: datetime
+    ) -> list[ShownMessage]:
+        """Finds shown messages within a specific time range.
+
+        Args:
+            start (datetime): Start of the time range.
+            end (datetime): End of the time range.
+
+        Returns:
+            list[ShownMessage]: List of shown messages within the specified time range.
+        """
+        ...
+
+    @abstractmethod
     async def get_shown_messages(self) -> list[ShownMessage]:
         """Retrieves all shown messages from the storage.
 
@@ -67,5 +82,23 @@ class BaseStorage(ABC):
 
         Args:
             message (ShownMessage | UUID): The shown message to be deleted, either as a ShownMessage object or its UUID.
+        """
+        ...
+
+    @abstractmethod
+    async def delete_old_images(self, to_date: datetime) -> None:
+        """Deletes images older than a specified date.
+
+        Args:
+            to_date (datetime): The date before which images will be deleted.
+        """
+        ...
+
+    @abstractmethod
+    async def delete_old_shown_messages(self, to_date: datetime) -> None:
+        """Deletes shown messages older than a specified date.
+
+        Args:
+            to_date (datetime): The date before which shown messages will be deleted.
         """
         ...

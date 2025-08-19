@@ -77,3 +77,31 @@ class RedisStorage(BaseStorage):
         message_id = message.id if isinstance(message, ShownMessage) else message
         await self.redis.delete(f"shown_message:{message_id}")
         await self.redis.zrem("shown_messages_by_show_at_time", str(message_id))
+
+    async def delete_old_images(self, to_date: datetime) -> None:
+        image_ids = await self.redis.zrangebyscore(
+            "images_by_created_time",
+            min=0,
+            max=to_date.timestamp(),
+        )
+        await self.redis.delete(*[f"image:{image_id}" for image_id in image_ids])
+        await self.redis.zremrangebyscore(
+            "images_by_created_time",
+            min=0,
+            max=to_date.timestamp(),
+        )
+
+    async def delete_old_shown_messages(self, to_date: datetime) -> None:
+        message_ids = await self.redis.zrangebyscore(
+            "shown_messages_by_show_at_time",
+            min=0,
+            max=to_date.timestamp(),
+        )
+        await self.redis.delete(
+            *[f"shown_message:{message_id}" for message_id in message_ids]
+        )
+        await self.redis.zremrangebyscore(
+            "shown_messages_by_show_at_time",
+            min=0,
+            max=to_date.timestamp(),
+        )
