@@ -31,6 +31,7 @@ async def main():
         mock_video_task.cancel()
         mock_video.process.terminate()
     capture_task.cancel()
+    capture_loop.proc.terminate()
 
 
 def run():
