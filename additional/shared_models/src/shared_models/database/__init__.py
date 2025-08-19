@@ -9,12 +9,11 @@ except ImportError:
     )
 
 
-from .models import Media, Message, ModerationLog, User
+from .models import Message, ModerationLog, User
 from .config import get_tortoise_orm_config, TORTOISE_ORM_FROM_ENV
 
 
 __all__ = [
-    "Media",
     "Message",
     "ModerationLog",
     "User",
