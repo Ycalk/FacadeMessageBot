@@ -2,6 +2,9 @@ import cv2
 import asyncio
 import base64
 import io
+import subprocess
+from shared_models.messaging import MessageShown as MessageShownSharedModel
+from faststream.rabbit.publisher.asyncapi import AsyncAPIPublisher
 from thefuzz import process
 from datetime import datetime, timedelta
 from logging import Logger
@@ -11,6 +14,7 @@ from .storage.models import Image, ShownMessage
 from PIL.Image import Image as PILImage
 from paddleocr import PaddleOCR
 from paddlex.inference.pipelines.ocr.result import OCRResult
+import numpy as np
 
 
 class CaptureLoopError(Exception):
@@ -20,13 +24,12 @@ class CaptureLoopError(Exception):
 
 
 class CaptureLoop:
-    def __init__(self, storage: BaseStorage, logger: Logger):
-        cap = cv2.VideoCapture(Config.RTMP_URL)
-        if not cap.isOpened():
-            raise RuntimeError("Could not open video stream.")
-        self.cap = cap
+    def __init__(
+        self, storage: BaseStorage, logger: Logger, bot_publisher: AsyncAPIPublisher
+    ) -> None:
         self.storage = storage
         self.logger = logger
+        self.publisher = bot_publisher
         self.ocr = PaddleOCR(
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
@@ -34,16 +37,48 @@ class CaptureLoop:
             text_recognition_model_name="eslav_PP-OCRv5_mobile_rec",
             text_detection_model_name="PP-OCRv5_mobile_det",
         )
+        self.proc = subprocess.Popen(
+            [
+                "ffmpeg",
+                "-i",
+                "rtmp://localhost/live",
+                "-f",
+                "rawvideo",
+                "-pix_fmt",
+                "bgr24",
+                "-r",
+                str(Config.VIDEO_FPS),
+                "-s",
+                f"{Config.VIDEO_WIDTH}x{Config.VIDEO_HEIGHT}",
+                "-",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            bufsize=10**8,
+        )
+        self.frame_size = (
+            Config.VIDEO_WIDTH * Config.VIDEO_HEIGHT * Config.VIDEO_CHANNELS
+        )
 
     async def start(self):
         self.logger.info("Starting capture loop...")
+        loop = asyncio.get_event_loop()
         while True:
-            await asyncio.sleep(0.1)  # Allow other tasks to run
+            await asyncio.sleep(0.1)
             try:
-                ret, frame = self.cap.read()
-                if not ret:
-                    self.logger.error("Failed to read frame from video stream.")
-                    raise CaptureLoopError("Failed to read frame from video stream.")
+                raw_frame = await loop.run_in_executor(
+                    None,
+                    self.proc.stdout.read,  # type: ignore
+                    self.frame_size,
+                )
+                if not raw_frame:
+                    self.logger.error("No frame received from ffmpeg")
+                    await asyncio.sleep(1)
+                    continue
+                frame = np.frombuffer(raw_frame, np.uint8).reshape(
+                    (Config.VIDEO_HEIGHT, Config.VIDEO_WIDTH, Config.VIDEO_CHANNELS)
+                )
+
                 await self.process_frame(frame)
             except CaptureLoopError as e:
                 self.logger.error(f"Capture loop error: {e}")
@@ -91,15 +126,34 @@ class CaptureLoop:
                 processor=lambda x: x.text,
             )[0]
             await self.send_shown_message(shown_message, matched_image)
+            await self.storage.delete_shown_message(shown_message)
+            await self.storage.delete_image(matched_image)
+
+        await self.storage.delete_old_images(
+            current_time - timedelta(seconds=Config.MAXIMUM_IMAGE_STORAGE_TIME_SECONDS)
+        )
+        deleted_messages = await self.storage.delete_old_shown_messages(
+            current_time - timedelta(seconds=Config.MAXIMUM_IMAGE_STORAGE_TIME_SECONDS)
+        )
+        for message in deleted_messages:
+            self.logger.error(
+                "Cannot find image for shown message: %s", message.message.message_id
+            )
+            await self.send_shown_message(message, None)
 
     async def send_shown_message(
-        self, shown_message: ShownMessage, image: Image
+        self, shown_message: ShownMessage, image: Image | None
     ) -> None:
-        pass
+        await self.publisher.publish(
+            MessageShownSharedModel(
+                message=shown_message.message,
+                photo_base64=image.image_base64 if image else None,
+            )
+        )
 
     def image_to_base64(self, image: PILImage) -> str:
         buffered = io.BytesIO()
-        image.save(buffered, format="JPG")
+        image.save(buffered, format="JPEG")
         return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
     def frame_to_base64(self, frame: cv2.typing.MatLike) -> str:

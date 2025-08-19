@@ -11,6 +11,10 @@ class Config:
     ANALYTICS_DELAY_SECONDS: Final[int] = int(os.getenv("ANALYTICS_DELAY_SECONDS", 120))
     MAXIMUM_IMAGE_STORAGE_TIME_SECONDS: Final[int] = ANALYTICS_DELAY_SECONDS + 60
     RTMP_URL: Final[str] = os.getenv("RTMP_URL", "rtmp://localhost/live")
+    VIDEO_WIDTH: Final[int] = int(os.getenv("VIDEO_WIDTH", 640))
+    VIDEO_HEIGHT: Final[int] = int(os.getenv("VIDEO_HEIGHT", 360))
+    VIDEO_FPS: Final[int] = int(os.getenv("VIDEO_FPS", 10))
+    VIDEO_CHANNELS: Final[int] = int(os.getenv("VIDEO_CHANNELS", 3))
     DEBUG_MODE: Final[bool] = os.getenv("DEBUG_MODE", "0").lower() == "1"
 
     # RabbitMQ configuration
