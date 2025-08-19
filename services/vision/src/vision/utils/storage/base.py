@@ -95,10 +95,13 @@ class BaseStorage(ABC):
         ...
 
     @abstractmethod
-    async def delete_old_shown_messages(self, to_date: datetime) -> None:
+    async def delete_old_shown_messages(self, to_date: datetime) -> list[ShownMessage]:
         """Deletes shown messages older than a specified date.
 
         Args:
             to_date (datetime): The date before which shown messages will be deleted.
+
+        Returns:
+            list[ShownMessage]: List of shown messages that were deleted.
         """
         ...

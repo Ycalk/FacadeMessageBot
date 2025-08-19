@@ -1,3 +1,4 @@
+import asyncio
 from faststream import FastStream
 from faststream.rabbit import RabbitBroker
 from faststream import Context, ContextRepo
@@ -6,6 +7,7 @@ from importlib.metadata import version
 from logging import Logger
 from .utils import Config, RedisStorage
 from redis.asyncio import Redis
+from shared_models.messaging import bot_exchange, bot_message_shown_queue
 
 
 broker = RabbitBroker(
@@ -24,6 +26,10 @@ app = FastStream(
     description="A service for watching video stream.",
 )
 
+bot_publisher = broker.publisher(bot_message_shown_queue, bot_exchange)
+
+on_startup_finished_event = asyncio.Event()
+
 
 @app.on_startup
 async def on_startup(context: ContextRepo):
@@ -40,3 +46,4 @@ async def on_startup(context: ContextRepo):
 @app.after_startup
 async def after_startup(logger: Logger = Context()):
     logger.info(f"Vision version {app.version} started successfully.")
+    on_startup_finished_event.set()

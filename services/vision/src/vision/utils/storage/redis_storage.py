@@ -33,7 +33,9 @@ class RedisStorage(BaseStorage):
             min=start.timestamp(),
             max=end.timestamp(),
         )
-        values = await self.redis.mget([f"image:{image_id}" for image_id in image_ids])
+        values = await self.redis.mget(
+            [f"image:{image_id.decode()}" for image_id in image_ids]
+        )
 
         return [
             Image.model_validate_json(value) for value in values if value is not None
@@ -48,7 +50,7 @@ class RedisStorage(BaseStorage):
             max=end.timestamp(),
         )
         values = await self.redis.mget(
-            [f"shown_message:{message_id}" for message_id in messages]
+            [f"shown_message:{message_id.decode()}" for message_id in messages]
         )
 
         return [
@@ -60,7 +62,7 @@ class RedisStorage(BaseStorage):
     async def get_shown_messages(self) -> list[ShownMessage]:
         message_ids = await self.redis.zrange("shown_messages_by_show_at_time", 0, -1)
         values = await self.redis.mget(
-            [f"shown_message:{message_id}" for message_id in message_ids]
+            [f"shown_message:{message_id.decode()}" for message_id in message_ids]
         )
         return [
             ShownMessage.model_validate_json(value)
@@ -84,24 +86,40 @@ class RedisStorage(BaseStorage):
             min=0,
             max=to_date.timestamp(),
         )
-        await self.redis.delete(*[f"image:{image_id}" for image_id in image_ids])
+        if not image_ids:
+            return
+
+        await self.redis.delete(
+            *[f"image:{image_id.decode()}" for image_id in image_ids]
+        )
         await self.redis.zremrangebyscore(
             "images_by_created_time",
             min=0,
             max=to_date.timestamp(),
         )
 
-    async def delete_old_shown_messages(self, to_date: datetime) -> None:
+    async def delete_old_shown_messages(self, to_date: datetime) -> list[ShownMessage]:
         message_ids = await self.redis.zrangebyscore(
             "shown_messages_by_show_at_time",
             min=0,
             max=to_date.timestamp(),
         )
+        if not message_ids:
+            return []
+
+        shown_messages = await self.redis.mget(
+            [f"shown_message:{message_id.decode()}" for message_id in message_ids]
+        )
         await self.redis.delete(
-            *[f"shown_message:{message_id}" for message_id in message_ids]
+            *[f"shown_message:{message_id.decode()}" for message_id in message_ids]
         )
         await self.redis.zremrangebyscore(
             "shown_messages_by_show_at_time",
             min=0,
             max=to_date.timestamp(),
         )
+        return [
+            ShownMessage.model_validate_json(value)
+            for value in shown_messages
+            if value is not None
+        ]
