@@ -114,18 +114,53 @@ class MockVideoStream:
         )
 
     def random_transform(self, img: Image.Image) -> Image.Image:
+        arr = np.array(img)
+
+        # Шум
         if random.random() < 0.5:
-            arr = np.array(img)
             noise = np.random.randint(0, 64, arr.shape, dtype=np.uint8)
             arr = np.clip(arr + noise, 0, 255)
-            img = Image.fromarray(arr)
 
+        # Инверсия цветов
+        if random.random() < 0.1:
+            arr = 255 - arr
+
+        # Горизонтальные полосы (glitch)
+        if random.random() < 0.3:
+            num_stripes = random.randint(3, 10)
+            h = arr.shape[0]
+            for _ in range(num_stripes):
+                y = random.randint(0, h - 5)
+                height = random.randint(2, 10)
+                shift = random.randint(-20, 20)
+                arr[y : y + height] = np.roll(arr[y : y + height], shift, axis=1)
+
+        img = Image.fromarray(arr)
+
+        # Блюр
         if random.random() < 0.3:
             img = img.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.5, 2.0)))
 
+        # Пикселизация
+        if random.random() < 0.2:
+            scale = random.randint(4, 10)
+            small = img.resize(
+                (img.width // scale, img.height // scale),
+                resample=Image.Resampling.NEAREST,
+            )
+            img = small.resize(img.size, Image.Resampling.NEAREST)
+
+        # Случайный поворот на небольшой угол
+        if random.random() < 0.2:
+            angle = random.uniform(-10, 10)
+            img = img.rotate(angle, expand=False)
+
+        # Контраст
         if random.random() < 0.5:
             enhancer = ImageEnhance.Contrast(img)
             img = enhancer.enhance(random.uniform(0.5, 1.5))
+
+        # Яркость
         if random.random() < 0.5:
             enhancer = ImageEnhance.Brightness(img)
             img = enhancer.enhance(random.uniform(0.5, 1.5))
