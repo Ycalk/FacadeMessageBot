@@ -1,10 +1,12 @@
 import subprocess
 import asyncio
 import random
+import numpy as np
 from .config import Config
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
-import numpy as np
+from redis.asyncio import Redis
 from .storage.base import BaseStorage
+from .storage.models import ShownMessage
 from typing import NamedTuple
 from string import ascii_letters, digits
 
@@ -12,7 +14,7 @@ NewText = NamedTuple("NewText", [("text", str), ("name", str), ("city", str)])
 
 
 class MockVideoStream:
-    def __init__(self, storage: BaseStorage):
+    def __init__(self, storage: BaseStorage, redis: Redis | None = None):
         self.ffmpeg_cmd = [
             "ffmpeg",
             "-y",
@@ -43,10 +45,17 @@ class MockVideoStream:
             Config.RTMP_URL,
         ]
         self.storage = storage
+        self.redis = redis
+        self.shown_messages: set[str] = set()
 
     async def start(self):
-        self.process = subprocess.Popen(self.ffmpeg_cmd, stdin=subprocess.PIPE)
-        font = ImageFont.load_default(size=20)
+        self.process = subprocess.Popen(
+            self.ffmpeg_cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        font = ImageFont.truetype(Config.FONT_PATH, size=20)
         text_data = await self.get_new_text()
         counter = 1
         while True:
@@ -67,9 +76,14 @@ class MockVideoStream:
             center_x = (Config.VIDEO_WIDTH - text_w) // 2
             center_y = (Config.VIDEO_HEIGHT - text_h) // 2
 
+            # небольшие случайные смещения
+            jitter_range = 50
+            text_x = center_x + random.randint(-jitter_range, jitter_range)
+            text_y = center_y + random.randint(-jitter_range, jitter_range)
+
             # основной текст в центре
             draw.text(
-                (center_x, center_y),
+                (text_x, text_y),
                 text_data.text,
                 font=font,
                 fill=tuple(255 - c for c in background_color),
@@ -79,8 +93,12 @@ class MockVideoStream:
             bbox_name = draw.textbbox((0, 0), text_data.name, font=font)
             name_w = bbox_name[2] - bbox_name[0]
             name_h = bbox_name[3] - bbox_name[1]
+
+            name_x = text_x - name_w - 10 + random.randint(-10, 10)
+            name_y = text_y - name_h - 10 + random.randint(-5, 5)
+
             draw.text(
-                (center_x - name_w - 10, center_y - name_h - 10),
+                (name_x, name_y),
                 text_data.name,
                 font=font,
                 fill=tuple(255 - c for c in background_color),
@@ -88,10 +106,13 @@ class MockVideoStream:
 
             # город чуть выше и правее
             bbox_city = draw.textbbox((0, 0), text_data.city, font=font)
-            city_w = bbox_city[2] - bbox_city[0]
             city_h = bbox_city[3] - bbox_city[1]
+
+            city_x = text_x + text_w + 10 + random.randint(-10, 10)
+            city_y = text_y - city_h - 10 + random.randint(-5, 5)
+
             draw.text(
-                (center_x + city_w + 10, center_y - city_h - 10),
+                (city_x, city_y),
                 text_data.city,
                 font=font,
                 fill=tuple(255 - c for c in background_color),
@@ -107,17 +128,41 @@ class MockVideoStream:
 
     async def get_new_text(self) -> NewText:
         alphabet = ascii_letters + digits
+        messages = await self.storage.get_shown_messages()
+        for message in messages:
+            if not await self.is_shown(message):
+                await self.mark_as_shown(message)
+                return NewText(
+                    name=message.message.name,
+                    city=message.message.city,
+                    text=message.message.text,
+                )
         return NewText(
             name="".join(random.choice(alphabet) for _ in range(10)),
             city="".join(random.choice(alphabet) for _ in range(10)),
             text="".join(random.choice(alphabet) for _ in range(20)),
         )
 
+    async def mark_as_shown(self, shown_message: ShownMessage):
+        if self.redis:
+            await self.redis.sadd(
+                "mock_video_stream_shown_messages", str(shown_message.id)
+            )  # type: ignore
+        else:
+            self.shown_messages.add(str(shown_message.id))
+
+    async def is_shown(self, shown_message: ShownMessage) -> bool:
+        if self.redis:
+            return await self.redis.sismember(
+                "mock_video_stream_shown_messages", str(shown_message.id)
+            )  # type: ignore
+        return str(shown_message.id) in self.shown_messages
+
     def random_transform(self, img: Image.Image) -> Image.Image:
         arr = np.array(img)
 
         # Шум
-        if random.random() < 0.5:
+        if random.random() < 0.8:
             noise = np.random.randint(0, 64, arr.shape, dtype=np.uint8)
             arr = np.clip(arr + noise, 0, 255)
 
@@ -126,7 +171,7 @@ class MockVideoStream:
             arr = 255 - arr
 
         # Горизонтальные полосы (glitch)
-        if random.random() < 0.3:
+        if random.random() < 0.6:
             num_stripes = random.randint(3, 10)
             h = arr.shape[0]
             for _ in range(num_stripes):
@@ -151,7 +196,7 @@ class MockVideoStream:
             img = small.resize(img.size, Image.Resampling.NEAREST)
 
         # Случайный поворот на небольшой угол
-        if random.random() < 0.2:
+        if random.random() < 0.8:
             angle = random.uniform(-10, 10)
             img = img.rotate(angle, expand=False)
 

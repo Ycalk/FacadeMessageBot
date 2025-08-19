@@ -80,6 +80,7 @@ class CaptureLoop:
                 )
 
                 await self.process_frame(frame)
+                await self.match_frames()
             except CaptureLoopError as e:
                 self.logger.error(f"Capture loop error: {e}")
                 raise
@@ -105,8 +106,8 @@ class CaptureLoop:
     async def match_frames(self) -> None:
         current_time = datetime.now(Config.TIME_ZONE)
         shown_messages = await self.storage.find_shown_messages_by_show_at_time(
-            start=current_time - timedelta(seconds=Config.ANALYTICS_DELAY_SECONDS),
-            end=current_time,
+            start=datetime(1970, 1, 1, tzinfo=Config.TIME_ZONE),
+            end=current_time - timedelta(seconds=Config.ANALYTICS_DELAY_SECONDS),
         )
         images = await self.storage.find_images_by_created_time(
             start=current_time
@@ -123,7 +124,6 @@ class CaptureLoop:
                     ]
                 ),
                 choices=images,
-                processor=lambda x: x.text,
             )[0]
             await self.send_shown_message(shown_message, matched_image)
             await self.storage.delete_shown_message(shown_message)
@@ -144,6 +144,7 @@ class CaptureLoop:
     async def send_shown_message(
         self, shown_message: ShownMessage, image: Image | None
     ) -> None:
+        self.logger.info(f"Sending shown message {shown_message.message.message_id}")
         await self.publisher.publish(
             MessageShownSharedModel(
                 message=shown_message.message,
