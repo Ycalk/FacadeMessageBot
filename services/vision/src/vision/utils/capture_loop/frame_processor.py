@@ -42,7 +42,7 @@ def ffmpeg_reader(
             "-max_delay",
             "0",
             "-i",
-            "rtmp://localhost/live",
+            Config.RTMP_URL,
             "-f",
             "rawvideo",
             "-pix_fmt",
