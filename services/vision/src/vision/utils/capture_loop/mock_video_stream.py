@@ -2,11 +2,11 @@ import subprocess
 import asyncio
 import random
 import numpy as np
-from .config import Config
+from ..config import Config
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 from redis.asyncio import Redis
-from .storage.base import BaseStorage
-from .storage.models import ShownMessage
+from ..storage.base import BaseStorage
+from ..storage.models import ShownMessage
 from typing import NamedTuple
 from string import ascii_letters, digits
 
