@@ -5,7 +5,7 @@ from faststream.security import SASLPlaintext
 from importlib.metadata import version
 from logging import Logger
 from bot.bot import bot
-from bot.notification_processor.handlers import moderation_result_router
+from .handlers import moderation_result_router, message_shown_router
 from bot.utils import Config
 
 
@@ -25,6 +25,7 @@ app = FastStream(
     description="Notification processor for Max bot",
 )
 broker.include_router(moderation_result_router)
+broker.include_router(message_shown_router)
 
 
 @app.on_startup

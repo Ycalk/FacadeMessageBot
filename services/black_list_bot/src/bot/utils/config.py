@@ -24,7 +24,11 @@ class Config:
     REDIS_USER_STORAGE_DB: Final[int] = int(os.getenv("REDIS_USER_STORAGE_DB", 0))
 
     if BLACK_LIST_BOT_TOKEN == "":
-        raise ValueError("BLACK_LIST_BOT_TOKEN must be set in the environment variables.")
+        raise ValueError(
+            "BLACK_LIST_BOT_TOKEN must be set in the environment variables."
+        )
 
     if BLACK_LIST_BOT_SECRET_KEY == "":
-        raise ValueError("BLACK_LIST_BOT_SECRET_KEY must be set in the environment variables.")
+        raise ValueError(
+            "BLACK_LIST_BOT_SECRET_KEY must be set in the environment variables."
+        )
