@@ -57,25 +57,19 @@ async def message_shown(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Message not found",
         )
-
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="This endpoint is not implemented yet",
+    returned_message = Message(
+        message_id=message.id,
+        text=message.text,
+        name=message.name,
+        city=message.city,
+        send_photo=message.send_photo,
     )
-
     await broker.publish(
-        MessageInput(
-            message=Message(
-                message_id=message.id,
-                text=message.text,
-                name=message.name,
-                city=message.city,
-                send_photo=message.send_photo,
-            )
-        ),
+        MessageInput(message=returned_message),
         vision_notification_queue,
         vision_exchange,
     )
+    return returned_message
 
 
 @webhooks_router.post(
