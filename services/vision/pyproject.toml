@@ -26,5 +26,7 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-vision = "vision:run"
-video_stream = "vision:run_mock_video_stream"
+app = "vision:run_app"
+mock_video_stream = "vision:run_mock_video_stream"
+frame_matcher = "vision:run_frame_matcher"
+frame_processor = "vision:run_frame_processor"

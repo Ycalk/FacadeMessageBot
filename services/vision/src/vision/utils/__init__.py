@@ -1,7 +1,6 @@
 from .config import Config
 from .storage import RedisStorage, Image, ShownMessage
-from .capture_loop import CaptureLoop
-from .mock_video_stream import MockVideoStream
+from .capture_loop import MockVideoStream, FrameMatcher, FrameProcessor
 
 
 __all__ = [
@@ -10,5 +9,6 @@ __all__ = [
     "Image",
     "ShownMessage",
     "MockVideoStream",
-    "CaptureLoop",
+    "FrameMatcher",
+    "FrameProcessor",
 ]
