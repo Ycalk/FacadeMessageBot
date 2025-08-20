@@ -1,6 +1,8 @@
 from .app import app, on_startup_finished_event, bot_publisher
 from .utils import MockVideoStream, Config, CaptureLoop
 from faststream import context
+from redis.asyncio import Redis
+from .utils import RedisStorage
 import asyncio
 
 
@@ -13,13 +15,6 @@ async def main():
         app_task.cancel()
         return
 
-    if Config.DEBUG_MODE:
-        mock_video = MockVideoStream(context.get("storage"))
-        mock_video_task = asyncio.create_task(mock_video.start())
-    else:
-        mock_video = None
-        mock_video_task = None
-
     capture_loop = CaptureLoop(
         context.get("storage"), context.get("logger"), bot_publisher
     )
@@ -27,11 +22,25 @@ async def main():
 
     await app_task
 
-    if mock_video_task and mock_video:
-        mock_video_task.cancel()
-        mock_video.process.terminate()
     capture_task.cancel()
     capture_loop.proc.terminate()
+
+
+async def video_stream():
+    if not Config.DEBUG_MODE:
+        raise RuntimeError("Video stream is only available in debug mode")
+    redis = Redis(
+        host=Config.REDIS_HOST,
+        port=Config.REDIS_PORT,
+        db=Config.REDIS_DATA_STORAGE_DB,
+    )
+    mock_video = MockVideoStream(RedisStorage(redis))
+    await mock_video.start()
+    mock_video.process.terminate()
+
+
+def run_mock_video_stream():
+    asyncio.run(video_stream())
 
 
 def run():
