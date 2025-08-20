@@ -52,8 +52,6 @@ class MockVideoStream:
         self.process = subprocess.Popen(
             self.ffmpeg_cmd,
             stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
         )
         font = ImageFont.truetype(Config.FONT_PATH, size=20)
         text_data = await self.get_new_text()
@@ -162,7 +160,7 @@ class MockVideoStream:
         arr = np.array(img)
 
         # Шум
-        if random.random() < 0.8:
+        if random.random() < 0.3:
             noise = np.random.randint(0, 64, arr.shape, dtype=np.uint8)
             arr = np.clip(arr + noise, 0, 255)
 
@@ -171,7 +169,7 @@ class MockVideoStream:
             arr = 255 - arr
 
         # Горизонтальные полосы (glitch)
-        if random.random() < 0.6:
+        if random.random() < 0.3:
             num_stripes = random.randint(3, 10)
             h = arr.shape[0]
             for _ in range(num_stripes):
@@ -187,7 +185,7 @@ class MockVideoStream:
             img = img.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.5, 2.0)))
 
         # Пикселизация
-        if random.random() < 0.2:
+        if random.random() < 0.1:
             scale = random.randint(4, 10)
             small = img.resize(
                 (img.width // scale, img.height // scale),
@@ -201,12 +199,12 @@ class MockVideoStream:
             img = img.rotate(angle, expand=False)
 
         # Контраст
-        if random.random() < 0.5:
+        if random.random() < 0.2:
             enhancer = ImageEnhance.Contrast(img)
             img = enhancer.enhance(random.uniform(0.5, 1.5))
 
         # Яркость
-        if random.random() < 0.5:
+        if random.random() < 0.2:
             enhancer = ImageEnhance.Brightness(img)
             img = enhancer.enhance(random.uniform(0.5, 1.5))
 

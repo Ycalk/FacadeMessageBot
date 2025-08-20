@@ -11,6 +11,8 @@ from shared_models.messaging.exchanges import (
 from vision.utils.storage.base import BaseStorage
 from vision.utils.storage.models import ShownMessage
 from shared_models.messaging import MessageInput
+from uuid import uuid4
+from datetime import datetime
 from faststream import Context
 
 
@@ -29,5 +31,7 @@ async def moderate(
     await storage.save_shown_message(
         ShownMessage(
             message=message_input.message,
+            id=uuid4(),
+            show_at=datetime.now(),
         )
     )

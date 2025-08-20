@@ -1,8 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from ...config import Config
 from typing import Annotated
-from uuid import uuid4, UUID
+from uuid import UUID
 
 
 class Image(BaseModel):
@@ -11,7 +10,7 @@ class Image(BaseModel):
         Field(
             description="Unique identifier for the image",
         ),
-    ] = uuid4()
+    ]
     image_base64: Annotated[
         str,
         Field(
@@ -25,7 +24,7 @@ class Image(BaseModel):
         Field(
             description="Datetime of when the image was created",
         ),
-    ] = datetime.now(tz=Config.TIME_ZONE)
+    ]
 
     def __str__(self) -> str:
         return self.text

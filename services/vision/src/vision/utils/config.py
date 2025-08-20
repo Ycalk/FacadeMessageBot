@@ -1,19 +1,17 @@
 import os
 from dotenv import load_dotenv
 from typing import Final
-from zoneinfo import ZoneInfo
 
 load_dotenv()
 
 
 class Config:
-    TIME_ZONE: Final[ZoneInfo] = ZoneInfo(os.getenv("TIME_ZONE", "Europe/Moscow"))
     ANALYTICS_DELAY_SECONDS: Final[int] = int(os.getenv("ANALYTICS_DELAY_SECONDS", 120))
     MAXIMUM_IMAGE_STORAGE_TIME_SECONDS: Final[int] = ANALYTICS_DELAY_SECONDS + 60
     RTMP_URL: Final[str] = os.getenv("RTMP_URL", "rtmp://localhost/live")
-    VIDEO_WIDTH: Final[int] = int(os.getenv("VIDEO_WIDTH", 640))
-    VIDEO_HEIGHT: Final[int] = int(os.getenv("VIDEO_HEIGHT", 360))
-    VIDEO_FPS: Final[int] = int(os.getenv("VIDEO_FPS", 10))
+    VIDEO_WIDTH: Final[int] = int(os.getenv("VIDEO_WIDTH", 800))
+    VIDEO_HEIGHT: Final[int] = int(os.getenv("VIDEO_HEIGHT", 1340))
+    VIDEO_FPS: Final[int] = int(os.getenv("VIDEO_FPS", 23))
     VIDEO_CHANNELS: Final[int] = int(os.getenv("VIDEO_CHANNELS", 3))
     DEBUG_MODE: Final[bool] = os.getenv("DEBUG_MODE", "0").lower() == "1"
 

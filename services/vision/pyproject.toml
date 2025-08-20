@@ -27,3 +27,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 vision = "vision:run"
+video_stream = "vision:run_mock_video_stream"
