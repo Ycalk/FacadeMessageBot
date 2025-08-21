@@ -1,0 +1,26 @@
+[project]
+name = "table-moderator"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "ycalk",email = "alosev752@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "facade-message-bot-shared-models[messaging] (>=0.12.0,<0.13.0)",
+    "aiogoogle (>=5.15.0,<6.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "redis (>=6.4.0,<7.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "table_moderator", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+moderator = "table_moderator:run"
