@@ -7,9 +7,9 @@ from faststream import context
 async def main():
     app_task = asyncio.create_task(app.run())
     try:
-        await asyncio.wait_for(startup_complete_event.wait(), timeout=5)
+        await asyncio.wait_for(startup_complete_event.wait(), timeout=60)
     except asyncio.TimeoutError:
-        print("App failed to start within 5 seconds.")
+        print("App failed to start within 60 seconds.")
         app_task.cancel()
         return
     sheet: Sheet = context.get("sheet")
