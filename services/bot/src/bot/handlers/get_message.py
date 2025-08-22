@@ -29,6 +29,15 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
             )
         )
         return
+    if any(char not in Config.ALPHABET for char in update.message.body.text):
+        await bot(
+            SendMessage(
+                user_id=update.message.sender.user_id,
+                text=Texts.Messages.invalid_message_alphabet,
+                text_format=TextFormat.MARKDOWN,
+            )
+        )
+        return
 
     # Следующий шаг - запрос имени пользователя
 
@@ -60,16 +69,17 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
     )
 
     # Устанавливаем состояние пользователя на получение имени
-    state_machine.set_state(update.message.sender.user_id, UserState.GET_NAME)
+    await state_machine.set_state(update.message.sender.user_id, UserState.GET_NAME)
     # Обновляем контекст пользователя: сохраняем текст сообщения
-    state_machine.update_context(
+    await state_machine.update_context(
         update.message.sender.user_id, message=update.message.body.text
     )
 
 
-def get_message_filter(update: MessageCreatedUpdate) -> bool:
+async def get_message_filter(update: MessageCreatedUpdate) -> bool:
     if not update.message or not update.message.sender:
         return False
     return (
-        state_machine.get_state(update.message.sender.user_id) == UserState.GET_MESSAGE
+        await state_machine.get_state(update.message.sender.user_id)
+        == UserState.GET_MESSAGE
     )

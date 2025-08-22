@@ -43,7 +43,6 @@ sheet = Sheet()
 storage = Storage()
 
 
-
 @app.on_startup
 async def on_startup(context: ContextRepo, logger: Logger = Context()):
     context.set_global("sheet", sheet)

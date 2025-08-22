@@ -4,6 +4,7 @@ from aiomax.methods import AnswerCallback, SendMessage
 from ..utils import (
     Texts,
     UserState,
+    Config,
     attempts_limit_reached,
     messages_limit_reached,
     messages_time_out_reached,
@@ -14,6 +15,19 @@ from bot.bot import state_machine
 
 
 async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
+    if Config.MESSAGE_COLLECTION_STOPPED:
+        await bot(
+            AnswerCallback(
+                callback_id=update.callback.callback_id,
+                message=NewMessageBody(
+                    text=Texts.Messages.message_collection_stopped,
+                    attachments=[],
+                    notify=True,
+                    format=TextFormat.MARKDOWN,
+                ),
+            )
+        )
+        return
     # Проверяем, достиг ли пользователь лимита попыток отправки сообщений
     # или лимита количества сообщений
     # Если достигнут, то отправляем соответствующее сообщение и выходим
@@ -74,7 +88,7 @@ async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
         max_id=update.callback.user.user_id,
     )
 
-    state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
 
 
 def new_message_filter(update: MessageCallbackUpdate) -> bool:

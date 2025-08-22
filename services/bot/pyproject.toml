@@ -12,7 +12,8 @@ dependencies = [
     "async-max-api (>=0.1.0,<0.2.0)",
     "thefuzz (>=0.22.1,<0.23.0)",
     "facade-message-bot-shared-models[full] (>=0.14.0,<0.15.0)",
-    "babel (>=2.17.0,<3.0.0)"
+    "babel (>=2.17.0,<3.0.0)",
+    "redis (>=6.4.0,<7.0.0)"
 ]
 
 [tool.poetry]

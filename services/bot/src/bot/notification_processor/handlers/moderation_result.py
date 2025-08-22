@@ -8,7 +8,7 @@ from shared_models.messaging import (
 )
 from aiomax import Bot
 from aiomax.types.attachment_requests import InlineKeyboardAttachmentRequest
-from aiomax.types.keyboard import Keyboard, CallbackButton
+from aiomax.types.keyboard import Keyboard, CallbackButton, LinkButton
 from aiomax.types import ButtonIntent, TextFormat
 from faststream import Context
 from shared_models.enums import ModeratorType, MessageState
@@ -79,7 +79,27 @@ async def moderation_result_handler(
                 if moderation_result.source == ModeratorType.AUTO
                 else Texts.Messages.manual_moderation_rejected
             )
-            await send_user_message(bot, message.user.max_id, rejection_text)
+            attachments = (
+                [
+                    InlineKeyboardAttachmentRequest(
+                        payload=Keyboard(
+                            buttons=[
+                                [
+                                    LinkButton(
+                                        text=Texts.Buttons.terms_of_use,
+                                        url=Config.TERMS_OF_USE_URL,
+                                    )
+                                ]
+                            ]
+                        )
+                    )
+                ]
+                if moderation_result.source == ModeratorType.AUTO
+                else None
+            )
+            await send_user_message(
+                bot, message.user.max_id, rejection_text, attachments
+            )
             return
 
         # === APPROVED case ===
