@@ -29,6 +29,15 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
             )
         )
         return
+    if any(char not in Config.ALPHABET for char in update.message.body.text):
+        await bot(
+            SendMessage(
+                user_id=update.message.sender.user_id,
+                text=Texts.Messages.invalid_message_alphabet,
+                text_format=TextFormat.MARKDOWN,
+            )
+        )
+        return
 
     # Следующий шаг - запрос имени пользователя
 
