@@ -483,20 +483,27 @@ class Sheet:
                 teams_approved = 0
                 teams_rejected = 0
 
+                team_approved = False
                 # Проверяем решения всех команд (начиная с колонки F, индекс 5)
                 for team_index in range(Config.TEAMS_COUNT):
                     approved_col = 5 + team_index * 2  # Колонка "Утверждено"
                     rejected_col = 5 + team_index * 2 + 1  # Колонка "Отклонено"
+                    team_approved = False
 
                     # Проверяем "Утверждено"
                     if len(row_data) > approved_col and row_data[approved_col]:
                         if row_data[approved_col] == "TRUE":
                             teams_approved += 1
+                            team_approved = True
 
                     # Проверяем "Отклонено"
                     if len(row_data) > rejected_col and row_data[rejected_col]:
                         if row_data[rejected_col] == "TRUE":
-                            teams_rejected += 1
+                            if team_approved:
+                                # Конфликт: обе колонки отмечены
+                                teams_approved -= 1  # Отменяем засчитанное утверждение
+                            else:
+                                teams_rejected += 1
 
                 approved = None
                 # Определяем финальный статус
