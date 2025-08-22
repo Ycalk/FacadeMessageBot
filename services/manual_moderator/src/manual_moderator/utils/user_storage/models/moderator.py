@@ -9,8 +9,8 @@ from manual_moderator.utils.config import Config
 from .bot_data import BotData
 from shared_models.messaging.queues.bot import bot_moderate_response_queue
 from shared_models.messaging.exchanges import bot_exchange, moderator_exchange
-from shared_models.messaging.queues.facade_message_moderator import (
-    facade_message_moderator_queue,
+from shared_models.messaging.queues.table_moderator import (
+    table_moderator_queue,
 )
 from datetime import datetime
 
@@ -67,7 +67,7 @@ class Moderator(BaseUser):
             MessageInput(
                 message=self.processing_message,
             ),
-            facade_message_moderator_queue,
+            table_moderator_queue,
             moderator_exchange,
         )
         await self.add_processed_message(self.processing_message)
