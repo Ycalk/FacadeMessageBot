@@ -134,6 +134,7 @@ class FrameProcessor:
                     proceeded_frames += 1
                     if proceeded_frames % 100 == 0:
                         self.logger.info(f"Processed {proceeded_frames} frames so far.")
+                    await asyncio.sleep(0.5)  # Slight delay to prevent CPU overload
 
                 except KeyboardInterrupt:
                     self.logger.info("Frame processor interrupted by user.")
