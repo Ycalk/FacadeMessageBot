@@ -23,6 +23,11 @@ class Config:
     POSTGRES_PASSWORD: Final[str] = os.getenv("POSTGRES_PASSWORD", "")
     POSTGRES_DB: Final[str] = os.getenv("POSTGRES_DB", "")
 
+    # Redis configuration
+    REDIS_HOST: Final[str] = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: Final[int] = int(os.getenv("REDIS_PORT", 6379))
+    REDIS_STORAGE_DB: Final[int] = int(os.getenv("REDIS_STORAGE_DB", 0))
+
     # Secrets
     BOT_TOKEN: Final[str] = os.getenv("BOT_TOKEN", "")
     NAME_API_KEY: Final[str] = os.getenv("NAME_API_KEY", "")
@@ -30,7 +35,7 @@ class Config:
     # Other configurations
     ALPHABET: Final[str] = os.getenv(
         "ALPHABET",
-        "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789!@#$&()_;:'\",.?|`№",
+        "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789!@#$&()_;:'\",.?|`№ ",
     )
     MAX_MESSAGE_LENGTH: Final[int] = int(os.getenv("MAX_MESSAGE_LENGTH", 80))
     MAX_NAME_LENGTH: Final[int] = int(os.getenv("MAX_NAME_LENGTH", 15))
@@ -68,6 +73,7 @@ class Config:
     NAME_API_URL: Final[str] = os.getenv(
         "NAME_API_URL", "https://api.nameapi.org/rest/v5.3/parser/personnameparser"
     )
+    IS_TESTING: Final[bool] = os.getenv("IS_TESTING", "0").lower() == "1"
 
     if BOT_TOKEN == "":
         raise ValueError("BOT_TOKEN environment variable is not set")

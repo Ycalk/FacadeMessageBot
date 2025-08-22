@@ -82,12 +82,12 @@ async def write_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None
             text=Texts.Messages.get_message,
         )
     )
-    state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
 
 
-def write_message_filter(update: MessageCallbackUpdate) -> bool:
+async def write_message_filter(update: MessageCallbackUpdate) -> bool:
     return (
         update.callback.payload == "write_message"
-        and state_machine.get_state(update.callback.user.user_id)
+        and await state_machine.get_state(update.callback.user.user_id)
         == UserState.WRITE_MESSAGE
     )

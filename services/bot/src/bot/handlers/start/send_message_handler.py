@@ -47,7 +47,7 @@ async def send_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None:
 
         # Устанавливаем состояние пользователя на реакцию
         # на кнопку подтверждения условий использования
-        state_machine.set_state(
+        await state_machine.set_state(
             update.callback.user.user_id, UserState.CONFIRM_TERMS_OF_USE
         )
     else:
@@ -79,12 +79,14 @@ async def send_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None:
             )
         )
 
-        state_machine.set_state(update.callback.user.user_id, UserState.WRITE_MESSAGE)
+        await state_machine.set_state(
+            update.callback.user.user_id, UserState.WRITE_MESSAGE
+        )
 
 
-def send_message_filter(update: MessageCallbackUpdate) -> bool:
+async def send_message_filter(update: MessageCallbackUpdate) -> bool:
     return (
         update.callback.payload == "send_message"
-        and state_machine.get_state(update.callback.user.user_id)
+        and await state_machine.get_state(update.callback.user.user_id)
         == UserState.SEND_MESSAGE
     )

@@ -64,10 +64,10 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
                     ],
                 )
             )
-            state_machine.set_state(
+            await state_machine.set_state(
                 update.message.sender.user_id, UserState.CONFIRM_CITY
             )
-            state_machine.update_context(update.message.sender.user_id, city=city)
+            await state_machine.update_context(update.message.sender.user_id, city=city)
         return
 
     # Если вложения нет, значит пользователь ввел текстовое сообщение
@@ -110,11 +110,16 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
                 ],
             )
         )
-        state_machine.set_state(update.message.sender.user_id, UserState.CONFIRM_CITY)
-        state_machine.update_context(update.message.sender.user_id, city=city)
+        await state_machine.set_state(
+            update.message.sender.user_id, UserState.CONFIRM_CITY
+        )
+        await state_machine.update_context(update.message.sender.user_id, city=city)
 
 
-def get_city_filter(update: MessageCreatedUpdate) -> bool:
+async def get_city_filter(update: MessageCreatedUpdate) -> bool:
     if not update.message or not update.message.sender:
         return False
-    return state_machine.get_state(update.message.sender.user_id) == UserState.GET_CITY
+    return (
+        await state_machine.get_state(update.message.sender.user_id)
+        == UserState.GET_CITY
+    )

@@ -81,12 +81,18 @@ async def moderation_result_handler(
             )
             attachments = (
                 [
-                    [
-                        LinkButton(
-                            text=Texts.Buttons.terms_of_use,
-                            url=Config.TERMS_OF_USE_URL,
+                    InlineKeyboardAttachmentRequest(
+                        payload=Keyboard(
+                            buttons=[
+                                [
+                                    LinkButton(
+                                        text=Texts.Buttons.terms_of_use,
+                                        url=Config.TERMS_OF_USE_URL,
+                                    )
+                                ]
+                            ]
                         )
-                    ]
+                    )
                 ]
                 if moderation_result.source == ModeratorType.AUTO
                 else None

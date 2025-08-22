@@ -30,6 +30,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   # Services
+  # Bot service
   bot:
     build:
       context: services/bot
@@ -42,6 +43,7 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
+      - REDIS_HOST=client-bot-redis
       - TERMS_OF_USE_URL=***REMOVED***
       - PROCESSING_OF_PERSONAL_DATA_URL=***REMOVED***
       - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
@@ -52,6 +54,18 @@ services:
     depends_on:
       - rabbitmq
       - postgres
+
+  client-bot-redis:
+    image: redis:8.2.0-alpine
+    restart: always
+    volumes:
+      - client-bot-redis:/data
+    command: >
+      redis-server
+      --save 60 1
+      --save 300 10
+      --appendonly yes
+      --appendfsync everysec
   
   media-facade:
     build:
@@ -270,3 +284,4 @@ volumes:
   table-moderator-redis:
   auto-moderator-redis:
   vision-redis:
+  client-bot-redis:

@@ -29,7 +29,7 @@ async def test_send_message_handler_user_not_registered(
     result: Result,
 ):
     """Test the behavior of the confirm_start handler. With correct state and callback payload."""
-    state_machine.set_state(user_with_photo.user_id, UserState.SEND_MESSAGE)
+    await state_machine.set_state(user_with_photo.user_id, UserState.SEND_MESSAGE)
 
     event = asyncio.Event()
     bot.register_handler(
@@ -54,7 +54,7 @@ async def test_send_message_handler_user_not_registered(
         await asyncio.wait_for(event.wait(), timeout=2)
     finally:
         assert (
-            state_machine.get_state(user_with_photo.user_id)
+            await state_machine.get_state(user_with_photo.user_id)
             == UserState.CONFIRM_TERMS_OF_USE
         )
 
@@ -100,7 +100,7 @@ async def test_send_message_handler_user_registered(
     result: Result,
 ):
     """Test the behavior of the confirm_start handler. With correct state and callback payload."""
-    state_machine.set_state(user_with_photo.user_id, UserState.SEND_MESSAGE)
+    await state_machine.set_state(user_with_photo.user_id, UserState.SEND_MESSAGE)
     # Simulate that the user is already registered
     await User.create(
         first_name=user_with_photo.first_name,
@@ -132,7 +132,8 @@ async def test_send_message_handler_user_registered(
         await asyncio.wait_for(event.wait(), timeout=2)
     finally:
         assert (
-            state_machine.get_state(user_with_photo.user_id) == UserState.WRITE_MESSAGE
+            await state_machine.get_state(user_with_photo.user_id)
+            == UserState.WRITE_MESSAGE
         )
 
         assert len(test_session.requests) == 1
@@ -174,7 +175,7 @@ async def test_send_message_handler_incorrect_callback_payload(
     result: Result,
 ):
     """Test the behavior of the confirm_start handler. With incorrect callback payload."""
-    state_machine.set_state(user_with_photo.user_id, UserState.SEND_MESSAGE)
+    await state_machine.set_state(user_with_photo.user_id, UserState.SEND_MESSAGE)
 
     event = asyncio.Event()
     bot.register_handler(
@@ -198,7 +199,9 @@ async def test_send_message_handler_incorrect_callback_payload(
         await asyncio.wait_for(event.wait(), timeout=2)
 
     # Ensure the state remains unchanged
-    assert state_machine.get_state(user_with_photo.user_id) == UserState.SEND_MESSAGE
+    assert (
+        await state_machine.get_state(user_with_photo.user_id) == UserState.SEND_MESSAGE
+    )
 
     # No requests should be made since the handler should not process the update
     assert len(test_session.requests) == 0
@@ -218,7 +221,7 @@ async def test_send_message_handler_incorrect_state(
     result: Result,
 ):
     """Test the behavior of the confirm_start handler. With incorrect state"""
-    state_machine.set_state(user_with_photo.user_id, UserState.GET_PHOTO_SOLUTION)
+    await state_machine.set_state(user_with_photo.user_id, UserState.GET_PHOTO_SOLUTION)
 
     event = asyncio.Event()
     bot.register_handler(
@@ -243,7 +246,8 @@ async def test_send_message_handler_incorrect_state(
 
     # Ensure the state remains unchanged
     assert (
-        state_machine.get_state(user_with_photo.user_id) == UserState.GET_PHOTO_SOLUTION
+        await state_machine.get_state(user_with_photo.user_id)
+        == UserState.GET_PHOTO_SOLUTION
     )
 
     # No requests should be made since the handler should not process the update

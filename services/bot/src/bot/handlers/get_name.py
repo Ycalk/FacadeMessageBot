@@ -52,14 +52,17 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     )
 
     # Устанавливаем состояние пользователя на получение города
-    state_machine.set_state(update.message.sender.user_id, UserState.GET_CITY)
+    await state_machine.set_state(update.message.sender.user_id, UserState.GET_CITY)
     # Обновляем контекст пользователя: сохраняем имя пользователя
-    state_machine.update_context(
+    await state_machine.update_context(
         update.message.sender.user_id, name=update.message.body.text.capitalize()
     )
 
 
-def get_name_filter(update: MessageCreatedUpdate) -> bool:
+async def get_name_filter(update: MessageCreatedUpdate) -> bool:
     if not update.message or not update.message.sender:
         return False
-    return state_machine.get_state(update.message.sender.user_id) == UserState.GET_NAME
+    return (
+        await state_machine.get_state(update.message.sender.user_id)
+        == UserState.GET_NAME
+    )
