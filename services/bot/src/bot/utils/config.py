@@ -41,6 +41,13 @@ class Config:
     TERMS_OF_USE_URL: Final[str] = os.getenv(
         "TERMS_OF_USE_URL", "https://example.com/terms-of-use"
     )
+    PROCESSING_OF_PERSONAL_DATA_URL: Final[str] = os.getenv(
+        "PROCESSING_OF_PERSONAL_DATA_URL",
+        "https://example.com/processing-of-personal-data",
+    )
+    MESSAGE_COLLECTION_STOPPED: Final[bool] = (
+        os.getenv("MESSAGE_COLLECTION_STOPPED", "0").lower() == "1"
+    )
     MESSAGES_TIME_OUT_MINUTES: Final[int] = int(
         os.getenv("MESSAGES_TIME_OUT_MINUTES", 1)
     )
