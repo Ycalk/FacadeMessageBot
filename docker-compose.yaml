@@ -42,6 +42,8 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
+      - TERMS_OF_USE_URL=***REMOVED***
+      - PROCESSING_OF_PERSONAL_DATA_URL=***REMOVED***
       - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
       - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
       - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing

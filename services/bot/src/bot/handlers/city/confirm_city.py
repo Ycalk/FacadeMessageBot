@@ -8,9 +8,10 @@ from aiomax.types import (
     CallbackButton,
     ButtonIntent,
     RequestGeoLocationButton,
+    LinkButton,
 )
 from aiomax.methods import AnswerCallback
-from bot.utils import Texts, UserState
+from bot.utils import Texts, UserState, Config
 from bot.bot import state_machine
 
 
@@ -52,6 +53,12 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
                             payload=Keyboard(
                                 buttons=[
                                     [
+                                        LinkButton(
+                                            text=Texts.Buttons.processing_of_personal_data,
+                                            url=Config.PROCESSING_OF_PERSONAL_DATA_URL,
+                                        )
+                                    ],
+                                    [
                                         CallbackButton(
                                             text=Texts.Buttons.confirm_fields,
                                             payload="confirm_fields",
@@ -62,7 +69,7 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
                                             payload="start_over",
                                             intent=ButtonIntent.DEFAULT,
                                         ),
-                                    ]
+                                    ],
                                 ]
                             )
                         )
