@@ -1,4 +1,3 @@
-import asyncio
 from faststream import FastStream
 from faststream.rabbit import RabbitBroker
 from faststream import Context, ContextRepo
@@ -40,22 +39,17 @@ bot_publisher = broker.publisher(
     bot_moderate_response_queue,
     bot_exchange,
 )
+sheet = Sheet()
+storage = Storage()
 
-startup_complete_event = asyncio.Event()
 
 
 @app.on_startup
 async def on_startup(context: ContextRepo, logger: Logger = Context()):
-    try:
-        context.set_global("sheet", Sheet())
-        context.set_global("storage", Storage())
-        logger.info("Startup objects initialized")
-    except Exception as e:
-        logger.error(f"Startup error: {e}", exc_info=True)
-        raise
+    context.set_global("sheet", sheet)
+    context.set_global("storage", storage)
 
 
 @app.after_startup
 async def after_startup(logger: Logger = Context()):
     logger.info(f"Table Moderator version {app.version} started successfully.")
-    startup_complete_event.set()

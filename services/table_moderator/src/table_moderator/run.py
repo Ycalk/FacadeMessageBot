@@ -1,23 +1,22 @@
 import asyncio
-from .utils import UpdateLoop, Sheet
-from .app import app, startup_complete_event, facade_message_publisher, bot_publisher
-from faststream import context
+import logging
+from .utils import UpdateLoop
+from .app import (
+    app,
+    facade_message_publisher,
+    bot_publisher,
+    sheet,
+    storage,
+)
 
 
 async def main():
     app_task = asyncio.create_task(app.run())
-    try:
-        await asyncio.wait_for(startup_complete_event.wait(), timeout=60)
-    except asyncio.TimeoutError:
-        print("App failed to start within 60 seconds.")
-        app_task.cancel()
-        return
-    sheet: Sheet = context.get("sheet")
     await sheet.initialize()
     update_loop = UpdateLoop(
         sheet=sheet,
-        storage=context.get("storage"),
-        logger=context.get("logger"),
+        storage=storage,
+        logger=logging.getLogger("faststream"),
         facade_message_publisher=facade_message_publisher,
         bot_publisher=bot_publisher,
     )
