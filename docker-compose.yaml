@@ -63,7 +63,7 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
-      - USE_MOCK=1
+      - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL, MEDIA_FACADE_API_TOKEN
     env_file:
       - secrets.env
     depends_on:
@@ -138,6 +138,33 @@ services:
       - rabbitmq
       - manual-moderator-redis
   
+  # Table moderator service
+  table-moderator:
+    build:
+      context: services/table_moderator
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - REDIS_HOST=table-moderator-redis
+    env_file:
+      - secrets.env
+    depends_on:
+      - rabbitmq
+      - auto-moderator-redis
+  
+  table-moderator-redis:
+    image: redis:8.2.0-alpine
+    restart: always
+    volumes:
+      - table-moderator-redis:/data
+    command: >
+      redis-server
+      --save 60 1
+      --save 300 10
+      --appendonly yes
+      --appendfsync everysec
+
   # Vision service
   vision-redis:
     image: redis:8.2.0-alpine
@@ -238,5 +265,6 @@ volumes:
   rabbitmq-data:
   postgres-data:
   manual-moderator-redis:
+  table-moderator-redis:
   auto-moderator-redis:
   vision-redis:
