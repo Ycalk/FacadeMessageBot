@@ -16,6 +16,7 @@ class MessageState(StrEnum):
 
     PENDING_AUTO_MODERATION = "pending_auto_moderation"
     PENDING_MANUAL_MODERATION = "pending_manual_moderation"
+    PENDING_TABLE_MODERATION = "pending_table_moderation"
     PENDING_MEDIA_FACADE_MODERATION = "pending_media_facade_moderation"
     REJECTED = "rejected"
     APPROVED = "approved"
