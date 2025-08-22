@@ -12,6 +12,7 @@ class ModeratorType(StrEnum):
 
     AUTO = "auto"
     MANUAL = "manual"
+    TABLE = "table"
     MEDIA_FACADE = "media_facade"
 
     def __str__(self) -> str:

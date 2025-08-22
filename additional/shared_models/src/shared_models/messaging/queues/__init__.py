@@ -8,12 +8,8 @@ from .facade_message_moderator import (
     facade_message_moderator_queue,
     facade_message_moderator_dlx_queue,
 )
-from .manual_moderator import (
-    manual_moderator_queue,
-    manual_moderator_dlx_queue,
-    second_manual_moderator_queue,
-    second_manual_moderator_dlx_queue,
-)
+from .manual_moderator import manual_moderator_queue, manual_moderator_dlx_queue
+from .table_moderator import table_moderator_queue, table_moderator_dlx_queue
 from .vision import vision_notification_queue, vision_notification_dlx_queue
 from .bot import (
     bot_moderate_response_queue,
@@ -32,8 +28,8 @@ __all__ = [
     "facade_message_moderator_dlx_queue",
     "manual_moderator_queue",
     "manual_moderator_dlx_queue",
-    "second_manual_moderator_queue",
-    "second_manual_moderator_dlx_queue",
+    "table_moderator_queue",
+    "table_moderator_dlx_queue",
     "vision_notification_queue",
     "vision_notification_dlx_queue",
     "bot_moderate_response_queue",
