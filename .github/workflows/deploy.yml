@@ -32,7 +32,7 @@ jobs:
           echo "BLACK_LIST_BOT_SECRET_KEY=${{ secrets.BLACK_LIST_BOT_SECRET_KEY }}" >> secrets.env
           echo "START_MESSAGE_IMAGE_TOKEN=${{ secrets.START_MESSAGE_IMAGE_TOKEN }}" >> secrets.env
           echo "GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }}" >> secrets.env
-          echo "GOOGLE_ACCOUNT_CREDENTIALS=$(echo "${{ secrets.GOOGLE_ACCOUNT_CREDENTIALS_BASE64 }}" | base64 -d | tr -d '\n' | sed 's/"/\\"/g')" >> secrets.env
+          echo "GOOGLE_ACCOUNT_CREDENTIALS=$(echo "${{ secrets.GOOGLE_ACCOUNT_CREDENTIALS_BASE64 }}" | base64 -d" >> secrets.env
 
       - name: Transfer files to server
         uses: appleboy/scp-action@v1
