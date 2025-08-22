@@ -9,8 +9,8 @@ from .user_storage import UserStorage
 from shared_models.messaging import ModerationResult, MessageInput
 from shared_models.messaging.queues.bot import bot_moderate_response_queue
 from shared_models.messaging.exchanges import bot_exchange, moderator_exchange
-from shared_models.messaging.queues.facade_message_moderator import (
-    facade_message_moderator_queue,
+from shared_models.messaging.queues.table_moderator import (
+    table_moderator_queue,
 )
 from shared_models.enums import ModeratorType
 from shared_models.enums import ModerationResult as ModerationResultEnum
@@ -60,7 +60,7 @@ class ModerationLoop:
                 MessageInput(
                     message=message,
                 ),
-                facade_message_moderator_queue,
+                table_moderator_queue,
                 moderator_exchange,
             )
             message = await BotData.get_new_processing_message()
@@ -124,4 +124,3 @@ class ModerationLoop:
                 )
             except Exception as e:
                 logger.error(f"Error in moderation loop: {e}", exc_info=True)
-        logger.info("Moderation loop stopped")

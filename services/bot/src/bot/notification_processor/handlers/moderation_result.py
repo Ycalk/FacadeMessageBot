@@ -106,6 +106,25 @@ async def moderation_result_handler(
                 MessageState.PENDING_MANUAL_MODERATION,
                 MessageState.PENDING_AUTO_MODERATION,
             ):
+                message.state = MessageState.PENDING_TABLE_MODERATION
+                await message.save()
+                await create_log(message, moderation_result)
+                await send_user_message(
+                    bot, message.user.max_id, Texts.Messages.manual_moderation_completed
+                )
+            else:
+                await log_and_cancel(
+                    logger,
+                    message,
+                    bot,
+                    f"Message {message.id} is not in pending manual-moderation state. Current state: {state}",
+                )
+
+        elif source == ModeratorType.TABLE:
+            if state in (
+                MessageState.PENDING_TABLE_MODERATION,
+                MessageState.PENDING_MANUAL_MODERATION,
+            ):
                 message.state = MessageState.PENDING_MEDIA_FACADE_MODERATION
                 await message.save()
                 await create_log(message, moderation_result)
