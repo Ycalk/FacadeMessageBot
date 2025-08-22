@@ -45,9 +45,14 @@ startup_complete_event = asyncio.Event()
 
 
 @app.on_startup
-async def on_startup(context: ContextRepo):
-    context.set_global("sheet", Sheet())
-    context.set_global("storage", Storage())
+async def on_startup(context: ContextRepo, logger: Logger = Context()):
+    try:
+        context.set_global("sheet", Sheet())
+        context.set_global("storage", Storage())
+        logger.info("Startup objects initialized")
+    except Exception as e:
+        logger.error(f"Startup error: {e}", exc_info=True)
+        raise
 
 
 @app.after_startup
