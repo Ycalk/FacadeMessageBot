@@ -38,7 +38,7 @@ async def confirm_terms_of_use(update: MessageCallbackUpdate, bot: Bot) -> None:
         )
     )
 
-    state_machine.set_state(update.callback.user.user_id, UserState.WRITE_MESSAGE)
+    await state_machine.set_state(update.callback.user.user_id, UserState.WRITE_MESSAGE)
     # Создаем пользователя
     # Используется update_or_create чтобы не было дубликатов (на всякий случай)
     await User.update_or_create(
@@ -50,12 +50,12 @@ async def confirm_terms_of_use(update: MessageCallbackUpdate, bot: Bot) -> None:
         max_id=update.callback.user.user_id,
     )
 
-    state_machine.set_state(update.callback.user.user_id, UserState.WRITE_MESSAGE)
+    await state_machine.set_state(update.callback.user.user_id, UserState.WRITE_MESSAGE)
 
 
-def confirm_terms_of_use_filter(update: MessageCallbackUpdate) -> bool:
+async def confirm_terms_of_use_filter(update: MessageCallbackUpdate) -> bool:
     return (
         update.callback.payload == "confirm_terms_of_use"
-        and state_machine.get_state(update.callback.user.user_id)
+        and await state_machine.get_state(update.callback.user.user_id)
         == UserState.CONFIRM_TERMS_OF_USE
     )

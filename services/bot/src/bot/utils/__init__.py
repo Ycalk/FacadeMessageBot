@@ -1,6 +1,6 @@
 from .config import Config
 from .texts import Texts
-from .user_state import UserState, StateMachine
+from .state_machine import MemoryStateMachine, RedisStateMachine, UserState
 from .city_extractor import CityExtractor
 from .name_validator import NameValidator
 from .limits_checker import (
@@ -13,7 +13,8 @@ __all__ = [
     "Config",
     "Texts",
     "UserState",
-    "StateMachine",
+    "MemoryStateMachine",
+    "RedisStateMachine",
     "CityExtractor",
     "NameValidator",
     "attempts_limit_reached",

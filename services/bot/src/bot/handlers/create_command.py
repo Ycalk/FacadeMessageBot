@@ -4,6 +4,7 @@ from aiomax.methods import SendMessage
 from aiomax import Bot
 from bot.utils import (
     Texts,
+    Config,
     UserState,
     attempts_limit_reached,
     messages_limit_reached,
@@ -19,6 +20,15 @@ async def create_command_handler(update: MessageCreatedUpdate, bot: Bot) -> None
 
     user = await User.get_or_none(max_id=update.message.sender.user_id)
     if not user:
+        return
+
+    if Config.MESSAGE_COLLECTION_STOPPED:
+        await bot(
+            SendMessage(
+                user_id=update.message.sender.user_id,
+                text=Texts.Messages.message_collection_stopped,
+            )
+        )
         return
 
     # Проверяем, достиг ли пользователь лимита попыток отправки сообщений
@@ -56,7 +66,7 @@ async def create_command_handler(update: MessageCreatedUpdate, bot: Bot) -> None
             text_format=TextFormat.MARKDOWN,
         )
     )
-    state_machine.set_state(update.message.sender.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(update.message.sender.user_id, UserState.GET_MESSAGE)
 
 
 def create_command_filter(update: MessageCreatedUpdate) -> bool:

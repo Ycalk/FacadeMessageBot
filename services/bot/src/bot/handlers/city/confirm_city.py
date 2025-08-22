@@ -8,18 +8,21 @@ from aiomax.types import (
     CallbackButton,
     ButtonIntent,
     RequestGeoLocationButton,
+    LinkButton,
 )
 from aiomax.methods import AnswerCallback
-from bot.utils import Texts, UserState
+from bot.utils import Texts, UserState, Config
 from bot.bot import state_machine
 
 
 async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
     if update.callback.payload == "confirm_city":
         # Проверяем, что все необходимые поля заполнены
-        message = state_machine.get_context(update.callback.user.user_id, "message")
-        name = state_machine.get_context(update.callback.user.user_id, "name")
-        city = state_machine.get_context(update.callback.user.user_id, "city")
+        message = await state_machine.get_context(
+            update.callback.user.user_id, "message"
+        )
+        name = await state_machine.get_context(update.callback.user.user_id, "name")
+        city = await state_machine.get_context(update.callback.user.user_id, "city")
 
         # Если какое-то из полей пустое, отправляем сообщение об ошибке
         if not message or not name or not city:
@@ -52,6 +55,12 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
                             payload=Keyboard(
                                 buttons=[
                                     [
+                                        LinkButton(
+                                            text=Texts.Buttons.processing_of_personal_data,
+                                            url=Config.PROCESSING_OF_PERSONAL_DATA_URL,
+                                        )
+                                    ],
+                                    [
                                         CallbackButton(
                                             text=Texts.Buttons.confirm_fields,
                                             payload="confirm_fields",
@@ -62,7 +71,7 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
                                             payload="start_over",
                                             intent=ButtonIntent.DEFAULT,
                                         ),
-                                    ]
+                                    ],
                                 ]
                             )
                         )
@@ -71,7 +80,9 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
             )
         )
 
-        state_machine.set_state(update.callback.user.user_id, UserState.CONFIRM_FIELDS)
+        await state_machine.set_state(
+            update.callback.user.user_id, UserState.CONFIRM_FIELDS
+        )
 
     elif update.callback.payload == "try_again_city":
         # Пользователь ввел город вручную, но захотел попробовать определить снова
@@ -99,7 +110,7 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
             )
         )
 
-        state_machine.set_state(update.callback.user.user_id, UserState.GET_CITY)
+        await state_machine.set_state(update.callback.user.user_id, UserState.GET_CITY)
 
     elif update.callback.payload == "write_city":
         # Город определился автоматически, но пользователь хочет ввести его вручную
@@ -115,12 +126,12 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
             )
         )
 
-        state_machine.set_state(update.callback.user.user_id, UserState.GET_CITY)
+        await state_machine.set_state(update.callback.user.user_id, UserState.GET_CITY)
 
 
-def confirm_city_filter(update: MessageCallbackUpdate) -> bool:
+async def confirm_city_filter(update: MessageCallbackUpdate) -> bool:
     return (
         update.callback.payload in ("confirm_city", "write_city", "try_again_city")
-        and state_machine.get_state(update.callback.user.user_id)
+        and await state_machine.get_state(update.callback.user.user_id)
         == UserState.CONFIRM_CITY
     )

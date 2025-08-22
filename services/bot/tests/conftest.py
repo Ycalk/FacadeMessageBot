@@ -48,9 +48,9 @@ async def bot(test_session: TestSession) -> AsyncGenerator[Bot, None]:
             pass
 
 
-@pytest.fixture(scope="function", autouse=True)
-def clear_user_state():
-    state_machine.clear()
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def clear_user_state():
+    await state_machine.clear()
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)

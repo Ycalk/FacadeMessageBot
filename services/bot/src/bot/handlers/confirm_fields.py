@@ -37,14 +37,18 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
                 ),
             )
         )
-        state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
-        state_machine.clear_context(update.callback.user.user_id)
+        await state_machine.set_state(
+            update.callback.user.user_id, UserState.GET_MESSAGE
+        )
+        await state_machine.clear_context(update.callback.user.user_id)
 
     elif update.callback.payload == "confirm_fields":
         user = await User.get_or_none(max_id=update.callback.user.user_id)
-        message = state_machine.get_context(update.callback.user.user_id, "message")
-        name = state_machine.get_context(update.callback.user.user_id, "name")
-        city = state_machine.get_context(update.callback.user.user_id, "city")
+        message = await state_machine.get_context(
+            update.callback.user.user_id, "message"
+        )
+        name = await state_machine.get_context(update.callback.user.user_id, "name")
+        city = await state_machine.get_context(update.callback.user.user_id, "city")
 
         if not message or not name or not city or not user:
             # Если какое-то из полей пустое, отправляем сообщение об ошибке
@@ -124,9 +128,9 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
         )
 
 
-def confirm_fields_filter(update: MessageCallbackUpdate) -> bool:
+async def confirm_fields_filter(update: MessageCallbackUpdate) -> bool:
     return (
         update.callback.payload in ("confirm_fields", "start_over")
-        and state_machine.get_state(update.callback.user.user_id)
+        and await state_machine.get_state(update.callback.user.user_id)
         == UserState.CONFIRM_FIELDS
     )

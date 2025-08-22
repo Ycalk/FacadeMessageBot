@@ -6,6 +6,7 @@ from bot.bot import state_machine
 from bot.utils import (
     Texts,
     UserState,
+    Config,
     attempts_limit_reached,
     messages_limit_reached,
     messages_time_out_reached,
@@ -25,6 +26,21 @@ async def write_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None
             ),
         )
     )
+
+    if Config.MESSAGE_COLLECTION_STOPPED:
+        await bot(
+            AnswerCallback(
+                callback_id=update.callback.callback_id,
+                message=NewMessageBody(
+                    text=Texts.Messages.message_collection_stopped,
+                    attachments=[],
+                    notify=True,
+                    format=TextFormat.MARKDOWN,
+                ),
+            )
+        )
+        return
+
     # Проверяем, достиг ли пользователь лимита попыток отправки сообщений
     # или лимита количества сообщений
     # Если достигнут, то отправляем соответствующее сообщение и выходим
@@ -66,12 +82,12 @@ async def write_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None
             text=Texts.Messages.get_message,
         )
     )
-    state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
 
 
-def write_message_filter(update: MessageCallbackUpdate) -> bool:
+async def write_message_filter(update: MessageCallbackUpdate) -> bool:
     return (
         update.callback.payload == "write_message"
-        and state_machine.get_state(update.callback.user.user_id)
+        and await state_machine.get_state(update.callback.user.user_id)
         == UserState.WRITE_MESSAGE
     )
