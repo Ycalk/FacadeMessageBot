@@ -41,15 +41,18 @@ class UpdateLoop:
     async def start(self):
         self.logger.info("Starting update loop...")
         while True:
-            sheet_messages = await self.sheet.parse_messages()
-            for sheet_message in sheet_messages:
-                storage_message = await self.storage.get_message(
-                    sheet_message.message_id
-                )
-                self.logger.info(sheet_message)
-                if sheet_message.approved is None or storage_message is None:
-                    continue
-                await self.send_message(sheet_message, storage_message)
-                await self.storage.delete_message(sheet_message.message_id)
-                await self.sheet.mark_as_processed(sheet_message.index)
-            await asyncio.sleep(5)
+            try:
+                sheet_messages = await self.sheet.parse_messages()
+                for sheet_message in sheet_messages:
+                    storage_message = await self.storage.get_message(
+                        sheet_message.message_id
+                    )
+                    if sheet_message.approved is None or storage_message is None:
+                        continue
+                    await self.send_message(sheet_message, storage_message)
+                    await self.storage.delete_message(sheet_message.message_id)
+                    await self.sheet.mark_as_processed(sheet_message.index)
+                await asyncio.sleep(5)
+            except Exception as e:
+                self.logger.error(f"Error in update loop: {e}")
+                await asyncio.sleep(5)
