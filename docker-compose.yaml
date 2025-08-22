@@ -113,20 +113,6 @@ services:
       - rabbitmq
       - auto-moderator-redis
   
-  black-list-bot:
-    build:
-      context: services/black_list_bot
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=auto-moderator-redis
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - auto-moderator-redis
-  
   # Manual moderator service
   manual-moderator-redis:
     image: redis:8.2.0-alpine
