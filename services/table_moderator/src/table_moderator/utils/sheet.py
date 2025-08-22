@@ -1,5 +1,5 @@
 import json
-import asyncio
+import string
 from redis.asyncio import Redis
 from .config import Config
 from aiogoogle.auth.creds import ServiceAccountCreds
@@ -16,6 +16,7 @@ class SheetMessage(BaseModel):
     city: str
     name: str
     approved: bool | None
+    index: int
 
 
 class Sheet:
@@ -53,26 +54,82 @@ class Sheet:
             self.sheets_api = await aiogoogle.discover("sheets", "v4")
 
             update_method: Method = self.sheets_api.spreadsheets.values.update  # type: ignore
+            cols_count = (
+                5 + Config.TEAMS_COUNT * 2
+            )  # 5 фиксированных + 2 колонки на каждую команду
+            last_col_letter = string.ascii_uppercase[cols_count - 1]
+
+            # Формируем заголовки
+            headers = [
+                "ID сообщения",
+                "Текст",
+                "Город",
+                "Имя",
+                "Обработано",
+            ]
+            for i in range(Config.TEAMS_COUNT):
+                headers.extend(
+                    [f"Команда {i + 1}", ""]
+                )  # второй заголовок зальём merge'ом
+
+            # Формируем вторую строку
+            sub_headers = [""] * 5
+            for _ in range(Config.TEAMS_COUNT):
+                sub_headers.extend(["Утверждено", "Отклонено"])
+
+            # Заполняем две строки
             await aiogoogle.as_service_account(
                 update_method(
                     spreadsheetId=Config.GOOGLE_SHEET_ID,
-                    range="A1:F1",
+                    range=f"A1:{last_col_letter}2",
                     valueInputOption="RAW",
                     json={
                         "values": [
-                            [
-                                "ID сообщения",
-                                "Текст",
-                                "Город",
-                                "Имя",
-                                "Утверждено",
-                                "Отклонено",
-                            ]
+                            headers,
+                            sub_headers,
                         ]
                     },
                 )
             )
+
             batch_update_method: Method = self.sheets_api.spreadsheets.batchUpdate  # type: ignore
+            merge_requests = []
+
+            # Объединяем первые 5 колонок (A-E) по вертикали
+            for col in range(5):
+                merge_requests.append(
+                    {
+                        "mergeCells": {
+                            "range": {
+                                "sheetId": self.sheet_id,
+                                "startRowIndex": 0,
+                                "endRowIndex": 2,
+                                "startColumnIndex": col,
+                                "endColumnIndex": col + 1,
+                            },
+                            "mergeType": "MERGE_ALL",
+                        }
+                    }
+                )
+
+            # Объединяем ячейки для каждой команды по горизонтали в первой строке
+            for i in range(Config.TEAMS_COUNT):
+                start_col = 5 + i * 2  # начальная колонка для команды i
+                merge_requests.append(
+                    {
+                        "mergeCells": {
+                            "range": {
+                                "sheetId": self.sheet_id,
+                                "startRowIndex": 0,
+                                "endRowIndex": 1,  # только первая строка
+                                "startColumnIndex": start_col,
+                                "endColumnIndex": start_col + 2,  # объединяем 2 ячейки
+                            },
+                            "mergeType": "MERGE_ALL",
+                        }
+                    }
+                )
+
             await aiogoogle.as_service_account(
                 batch_update_method(
                     spreadsheetId=Config.GOOGLE_SHEET_ID,
@@ -85,7 +142,7 @@ class Sheet:
                                         "range": {
                                             "sheetId": self.sheet_id,
                                             "startColumnIndex": 0,
-                                            "endColumnIndex": 4,
+                                            "endColumnIndex": 5,
                                         },
                                         "description": "Только сервисный аккаунт может редактировать эти колонки",
                                         "warningOnly": False,
@@ -105,7 +162,7 @@ class Sheet:
                                         "range": {
                                             "sheetId": self.sheet_id,
                                             "startRowIndex": 0,
-                                            "endRowIndex": 1,
+                                            "endRowIndex": 2,
                                         },
                                         "description": "Только сервисный аккаунт может редактировать эту строку",
                                         "warningOnly": False,
@@ -119,24 +176,14 @@ class Sheet:
                                     }
                                 }
                             },
-                            # Headers properties
-                            {
-                                "updateSheetProperties": {
-                                    "properties": {
-                                        "sheetId": self.sheet_id,
-                                        "gridProperties": {"frozenRowCount": 1},
-                                    },
-                                    "fields": "gridProperties.frozenRowCount",
-                                }
-                            },
                             {
                                 "repeatCell": {
                                     "range": {
                                         "sheetId": self.sheet_id,
                                         "startRowIndex": 0,
-                                        "endRowIndex": 1,
+                                        "endRowIndex": 2,
                                         "startColumnIndex": 0,
-                                        "endColumnIndex": 6,
+                                        "endColumnIndex": cols_count,
                                     },
                                     "cell": {
                                         "userEnteredFormat": {
@@ -152,6 +199,25 @@ class Sheet:
                                     "fields": "userEnteredFormat(textFormat,horizontalAlignment,backgroundColor)",
                                 }
                             },
+                            {
+                                "repeatCell": {
+                                    "range": {
+                                        "sheetId": self.sheet_id,
+                                        "startRowIndex": 0,
+                                        "endRowIndex": 2,
+                                        "startColumnIndex": 0,
+                                        "endColumnIndex": 5,
+                                    },
+                                    "cell": {
+                                        "userEnteredFormat": {
+                                            "verticalAlignment": "MIDDLE",
+                                        }
+                                    },
+                                    "fields": "userEnteredFormat(verticalAlignment)",
+                                }
+                            },
+                            # Объединяем ячейки ПЕРЕД установкой frozen rows
+                            *merge_requests,
                             # Title properties
                             {
                                 "updateSheetProperties": {
@@ -172,6 +238,16 @@ class Sheet:
                                     },
                                     "properties": {"pixelSize": 300},
                                     "fields": "pixelSize",
+                                }
+                            },
+                            # Устанавливаем frozen rows в КОНЦЕ
+                            {
+                                "updateSheetProperties": {
+                                    "properties": {
+                                        "sheetId": self.sheet_id,
+                                        "gridProperties": {"frozenRowCount": 2},
+                                    },
+                                    "fields": "gridProperties.frozenRowCount",
                                 }
                             },
                         ]
@@ -202,7 +278,7 @@ class Sheet:
                                 message.name,
                                 message.city,
                                 "",
-                                "",
+                                *("" for _ in range(Config.TEAMS_COUNT * 2)),
                             ]
                         ]
                     },
@@ -223,7 +299,7 @@ class Sheet:
                                         "startRowIndex": last_row - 1,
                                         "endRowIndex": last_row,
                                         "startColumnIndex": 4,
-                                        "endColumnIndex": 6,
+                                        "endColumnIndex": 5 + Config.TEAMS_COUNT * 2,
                                     },
                                     "rule": {
                                         "condition": {"type": "BOOLEAN"},
@@ -238,7 +314,7 @@ class Sheet:
                                         "startRowIndex": last_row - 1,
                                         "endRowIndex": last_row,
                                         "startColumnIndex": 0,
-                                        "endColumnIndex": 6,
+                                        "endColumnIndex": 5 + Config.TEAMS_COUNT * 2,
                                     },
                                     "cell": {
                                         "userEnteredFormat": {
@@ -277,7 +353,7 @@ class Sheet:
                 )
             )
 
-    async def _clear_message_decision(self, row_index: int) -> None:
+    async def mark_as_processed(self, index: int):
         if not self.sheet_id:
             self.sheet_id = await self._get_sheet_id()
         if not self.sheets_api:
@@ -285,54 +361,21 @@ class Sheet:
                 self.sheets_api = await aiogoogle.discover("sheets", "v4")
 
         async with Aiogoogle(service_account_creds=self.credentials) as aiogoogle:
-            batch_update_method: Method = self.sheets_api.spreadsheets.batchUpdate  # type: ignore
+            # Сначала обновляем значение в колонке "Обработано"
+            update_method: Method = self.sheets_api.spreadsheets.values.update  # type: ignore
             await aiogoogle.as_service_account(
-                batch_update_method(
+                update_method(
                     spreadsheetId=Config.GOOGLE_SHEET_ID,
-                    json={
-                        "requests": [
-                            {
-                                "setDataValidation": {
-                                    "range": {
-                                        "sheetId": self.sheet_id,
-                                        "startRowIndex": row_index,
-                                        "endRowIndex": row_index + 1,
-                                        "startColumnIndex": 4,
-                                        "endColumnIndex": 6,
-                                    },
-                                    "rule": {
-                                        "condition": {"type": "BOOLEAN"},
-                                        "showCustomUi": True,
-                                    },
-                                }
-                            },
-                            {
-                                "repeatCell": {
-                                    "range": {
-                                        "sheetId": self.sheet_id,
-                                        "startRowIndex": row_index,
-                                        "endRowIndex": row_index + 1,
-                                        "startColumnIndex": 4,
-                                        "endColumnIndex": 6,
-                                    },
-                                    "cell": {"userEnteredValue": {"boolValue": False}},
-                                    "fields": "userEnteredValue",
-                                }
-                            },
-                        ]
-                    },
+                    range=f"E{index + 1}",  # Колонка E, строка index+1 (потому что индексация с 1)
+                    valueInputOption="USER_ENTERED",
+                    json={"values": [["TRUE"]]},
                 )
             )
 
-    async def protect_message_decision(self, row_index: int) -> None:
-        if not self.sheet_id:
-            self.sheet_id = await self._get_sheet_id()
-        if not self.sheets_api:
-            async with Aiogoogle(service_account_creds=self.credentials) as aiogoogle:
-                self.sheets_api = await aiogoogle.discover("sheets", "v4")
-
-        async with Aiogoogle(service_account_creds=self.credentials) as aiogoogle:
+            # Затем защищаем всю строку от редактирования
             batch_update_method: Method = self.sheets_api.spreadsheets.batchUpdate  # type: ignore
+            cols_count = 5 + Config.TEAMS_COUNT * 2
+
             await aiogoogle.as_service_account(
                 batch_update_method(
                     spreadsheetId=Config.GOOGLE_SHEET_ID,
@@ -343,12 +386,12 @@ class Sheet:
                                     "protectedRange": {
                                         "range": {
                                             "sheetId": self.sheet_id,
-                                            "startRowIndex": row_index,
-                                            "endRowIndex": row_index + 1,
-                                            "startColumnIndex": 4,
-                                            "endColumnIndex": 6,
+                                            "startRowIndex": index,
+                                            "endRowIndex": index + 1,
+                                            "startColumnIndex": 0,
+                                            "endColumnIndex": cols_count,
                                         },
-                                        "description": "Защита от редактирования решения модератора",
+                                        "description": f"Обработанное сообщение (строка {index + 1})",
                                         "warningOnly": False,
                                         "editors": {
                                             "users": [
@@ -358,6 +401,34 @@ class Sheet:
                                             ]
                                         },
                                     }
+                                }
+                            },
+                            {
+                                "repeatCell": {
+                                    "range": {
+                                        "sheetId": self.sheet_id,
+                                        "startRowIndex": index,
+                                        "endRowIndex": index + 1,
+                                        "startColumnIndex": 0,
+                                        "endColumnIndex": cols_count,
+                                    },
+                                    "cell": {
+                                        "userEnteredFormat": {
+                                            "backgroundColor": {
+                                                "red": 0.95,
+                                                "green": 0.95,
+                                                "blue": 0.95,
+                                            },
+                                            "textFormat": {
+                                                "foregroundColor": {
+                                                    "red": 0.6,
+                                                    "green": 0.6,
+                                                    "blue": 0.6,
+                                                },
+                                            },
+                                        }
+                                    },
+                                    "fields": "userEnteredFormat(backgroundColor,textFormat)",
                                 }
                             },
                         ]
@@ -374,48 +445,79 @@ class Sheet:
 
         async with Aiogoogle(service_account_creds=self.credentials) as aiogoogle:
             get_method: Method = self.sheets_api.spreadsheets.values.get  # type: ignore
+
+            # Получаем все данные включая колонки команд
+            cols_count = 5 + Config.TEAMS_COUNT * 2
+            last_col_letter = string.ascii_uppercase[cols_count - 1]
+
             response = await aiogoogle.as_service_account(
                 get_method(
                     spreadsheetId=Config.GOOGLE_SHEET_ID,
-                    range="A2:F",
+                    range=f"A3:{last_col_letter}",  # Начинаем с 3-й строки (после заголовков)
                 )
             )
-            result: list[SheetMessage] = []
-            values: list[str] = response.get("values", [])  # type: ignore
-            update_tasks = []
-            for row_index, value in enumerate(values):
-                row_index += 1
-                try:
-                    message_id = int(value[0])
-                    text = value[1]
-                    name = value[2]
-                    city = value[3]
-                except (IndexError, ValueError):
-                    continue
 
-                if (
-                    len(value) != 6
-                    or (value[4] == "TRUE" and value[5] == "TRUE")
-                    or value[4] not in ("FALSE", "TRUE")
-                    or value[5] not in ("FALSE", "TRUE")
-                ):
-                    approved = None
-                    update_tasks.append(self._clear_message_decision(row_index))
-                elif value[4] == "FALSE" and value[5] == "FALSE":
-                    approved = None
-                else:
-                    approved = value[4] == "TRUE"
-                    update_tasks.append(self.protect_message_decision(row_index))
+            result: list[SheetMessage] = []
+            values: list[list[str]] = response.get("values", [])  # type: ignore
+
+            for row_index, row_data in enumerate(values):
+                actual_row_index = (
+                    row_index + 2
+                )  # +2 потому что начинаем с 3-й строки (индекс 2)
+
+                # Проверяем базовые данные сообщения
+                try:
+                    message_id = int(row_data[0])
+                    text = row_data[1]
+                    city = row_data[2]
+                    name = row_data[3]
+                except (IndexError, ValueError):
+                    continue  # Пропускаем строки с неполными данными
+
+                if len(row_data) > 4 and row_data[4]:
+                    if row_data[4] == "TRUE":
+                        continue  # Пропускаем уже обработанные сообщения
+
+                # Определяем статус утверждения на основе решений команд
+
+                teams_approved = 0
+                teams_rejected = 0
+
+                # Проверяем решения всех команд (начиная с колонки F, индекс 5)
+                for team_index in range(Config.TEAMS_COUNT):
+                    approved_col = 5 + team_index * 2  # Колонка "Утверждено"
+                    rejected_col = 5 + team_index * 2 + 1  # Колонка "Отклонено"
+
+                    # Проверяем "Утверждено"
+                    if len(row_data) > approved_col and row_data[approved_col]:
+                        if row_data[approved_col] == "TRUE":
+                            teams_approved += 1
+
+                    # Проверяем "Отклонено"
+                    if len(row_data) > rejected_col and row_data[rejected_col]:
+                        if row_data[rejected_col] == "TRUE":
+                            teams_rejected += 1
+
+                approved = None
+                # Определяем финальный статус
+                if teams_rejected + teams_approved == Config.TEAMS_COUNT:
+                    # Все команды приняли решение
+                    if teams_approved == Config.TEAMS_COUNT:
+                        # Все команды утвердили - сообщение утверждено
+                        approved = True
+                    else:
+                        # Хотя бы одна команда отклонила - сообщение отклонено
+                        approved = False
 
                 result.append(
                     SheetMessage(
                         message_id=message_id,
                         text=text,
-                        name=name,
                         city=city,
+                        name=name,
                         approved=approved,
+                        index=actual_row_index,
                     )
                 )
-            if update_tasks:
-                await asyncio.gather(*update_tasks)
+
             return result
