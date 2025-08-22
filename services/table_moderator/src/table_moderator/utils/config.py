@@ -21,6 +21,8 @@ class Config:
     GOOGLE_ACCOUNT_CREDENTIALS: Final[str] = os.getenv("GOOGLE_ACCOUNT_CREDENTIALS", "")
     GOOGLE_SHEET_ID: Final[str] = os.getenv("GOOGLE_SHEET_ID", "")
 
+    TEAMS_COUNT: Final[int] = int(os.getenv("TEAMS_COUNT", 3))
+
     if GOOGLE_ACCOUNT_CREDENTIALS == "":
         raise ValueError(
             "GOOGLE_ACCOUNT_CREDENTIALS must be set in the environment variables."
