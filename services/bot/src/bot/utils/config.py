@@ -28,6 +28,10 @@ class Config:
     NAME_API_KEY: Final[str] = os.getenv("NAME_API_KEY", "")
 
     # Other configurations
+    ALPHABET: Final[str] = os.getenv(
+        "ALPHABET",
+        "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789!@#$&()_;:'\",.?|`№",
+    )
     MAX_MESSAGE_LENGTH: Final[int] = int(os.getenv("MAX_MESSAGE_LENGTH", 80))
     MAX_NAME_LENGTH: Final[int] = int(os.getenv("MAX_NAME_LENGTH", 15))
     MAX_CITY_LENGTH: Final[int] = int(os.getenv("MAX_CITY_LENGTH", 15))
