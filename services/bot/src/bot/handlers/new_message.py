@@ -88,7 +88,7 @@ async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
         max_id=update.callback.user.user_id,
     )
 
-    state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
 
 
 def new_message_filter(update: MessageCallbackUpdate) -> bool:

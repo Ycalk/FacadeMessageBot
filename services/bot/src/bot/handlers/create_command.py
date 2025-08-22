@@ -66,7 +66,7 @@ async def create_command_handler(update: MessageCreatedUpdate, bot: Bot) -> None
             text_format=TextFormat.MARKDOWN,
         )
     )
-    state_machine.set_state(update.message.sender.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(update.message.sender.user_id, UserState.GET_MESSAGE)
 
 
 def create_command_filter(update: MessageCreatedUpdate) -> bool:

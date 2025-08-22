@@ -30,7 +30,8 @@ async def test_start_handler_behavior(
         await asyncio.wait_for(event.wait(), timeout=2)
     finally:
         assert (
-            state_machine.get_state(user_with_photo.user_id) == UserState.SEND_MESSAGE
+            await state_machine.get_state(user_with_photo.user_id)
+            == UserState.SEND_MESSAGE
         )
 
         assert len(test_session.requests) == 1

@@ -49,4 +49,4 @@ async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
     # подтверждение условий использования (если пользователь новый) ->
     # Отправка сообщения о том, что сообщение пройдет модерацию ->
     # реакция на кнопку "Написать сообщение"
-    state_machine.set_state(update.user.user_id, UserState.SEND_MESSAGE)
+    await state_machine.set_state(update.user.user_id, UserState.SEND_MESSAGE)
