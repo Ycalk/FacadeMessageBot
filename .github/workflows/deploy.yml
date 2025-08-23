@@ -28,8 +28,6 @@ jobs:
           echo "MAIN_ADMIN_ID=${{ secrets.MAIN_ADMIN_ID }}" >> secrets.env
           echo "MEDIA_FACADE_API_TOKEN=${{ secrets.MEDIA_FACADE_API_TOKEN }}" >> secrets.env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> secrets.env
-          echo "BLACK_LIST_BOT_TOKEN=${{ secrets.BLACK_LIST_BOT_TOKEN }}" >> secrets.env
-          echo "BLACK_LIST_BOT_SECRET_KEY=${{ secrets.BLACK_LIST_BOT_SECRET_KEY }}" >> secrets.env
           echo "START_MESSAGE_IMAGE_TOKEN=${{ secrets.START_MESSAGE_IMAGE_TOKEN }}" >> secrets.env
           echo "GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }}" >> secrets.env
           echo "GOOGLE_ACCOUNT_CREDENTIALS=$(echo "${{ secrets.GOOGLE_ACCOUNT_CREDENTIALS_BASE64 }}" | base64 -d)" >> secrets.env
@@ -60,7 +58,7 @@ jobs:
             unzip -o deploy.zip
             sudo docker compose build
             sudo docker compose down
-            sudo docker compose up -d
+            sudo docker compose up -d --remove-orphans
             sudo docker image prune -f
             rm deploy.zip
             rm secrets.env

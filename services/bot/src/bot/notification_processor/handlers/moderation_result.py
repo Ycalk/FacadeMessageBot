@@ -129,9 +129,10 @@ async def moderation_result_handler(
                 message.state = MessageState.PENDING_TABLE_MODERATION
                 await message.save()
                 await create_log(message, moderation_result)
-                await send_user_message(
-                    bot, message.user.max_id, Texts.Messages.manual_moderation_completed
-                )
+                # Uncomment if you want to notify users about manual moderation completion
+                # await send_user_message(
+                #     bot, message.user.max_id, Texts.Messages.manual_moderation_completed
+                # )
             else:
                 await log_and_cancel(
                     logger,

@@ -71,7 +71,8 @@ class ModerationLoop:
         while True:
             try:
                 await asyncio.sleep(self.iteration_delay)
-                await self._check_for_activity()
+                # Uncomment the following line to enable inactivity checks
+                # await self._check_for_activity()
 
                 moderators = [
                     moderator
