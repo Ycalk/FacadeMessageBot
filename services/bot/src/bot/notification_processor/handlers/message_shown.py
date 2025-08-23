@@ -14,6 +14,10 @@ from aiomax.types import (
     InputFile,
     UploadType,
     TextFormat,
+    InlineKeyboardAttachmentRequest,
+    Keyboard,
+    CallbackButton,
+    ButtonIntent,
 )
 from faststream import Context
 from shared_models.enums import MessageState
@@ -75,7 +79,20 @@ async def moderation_result_handler(
                     payload=PhotoAttachmentRequestPayload(
                         url=None, token=token, photos=None
                     )
-                )
+                ),
+                InlineKeyboardAttachmentRequest(
+                    payload=Keyboard(
+                        buttons=[
+                            [
+                                CallbackButton(
+                                    text=Texts.Buttons.new_message,
+                                    payload="new_message",
+                                    intent=ButtonIntent.POSITIVE,
+                                )
+                            ],
+                        ],
+                    )
+                ),
             ],
         )
     else:
