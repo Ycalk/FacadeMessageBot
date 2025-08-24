@@ -12,6 +12,8 @@ from .get_name import get_name, get_name_filter
 from .city import (
     get_city,
     get_city_filter,
+    select_city,
+    select_city_filter,
     confirm_city,
     confirm_city_filter,
 )
@@ -35,6 +37,8 @@ __all__ = [
     "get_name_filter",
     "get_city",
     "get_city_filter",
+    "select_city",
+    "select_city_filter",
     "confirm_city",
     "confirm_city_filter",
     "get_photo_solution",
