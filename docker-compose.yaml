@@ -82,9 +82,9 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
-      # - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL, MEDIA_FACADE_API_TOKEN
-      - USE_MOCK=0
-      - MEDIA_FACADE_API_BASE_URL=https://light.maergroup.ru/api/vk
+      - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL, MEDIA_FACADE_API_TOKEN
+      # - USE_MOCK=0
+      # - MEDIA_FACADE_API_BASE_URL=https://light.maergroup.ru/api/vk
     env_file:
       - secrets.env
     depends_on:
