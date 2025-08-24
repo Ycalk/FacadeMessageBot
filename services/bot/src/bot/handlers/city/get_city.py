@@ -72,6 +72,7 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
 
     # Если вложения нет, значит пользователь ввел текстовое сообщение
     # Проверяем, что текст сообщения не пустой
+    bot.logger.info("User input city: " + str(update.message.body.text))
     if not update.message.body.text:
         await bot(
             SendMessage(
@@ -83,8 +84,10 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
         return
     else:
         # Ищем города в cities service
-        search_result = await cities_client.search_cities(update.message.body.text, limit=5)
-        
+        search_result = await cities_client.search_cities(
+            update.message.body.text, limit=5
+        )
+        bot.logger.info("Search result" + str(search_result))
         if search_result and search_result.cities:
             # Если найдены точные совпадения, предлагаем их как варианты
             if len(search_result.cities) == 1:
@@ -120,28 +123,36 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
                 await state_machine.set_state(
                     update.message.sender.user_id, UserState.CONFIRM_CITY
                 )
-                await state_machine.update_context(update.message.sender.user_id, city=city)
+                await state_machine.update_context(
+                    update.message.sender.user_id, city=city
+                )
             else:
                 # Несколько результатов - показываем варианты
                 buttons = []
                 for city in search_result.cities[:4]:  # Максимум 4 варианта
-                    buttons.append([
+                    buttons.append(
+                        [
+                            CallbackButton(
+                                text=city.name,
+                                payload=f"select_city:{city.name}",
+                                intent=ButtonIntent.DEFAULT,
+                            )
+                        ]
+                    )
+
+                buttons.append(
+                    [
                         CallbackButton(
-                            text=city.name,
-                            payload=f"select_city:{city.name}",
+                            text="Ввести заново",
+                            payload="try_again_city",
                             intent=ButtonIntent.DEFAULT,
                         )
-                    ])
-                
-                buttons.append([
-                    CallbackButton(
-                        text="Ввести заново",
-                        payload="try_again_city",
-                        intent=ButtonIntent.DEFAULT,
-                    )
-                ])
+                    ]
+                )
 
-                cities_list = "\n".join([f"• {city.name}" for city in search_result.cities[:4]])
+                cities_list = "\n".join(
+                    [f"• {city.name}" for city in search_result.cities[:4]]
+                )
                 await bot(
                     SendMessage(
                         user_id=update.message.sender.user_id,

@@ -56,8 +56,10 @@ services:
     restart: always
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - CITIES_FILE_PATH=/home/cities/app/_cities.csv
-      - ALLOWED_HOSTS=facade-message-bot.ycalk.tech,localhost
+      - CITIES_FILE_PATH=/home/cities/app/data/cities.csv
+      # - ALLOWED_HOSTS=facade-message-bot.ycalk.tech,localhost
+    volumes:
+      - /home/$USER/data:/home/cities/app/data:ro
     depends_on:
       elasticsearch:
         condition: service_healthy
