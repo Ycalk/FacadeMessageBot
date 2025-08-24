@@ -483,7 +483,6 @@ class Sheet:
                 teams_approved = 0
                 teams_rejected = 0
 
-                team_approved = False
                 # Проверяем решения всех команд (начиная с колонки F, индекс 5)
                 for team_index in range(Config.TEAMS_COUNT):
                     approved_col = 5 + team_index * 2  # Колонка "Утверждено"
@@ -507,7 +506,10 @@ class Sheet:
 
                 approved = None
                 # Определяем финальный статус
-                if teams_rejected + teams_approved == Config.TEAMS_COUNT:
+                if (
+                    teams_rejected + teams_approved == Config.TEAMS_COUNT
+                    or teams_rejected != 0
+                ):
                     # Все команды приняли решение
                     if teams_approved == Config.TEAMS_COUNT:
                         # Все команды утвердили - сообщение утверждено
