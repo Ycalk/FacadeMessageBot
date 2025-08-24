@@ -86,7 +86,7 @@ async def moderation_result_handler(
                             [
                                 CallbackButton(
                                     text=Texts.Buttons.new_message,
-                                    payload="new_message",
+                                    payload="new_message_no_edit",
                                     intent=ButtonIntent.POSITIVE,
                                 )
                             ],
