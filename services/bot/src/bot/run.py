@@ -37,7 +37,7 @@ async def main():
     locale.setlocale(locale.LC_TIME, "ru_RU.UTF-8")
     bot.register_handler(create_command_handler, filter=create_command_filter)
     bot.register_handler(start_handler)
-    bot.register_handler(stop_handler)
+    # bot.register_handler(stop_handler)
     bot.register_handler(confirm_terms_of_use, filter=confirm_terms_of_use_filter)
     bot.register_handler(send_message_handler, filter=send_message_filter)
     bot.register_handler(write_message_handler, filter=write_message_filter)
