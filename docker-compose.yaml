@@ -46,9 +46,12 @@ services:
       - REDIS_HOST=client-bot-redis
       - TERMS_OF_USE_URL=https://vk.com/doc-230625695_688998273?hash=aNbleoHzUnfgFojq06IYwxVzeQ1ZxxI7G0cs5PlMhTw&dl=nox4hdY6Iz6STFqiZXtrpoXBmOEStFcLrZgw1bZXghc&api=1&no_preview=1
       - PROCESSING_OF_PERSONAL_DATA_URL=https://vk.com/doc-230625695_688998250?hash=QqDNZpKah6i9WxkwYhXzeXDz7f2tyO1q44YQh46OvfL&dl=zcsGcphphLyPTACTDvN5kEmSUG3FxODzvJxvZT9zd3o&api=1&no_preview=1
-      - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
-      - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
-      - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
+      # - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
+      # - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
+      # - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
+      - MESSAGES_TIME_OUT_MINUTES=1
+      - MAXIMUM_MESSAGES_PER_USER=3
+      - MAXIMUM_ATTEMPTS_PER_MESSAGE=3
     env_file:
       - secrets.env
     depends_on:
@@ -79,7 +82,9 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
-      - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL, MEDIA_FACADE_API_TOKEN
+      # - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL, MEDIA_FACADE_API_TOKEN
+      - USE_MOCK=0
+      - MEDIA_FACADE_API_BASE_URL=https://light.maergroup.ru/api/vk
     env_file:
       - secrets.env
     depends_on:

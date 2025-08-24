@@ -61,17 +61,18 @@ async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
         )
         return
 
-    await bot(
-        AnswerCallback(
-            callback_id=update.callback.callback_id,
-            message=NewMessageBody(
-                text=None,
-                attachments=[],
-                notify=True,
-                format=TextFormat.MARKDOWN,
-            ),
+    if update.callback.payload == "new_message":
+        await bot(
+            AnswerCallback(
+                callback_id=update.callback.callback_id,
+                message=NewMessageBody(
+                    text=None,
+                    attachments=[],
+                    notify=True,
+                    format=TextFormat.MARKDOWN,
+                ),
+            )
         )
-    )
     await bot(
         SendMessage(
             user_id=update.callback.user.user_id,
@@ -92,4 +93,4 @@ async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
 
 
 def new_message_filter(update: MessageCallbackUpdate) -> bool:
-    return update.callback.payload == "new_message"
+    return update.callback.payload in ("new_message", "new_message_no_edit")
