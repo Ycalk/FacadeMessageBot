@@ -73,6 +73,9 @@ class Config:
     NAME_API_URL: Final[str] = os.getenv(
         "NAME_API_URL", "https://api.nameapi.org/rest/v5.3/parser/personnameparser"
     )
+    CITIES_SERVICE_URL: Final[str] = os.getenv(
+        "CITIES_SERVICE_URL", "http://cities:8080"
+    )
     IS_TESTING: Final[bool] = os.getenv("IS_TESTING", "0").lower() == "1"
 
     if BOT_TOKEN == "":

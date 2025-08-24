@@ -16,6 +16,8 @@ from .handlers import (
     get_name_filter,
     get_city,
     get_city_filter,
+    select_city,
+    select_city_filter,
     confirm_city,
     confirm_city_filter,
     get_photo_solution,
@@ -44,6 +46,7 @@ async def main():
     bot.register_handler(get_message, filter=get_message_filter)
     bot.register_handler(get_name, filter=get_name_filter)
     bot.register_handler(get_city, filter=get_city_filter)
+    bot.register_handler(select_city, filter=select_city_filter)
     bot.register_handler(confirm_city, filter=confirm_city_filter)
     bot.register_handler(get_photo_solution, filter=get_photo_solution_filter)
     bot.register_handler(confirm_fields, filter=confirm_fields_filter)
