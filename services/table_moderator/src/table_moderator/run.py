@@ -12,7 +12,7 @@ from .app import (
 
 async def main():
     app_task = asyncio.create_task(app.run())
-    await sheet.initialize()
+    # await sheet.initialize()
     update_loop = UpdateLoop(
         sheet=sheet,
         storage=storage,
