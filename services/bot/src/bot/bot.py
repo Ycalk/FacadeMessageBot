@@ -9,13 +9,15 @@ from .utils import (
 )
 import logging
 
-
-bot = Bot(Config.BOT_TOKEN, logging_level=logging.INFO)
+# Attention: cities_client is None in testing mode
+cities_client: CitiesClient
+bot = Bot(Config.BOT_TOKEN, logging_level=logging.DEBUG)
 if Config.IS_TESTING:
     state_machine = MemoryStateMachine()
+    cities_client = None  # type: ignore
 else:
     state_machine = RedisStateMachine()
+    cities_client = CitiesClient(Config.CITIES_SERVICE_URL)
 
 city_extractor = CityExtractor("src/bot/utils/city_extractor/cities.csv")
-cities_client = CitiesClient(Config.CITIES_SERVICE_URL)
 name_validator = NameValidator("src/bot/utils/name_validator/names.csv")
