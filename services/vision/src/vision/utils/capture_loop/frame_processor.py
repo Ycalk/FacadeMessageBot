@@ -152,6 +152,8 @@ class FrameProcessor:
 
     async def process_frame(self, frame: cv2.typing.MatLike) -> None:
         ocr_result: OCRResult = self.ocr.predict(input=frame)[0]
+        text = "".join("".join(res.split()).lower() for res in ocr_result["rec_texts"])
+        # self.logger.info(f"OCR detected text: {text}")
         await self.storage.save_image(
             Image(
                 id=uuid4(),
@@ -159,7 +161,7 @@ class FrameProcessor:
                 image_base64=self.image_to_base64(ocr_result.img["ocr_res_img"])
                 if Config.DEBUG_MODE
                 else self.frame_to_base64(frame),
-                text="".join(res.strip().lower() for res in ocr_result["rec_texts"]),
+                text=text,
             )
         )
 

@@ -63,13 +63,14 @@ class Moderator(BaseUser):
             bot_moderate_response_queue,
             bot_exchange,
         )
-        await UserStorage.broker.publish(
-            MessageInput(
-                message=self.processing_message,
-            ),
-            table_moderator_queue,
-            moderator_exchange,
-        )
+        if result == ModerationResultEnum.APPROVED:
+            await UserStorage.broker.publish(
+                MessageInput(
+                    message=self.processing_message,
+                ),
+                table_moderator_queue,
+                moderator_exchange,
+            )
         await self.add_processed_message(self.processing_message)
         self.processing_message = None
         self.last_activity = int(datetime.now(tz=Config.TIME_ZONE).timestamp())

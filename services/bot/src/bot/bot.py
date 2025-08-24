@@ -10,7 +10,7 @@ from .utils import (
 import logging
 
 
-bot = Bot(Config.BOT_TOKEN, logging_level=logging.DEBUG)
+bot = Bot(Config.BOT_TOKEN, logging_level=logging.INFO)
 if Config.IS_TESTING:
     state_machine = MemoryStateMachine()
 else:
