@@ -47,9 +47,9 @@ class FrameMatcher:
             matched_image: Image = process.extractOne(
                 "".join(
                     [
-                        shown_message.message.name.strip().lower(),
-                        shown_message.message.city.strip().lower(),
-                        shown_message.message.text.strip().lower(),
+                        "".join(shown_message.message.name.split()).lower(),
+                        "".join(shown_message.message.city.split()).lower(),
+                        "".join(shown_message.message.text.split()).lower(),
                     ]
                 ),
                 choices=images,

@@ -26,7 +26,7 @@ from .handlers import (
     create_command_handler,
     new_message,
     new_message_filter,
-    stop_handler,
+    stop_handler,  # noqa: F401
 )
 from .bot import bot
 from shared_models.database import get_tortoise_orm_config

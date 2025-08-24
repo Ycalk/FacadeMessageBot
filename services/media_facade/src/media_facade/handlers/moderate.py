@@ -30,7 +30,7 @@ async def moderate(
     )
     if response.status_code != 200:
         logger.error(
-            f"Failed to moderate message {message_input.message.message_id}: {response.text}"
+            f"Failed to moderate message {message_input.message.message_id}: {response.status_code} {response.text}"
         )
         await dlx.publish(
             ModerationResult(
