@@ -220,6 +220,7 @@ services:
       # - DEBUG_MODE=1 # Set to 0 in production
       - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
       - DEBUG_MODE=0
+      - ANALYTICS_DELAY_SECONDS=600
     env_file:
       - secrets.env
     depends_on:
@@ -241,6 +242,7 @@ services:
       # - DEBUG_MODE=1 # Set to 0 in production
       - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
       - DEBUG_MODE=0
+      - ANALYTICS_DELAY_SECONDS=600
     env_file:
       - secrets.env
     depends_on:
@@ -262,6 +264,7 @@ services:
       # - DEBUG_MODE=1 # Set to 0 in production
       - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
       - DEBUG_MODE=0
+      - ANALYTICS_DELAY_SECONDS=600
     env_file:
       - secrets.env
     depends_on:
