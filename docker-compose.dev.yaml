@@ -2,13 +2,11 @@ services:
   # Additional
   nginx:
     image: nginx:1.29-alpine
-    container_name: nginx_proxy
+    container_name: nginx_proxy_dev
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx-configs/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./nginx-configs/nginx-dev.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - media-facade
       - cities
@@ -17,7 +15,7 @@ services:
     image: rabbitmq:4.1-alpine
     restart: always
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+      - rabbitmq-data-dev:/var/lib/rabbitmq
   
   postgres:
     image: postgres:17.5-alpine
@@ -28,7 +26,7 @@ services:
       - POSTGRES_DB=mydatabase
       - TZ=Europe/Moscow
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-dev:/var/lib/postgresql/data
 
 
   elasticsearch:
@@ -39,31 +37,33 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - elasticsearch-data-dev:/usr/share/elasticsearch/data
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
-  # Services
 
+  # Services
+  
   # Cities search service
   cities:
     build:
       context: services/cities
       dockerfile: Dockerfile
     restart: always
+    ports:
+      - "8080:8080"  # Direct access for testing
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - CITIES_FILE_PATH=/home/cities/app/data/cities.csv
-      # - ALLOWED_HOSTS=facade-message-bot.ycalk.tech,localhost
+      - CITIES_FILE_PATH=/home/cities/app/_cities.csv
+      - DEBUG=true
     volumes:
-      - /home/$USER/data:/home/cities/app/data:ro
+      - ./services/cities:/home/cities/app:ro
     depends_on:
       elasticsearch:
         condition: service_healthy
-
 
   # Bot service
   bot:
@@ -85,9 +85,6 @@ services:
       - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
       - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
       - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
-      # - MESSAGES_TIME_OUT_MINUTES=1
-      # - MAXIMUM_MESSAGES_PER_USER=3
-      # - MAXIMUM_ATTEMPTS_PER_MESSAGE=3
     env_file:
       - secrets.env
     depends_on:
@@ -99,7 +96,7 @@ services:
     image: redis:8.2.0-alpine
     restart: always
     volumes:
-      - client-bot-redis:/data
+      - client-bot-redis-dev:/data
     command: >
       redis-server
       --save 60 1
@@ -112,6 +109,8 @@ services:
       context: services/media_facade
       dockerfile: Dockerfile
     restart: always
+    ports:
+      - "8082:8000"  # Direct access for testing
     environment:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
@@ -119,9 +118,7 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
-      - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL
-      # - USE_MOCK=0
-      # - MEDIA_FACADE_API_BASE_URL=https://light.maergroup.ru/api/vk
+      - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL, MEDIA_FACADE_API_TOKEN
     env_file:
       - secrets.env
     depends_on:
@@ -133,7 +130,7 @@ services:
     image: redis:8.2.0-alpine
     restart: always
     volumes:
-      - auto-moderator-redis:/data
+      - auto-moderator-redis-dev:/data
     command: >
       redis-server
       --save 60 1
@@ -160,7 +157,7 @@ services:
     image: redis:8.2.0-alpine
     restart: always
     volumes:
-      - manual-moderator-redis:/data
+      - manual-moderator-redis-dev:/data
     command: >
       redis-server
       --save 60 1
@@ -195,13 +192,13 @@ services:
       - secrets.env
     depends_on:
       - rabbitmq
-      - auto-moderator-redis
+      - table-moderator-redis
   
   table-moderator-redis:
     image: redis:8.2.0-alpine
     restart: always
     volumes:
-      - table-moderator-redis:/data
+      - table-moderator-redis-dev:/data
     command: >
       redis-server
       --save 60 1
@@ -214,40 +211,14 @@ services:
     image: redis:8.2.0-alpine
     restart: always
     volumes:
-      - vision-redis:/data
+      - vision-redis-dev:/data
     command: >
       redis-server
       --save 60 1
       --save 300 10
       --appendonly yes
       --appendfsync everysec
-  
-  # nginx-rtmp: # Remove in production
-  #   image: tiangolo/nginx-rtmp:latest-2025-08-18
-  #   container_name: nginx_rtmp
-  #   restart: always
-  #   volumes:
-  #     - ./nginx-configs/rtmp-nginx.conf:/etc/nginx/nginx.conf:ro
-  
-  # vision-mock-video-stream: # Remove in production
-  #   build:
-  #     context: services/vision
-  #     dockerfile: Dockerfile
-  #     args:
-  #       - SERVICE_NAME=mock_video_stream
-  #   restart: always
-  #   environment:
-  #     - RABBIT_HOST=rabbitmq
-  #     - RTMP_URL=rtmp://nginx-rtmp:1935/live
-  #     - REDIS_HOST=vision-redis
-  #     - DEBUG_MODE=1
-  #   env_file:
-  #     - secrets.env
-  #   depends_on:
-  #     - rabbitmq
-  #     - vision-redis
-  #     - nginx-rtmp
-  
+
   vision-app:
     build:
       context: services/vision
@@ -258,8 +229,6 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - REDIS_HOST=vision-redis
-      # - RTMP_URL=rtmp://nginx-rtmp:1935/live # Use mock RTMP server for testing
-      # - DEBUG_MODE=1 # Set to 0 in production
       - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
       - DEBUG_MODE=0
       - ANALYTICS_DELAY_SECONDS=600
@@ -268,7 +237,6 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
-      # - nginx-rtmp # Use mock RTMP server for testing
   
   vision-frame-matcher:
     build:
@@ -280,8 +248,6 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - REDIS_HOST=vision-redis
-      # - RTMP_URL=rtmp://nginx-rtmp:1935/live # Use mock RTMP server for testing
-      # - DEBUG_MODE=1 # Set to 0 in production
       - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
       - DEBUG_MODE=0
       - ANALYTICS_DELAY_SECONDS=600
@@ -290,7 +256,6 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
-      # - nginx-rtmp # Use mock RTMP server for testing
   
   vision-frame-processor:
     build:
@@ -302,8 +267,6 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - REDIS_HOST=vision-redis
-      # - RTMP_URL=rtmp://nginx-rtmp:1935/live # Use mock RTMP server for testing
-      # - DEBUG_MODE=1 # Set to 0 in production
       - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
       - DEBUG_MODE=0
       - ANALYTICS_DELAY_SECONDS=600
@@ -312,14 +275,13 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
-      # - nginx-rtmp # Use mock RTMP server for testing
 
 volumes:
-  rabbitmq-data:
-  postgres-data:
-  elasticsearch-data:
-  manual-moderator-redis:
-  table-moderator-redis:
-  auto-moderator-redis:
-  vision-redis:
-  client-bot-redis:
+  rabbitmq-data-dev:
+  postgres-data-dev:
+  elasticsearch-data-dev:
+  manual-moderator-redis-dev:
+  table-moderator-redis-dev:
+  auto-moderator-redis-dev:
+  vision-redis-dev:
+  client-bot-redis-dev:
