@@ -8,6 +8,7 @@ class UserState(StrEnum):
     GET_MESSAGE = "get_message"
     GET_NAME = "get_name"
     GET_CITY = "get_city"
+    SELECT_CITY = "select_city"
     CONFIRM_CITY = "confirm_city"
     GET_PHOTO_SOLUTION = "get_photo_solution"
     CONFIRM_FIELDS = "confirm_fields"
