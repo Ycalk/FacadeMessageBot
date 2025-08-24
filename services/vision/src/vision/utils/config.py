@@ -7,7 +7,7 @@ load_dotenv()
 
 class Config:
     ANALYTICS_DELAY_SECONDS: Final[int] = int(os.getenv("ANALYTICS_DELAY_SECONDS", 120))
-    MAXIMUM_IMAGE_STORAGE_TIME_SECONDS: Final[int] = ANALYTICS_DELAY_SECONDS + 60
+    MAXIMUM_IMAGE_STORAGE_TIME_SECONDS: Final[int] = ANALYTICS_DELAY_SECONDS * 2
     RTMP_URL: Final[str] = os.getenv("RTMP_URL", "rtmp://localhost/live")
     VIDEO_WIDTH: Final[int] = int(os.getenv("VIDEO_WIDTH", 800))
     VIDEO_HEIGHT: Final[int] = int(os.getenv("VIDEO_HEIGHT", 1340))
