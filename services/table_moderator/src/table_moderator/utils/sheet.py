@@ -63,8 +63,8 @@ class Sheet:
             headers = [
                 "ID сообщения",
                 "Текст",
-                "Город",
                 "Имя",
+                "Город",
                 "Обработано",
             ]
             for i in range(Config.TEAMS_COUNT):
@@ -469,8 +469,8 @@ class Sheet:
                 try:
                     message_id = int(row_data[0])
                     text = row_data[1]
-                    city = row_data[2]
-                    name = row_data[3]
+                    name = row_data[2]
+                    city = row_data[3]
                 except (IndexError, ValueError):
                     continue  # Пропускаем строки с неполными данными
 
