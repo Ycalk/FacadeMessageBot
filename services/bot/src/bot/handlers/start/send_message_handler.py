@@ -11,8 +11,7 @@ from shared_models.database import User
 
 async def send_message_handler(update: MessageCallbackUpdate, bot: Bot) -> None:
     # Проверяем, новый пользователь или нет
-    #
-    if False: # await User.get_or_none(max_id=update.callback.user.user_id) is None:
+    if await User.get_or_none(max_id=update.callback.user.user_id) is None:
         # Если пользователь новый, отправляем сообщение с условиями использования
         await bot(
             AnswerCallback(
