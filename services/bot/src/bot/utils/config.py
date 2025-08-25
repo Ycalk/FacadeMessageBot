@@ -57,7 +57,7 @@ class Config:
         os.getenv("MESSAGES_TIME_OUT_MINUTES", 1)
     )
     MAXIMUM_MESSAGES_PER_USER: Final[int] = int(
-        os.getenv("MAXIMUM_MESSAGES_PER_USER", 100)
+        os.getenv("MAXIMUM_MESSAGES_PER_USER", 3)
     )
     MAXIMUM_ATTEMPTS_PER_MESSAGE: Final[int] = int(
         os.getenv("MAXIMUM_ATTEMPTS_PER_MESSAGE", 3)
