@@ -13,6 +13,8 @@ from .models.update import (
     UserAddedUpdate,
     UserRemovedUpdate,
     BotStoppedUpdate,
+    DialogClearedUpdate,
+    DialogRemovedUpdate,
 )
 
 __all__ = [
@@ -28,4 +30,6 @@ __all__ = [
     "UserAddedUpdate",
     "UserRemovedUpdate",
     "BotStoppedUpdate",
+    "DialogClearedUpdate",
+    "DialogRemovedUpdate",
 ]
