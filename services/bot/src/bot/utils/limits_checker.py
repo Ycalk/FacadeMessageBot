@@ -9,15 +9,15 @@ async def messages_limit_reached(max_id: int) -> bool:
     if not user:
         return True
 
-    # messages_count = (
-    #     await Message.filter(user=user).exclude(state=MessageState.REJECTED).count()
-    # )
+    messages_count = (
+        await Message.filter(user=user).exclude(state=MessageState.REJECTED).count()
+    )
 
     # TODO: Add admin ids?
-    # if user.user_id == 5472490:
-    return False
+    if max_id == 5472490:
+        return False
 
-    # return messages_count >= Config.MAXIMUM_MESSAGES_PER_USER
+    return messages_count >= Config.MAXIMUM_MESSAGES_PER_USER
 
 
 async def attempts_limit_reached(max_id: int) -> bool:
