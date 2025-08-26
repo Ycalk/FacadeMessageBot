@@ -164,6 +164,7 @@ async def moderation_result_handler(
             if state in (
                 MessageState.PENDING_MEDIA_FACADE_MODERATION,
                 MessageState.PENDING_MANUAL_MODERATION,
+                MessageState.APPROVED,
             ):
                 message.state = MessageState.APPROVED
                 await message.save()
