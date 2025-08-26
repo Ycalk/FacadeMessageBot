@@ -7,7 +7,6 @@ from aiomax.types import (
     Keyboard,
     CallbackButton,
     ButtonIntent,
-    RequestGeoLocationButton,
     LinkButton,
 )
 from aiomax.methods import AnswerCallback
@@ -86,51 +85,6 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
 
     elif update.callback.payload == "try_again_city":
         # Пользователь хочет ввести город заново
-        current_state = await state_machine.get_state(update.callback.user.user_id)
-        
-        if current_state == UserState.SELECT_CITY:
-            # Если пользователь был в состоянии выбора города, просто переводим в GET_CITY
-            await bot(
-                AnswerCallback(
-                    callback_id=update.callback.callback_id,
-                    message=NewMessageBody(
-                        text=Texts.Messages.add_city_without_geo,
-                        format=TextFormat.MARKDOWN,
-                        notify=True,
-                        attachments=[],
-                    ),
-                )
-            )
-        else:
-            # Обычная логика - предлагаем определить автоматически
-            await bot(
-                AnswerCallback(
-                    callback_id=update.callback.callback_id,
-                    message=NewMessageBody(
-                        text=Texts.Messages.add_city,
-                        format=TextFormat.MARKDOWN,
-                        notify=True,
-                        attachments=[
-                            InlineKeyboardAttachmentRequest(
-                                payload=Keyboard(
-                                    buttons=[
-                                        [
-                                            RequestGeoLocationButton(
-                                                text="Определить автоматически", quick=False
-                                            ),
-                                        ]
-                                    ]
-                                )
-                            )
-                        ],
-                    ),
-                )
-            )
-
-        await state_machine.set_state(update.callback.user.user_id, UserState.GET_CITY)
-
-    elif update.callback.payload == "write_city":
-        # Город определился автоматически, но пользователь хочет ввести его вручную
         await bot(
             AnswerCallback(
                 callback_id=update.callback.callback_id,
@@ -149,6 +103,6 @@ async def confirm_city(update: MessageCallbackUpdate, bot: Bot) -> None:
 async def confirm_city_filter(update: MessageCallbackUpdate) -> bool:
     current_state = await state_machine.get_state(update.callback.user.user_id)
     return (
-        update.callback.payload in ("confirm_city", "write_city", "try_again_city")
+        update.callback.payload in ("confirm_city", "try_again_city")
         and current_state in (UserState.CONFIRM_CITY, UserState.SELECT_CITY)
     )

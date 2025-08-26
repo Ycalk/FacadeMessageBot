@@ -5,7 +5,6 @@ from aiomax.types import (
     Keyboard,
     CallbackButton,
     ButtonIntent,
-    LocationAttachment,
 )
 from aiomax import Bot
 from aiomax.methods import SendMessage
@@ -17,60 +16,7 @@ async def get_city(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
 
-    # Проверяем, что пользователь отправил сообщение с вложением локации
-    # Если вложение есть, значит пользователь нажал "Определить автоматически"
-    if (
-        update.message.body.attachments
-        and len(update.message.body.attachments) == 1
-        and isinstance(update.message.body.attachments[0], LocationAttachment)
-    ):
-        location_attachment: LocationAttachment = update.message.body.attachments[0]
-        city = await city_extractor.extract_from_coordinates(
-            location_attachment.latitude, location_attachment.longitude
-        )
-        if not city:
-            await bot(
-                SendMessage(
-                    user_id=update.message.sender.user_id,
-                    text=Texts.Messages.location_not_found,
-                    text_format=TextFormat.MARKDOWN,
-                )
-            )
-        else:
-            await bot(
-                SendMessage(
-                    user_id=update.message.sender.user_id,
-                    text=Texts.Messages.confirm_city.format(city=city),
-                    text_format=TextFormat.MARKDOWN,
-                    attachments=[
-                        InlineKeyboardAttachmentRequest(
-                            payload=Keyboard(
-                                buttons=[
-                                    [
-                                        CallbackButton(
-                                            text="Подтвердить",
-                                            payload="confirm_city",
-                                            intent=ButtonIntent.POSITIVE,
-                                        ),
-                                        CallbackButton(
-                                            text="Ввести вручную",
-                                            payload="write_city",
-                                            intent=ButtonIntent.DEFAULT,
-                                        ),
-                                    ]
-                                ]
-                            )
-                        )
-                    ],
-                )
-            )
-            await state_machine.set_state(
-                update.message.sender.user_id, UserState.CONFIRM_CITY
-            )
-            await state_machine.update_context(update.message.sender.user_id, city=city)
-        return
-
-    # Если вложения нет, значит пользователь ввел текстовое сообщение
+    # Пользователь ввел текстовое сообщение с названием города
     # Проверяем, что текст сообщения не пустой
     bot.logger.info("User input city: " + str(update.message.body.text))
     if not update.message.body.text:
