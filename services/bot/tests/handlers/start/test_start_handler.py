@@ -43,12 +43,14 @@ async def test_start_handler_behavior(
         assert test_session.requests[0].attachments is not None
         assert test_session.requests[0].attachments[0].type == "inline_keyboard"
 
-        # Confirmation message contains a button with confirm
+        # Confirmation message contains buttons
         buttons = test_session.requests[0].attachments[0].payload.buttons
-        assert len(buttons) == 1
-        assert len(buttons[0]) == 1
+        assert len(buttons) == 2  # Два ряда кнопок
+        assert len(buttons[0]) == 1  # Первый ряд: ссылка на условия
+        assert len(buttons[1]) == 1  # Второй ряд: кнопка отправить сообщение
 
-        button = buttons[0][0]
-        assert isinstance(button, CallbackButton)
-        assert button.text == Texts.Buttons.send_message
-        assert button.payload == "send_message"
+        # Проверим кнопку отправить сообщение
+        send_button = buttons[1][0]
+        assert isinstance(send_button, CallbackButton)
+        assert send_button.text == Texts.Buttons.send_message
+        assert send_button.payload == "send_message"
