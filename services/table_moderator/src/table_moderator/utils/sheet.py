@@ -506,17 +506,13 @@ class Sheet:
 
                 approved = None
                 # Определяем финальный статус
-                if (
-                    teams_rejected + teams_approved == Config.TEAMS_COUNT
-                    or teams_rejected != 0
-                ):
-                    # Все команды приняли решение
-                    if teams_approved == Config.TEAMS_COUNT:
-                        # Все команды утвердили - сообщение утверждено
-                        approved = True
-                    else:
-                        # Хотя бы одна команда отклонила - сообщение отклонено
-                        approved = False
+                if teams_rejected > 0:
+                    # Хотя бы одна команда отклонила - сообщение отклонено немедленно
+                    approved = False
+                elif teams_approved == Config.TEAMS_COUNT:
+                    # Все команды утвердили - сообщение утверждено
+                    approved = True
+                # Иначе approved остается None - ждем дальнейших решений
 
                 result.append(
                     SheetMessage(
