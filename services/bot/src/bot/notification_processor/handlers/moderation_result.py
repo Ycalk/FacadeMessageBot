@@ -110,9 +110,10 @@ async def moderation_result_handler(
                 message.state = MessageState.PENDING_MANUAL_MODERATION
                 await message.save()
                 await create_log(message, moderation_result)
-                await send_user_message(
-                    bot, message.user.max_id, Texts.Messages.auto_moderation_completed
-                )
+                # Uncomment if you want to notify users about auto moderation completion
+                # await send_user_message(
+                #     bot, message.user.max_id, Texts.Messages.auto_moderation_completed
+                # )
             else:
                 await log_and_cancel(
                     logger,
@@ -149,9 +150,10 @@ async def moderation_result_handler(
                 message.state = MessageState.PENDING_MEDIA_FACADE_MODERATION
                 await message.save()
                 await create_log(message, moderation_result)
-                await send_user_message(
-                    bot, message.user.max_id, Texts.Messages.manual_moderation_completed
-                )
+                # Uncomment if you want to notify users about table moderation completion
+                # await send_user_message(
+                #     bot, message.user.max_id, Texts.Messages.manual_moderation_completed
+                # )
             else:
                 await log_and_cancel(
                     logger,
@@ -205,7 +207,12 @@ async def moderation_result_handler(
                         ]
                     )
                 )
-
+                await send_user_message(
+                    bot,
+                    message.user.max_id,
+                    Texts.Messages.moderation_done,
+                    attachments=[keyboard],
+                )
                 await send_user_message(
                     bot,
                     message.user.max_id,
