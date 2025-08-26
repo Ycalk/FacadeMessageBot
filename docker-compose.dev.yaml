@@ -229,7 +229,7 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - REDIS_HOST=vision-redis
-      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
+      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest3
       - DEBUG_MODE=0
       - ANALYTICS_DELAY_SECONDS=600
     env_file:
@@ -248,7 +248,7 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - REDIS_HOST=vision-redis
-      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
+      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest3
       - DEBUG_MODE=0
       - ANALYTICS_DELAY_SECONDS=600
     env_file:
@@ -267,7 +267,7 @@ services:
     environment:
       - RABBIT_HOST=rabbitmq
       - REDIS_HOST=vision-redis
-      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest2
+      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest3
       - DEBUG_MODE=0
       - ANALYTICS_DELAY_SECONDS=600
     env_file:
