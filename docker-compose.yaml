@@ -57,7 +57,6 @@ services:
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - CITIES_FILE_PATH=/home/cities/app/data/cities.csv
-      # - ALLOWED_HOSTS=facade-message-bot.ycalk.tech,localhost
     volumes:
       - /home/$USER/data:/home/cities/app/data:ro
     depends_on:
@@ -81,12 +80,12 @@ services:
       - CITIES_SERVICE_URL=http://cities:8080
       - TERMS_OF_USE_URL=***REMOVED***
       - PROCESSING_OF_PERSONAL_DATA_URL=***REMOVED***
-      - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
-      - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
-      - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
-      # - MESSAGES_TIME_OUT_MINUTES=1
-      # - MAXIMUM_MESSAGES_PER_USER=3
-      # - MAXIMUM_ATTEMPTS_PER_MESSAGE=3
+      # - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
+      # - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
+      # - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
+      - MESSAGES_TIME_OUT_MINUTES=1
+      - MAXIMUM_MESSAGES_PER_USER=2
+      - MAXIMUM_ATTEMPTS_PER_MESSAGE=3
     env_file:
       - secrets.env
     depends_on:
