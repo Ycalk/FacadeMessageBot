@@ -33,9 +33,10 @@ class UpdateLoop:
                 else ModerationResultEnum.REJECTED,
             )
         )
-        await self.facade_message_publisher.publish(
-            MessageInput(message=storage_message)
-        )
+        if sheet_message.approved:
+            await self.facade_message_publisher.publish(
+                MessageInput(message=storage_message)
+            )
         self.logger.info(f"Message {sheet_message.message_id} processed.")
 
     async def start(self):
