@@ -211,7 +211,7 @@ async def moderation_result_handler(
                     bot,
                     message.user.max_id,
                     Texts.Messages.moderation_done,
-                    attachments=[keyboard],
+                    attachments=[],
                 )
                 await send_user_message(
                     bot,
