@@ -1,10 +1,5 @@
 from aiomax.types.updates import MessageCreatedUpdate
-from aiomax.types import (
-    InlineKeyboardAttachmentRequest,
-    TextFormat,
-    Keyboard,
-    RequestGeoLocationButton,
-)
+from aiomax.types import TextFormat
 from aiomax import Bot
 from aiomax.methods import SendMessage
 from bot.utils import Texts, UserState
@@ -33,21 +28,8 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     await bot(
         SendMessage(
             user_id=update.message.sender.user_id,
-            text=Texts.Messages.add_city,
+            text=Texts.Messages.add_city_without_geo,
             text_format=TextFormat.MARKDOWN,
-            attachments=[
-                InlineKeyboardAttachmentRequest(
-                    payload=Keyboard(
-                        buttons=[
-                            [
-                                RequestGeoLocationButton(
-                                    text="Определить автоматически", quick=False
-                                ),
-                            ]
-                        ]
-                    )
-                )
-            ],
         )
     )
 
