@@ -14,8 +14,8 @@ async def messages_limit_reached(max_id: int) -> bool:
     )
 
     # TODO: Add admin ids?
-    if max_id == 5472490:
-        return False
+    # if max_id == 5472490:
+    #     return False
 
     return messages_count >= Config.MAXIMUM_MESSAGES_PER_USER
 
