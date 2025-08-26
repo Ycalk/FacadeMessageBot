@@ -4,7 +4,7 @@ from aiomax.types.attachment_requests import (
     ImageAttachmentRequest,
 )
 from aiomax.types import PhotoAttachmentRequestPayload, AttachmentRequest
-from aiomax.types.keyboard import CallbackButton, Keyboard
+from aiomax.types.keyboard import CallbackButton, Keyboard, LinkButton
 from aiomax.types import TextFormat, ButtonIntent
 from aiomax.methods import SendMessage
 from aiomax import Bot
@@ -17,6 +17,12 @@ async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
         InlineKeyboardAttachmentRequest(
             payload=Keyboard(
                 buttons=[
+                    [
+                        LinkButton(
+                            text=Texts.Buttons.terms_of_use,
+                            url=Config.TERMS_OF_USE_URL,
+                        )
+                    ],
                     [
                         CallbackButton(
                             text=Texts.Buttons.send_message,
