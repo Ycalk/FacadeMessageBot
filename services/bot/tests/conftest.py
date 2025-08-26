@@ -1,3 +1,4 @@
+import os
 import pytest
 import logging
 import asyncio
@@ -10,8 +11,11 @@ from aiomax.methods import GetMe
 from aiomax.client import TestResponse, TestSession
 from asyncio import Event
 from aiomax.client.bot import UpdateT
-from bot.bot import state_machine
 from typing import Callable, Awaitable, AsyncGenerator
+
+# Устанавливаем флаг тестирования перед импортом state_machine
+os.environ["IS_TESTING"] = "1"
+from bot.bot import state_machine
 
 from tests.test_models.types import *  # noqa: F403
 from tests.test_models.updates import *  # noqa: F403

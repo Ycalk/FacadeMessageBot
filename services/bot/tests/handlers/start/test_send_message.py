@@ -55,39 +55,24 @@ async def test_send_message_handler_user_not_registered(
     finally:
         assert (
             await state_machine.get_state(user_with_photo.user_id)
-            == UserState.CONFIRM_TERMS_OF_USE
+            == UserState.GET_MESSAGE
         )
 
         assert len(test_session.requests) == 1
 
-        # Edit message with confirmation
+        # Edit message with get message prompt
         assert isinstance(test_session.requests[0], AnswerCallback)
         assert test_session.requests[0].callback_id == update_callback.callback_id
         assert test_session.requests[0].message is not None
-        assert test_session.requests[0].message.text == Texts.Messages.ask_confirm
-        assert test_session.requests[0].message.attachments is not None
-        assert len(test_session.requests[0].message.attachments) == 1
-        assert test_session.requests[0].message.attachments[0].type == "inline_keyboard"
+        assert test_session.requests[0].message.text == Texts.Messages.get_message
+        assert test_session.requests[0].message.attachments == []
 
-        # Check the buttons in the confirmation message
-        buttons = test_session.requests[0].message.attachments[0].payload.buttons
-        assert len(buttons) == 2
-        assert len(buttons[0]) == 1
-        assert len(buttons[1]) == 1
-
-        link_button = buttons[0][0]
-        assert isinstance(link_button, LinkButton)
-        assert link_button.text == Texts.Buttons.terms_of_use
-        assert link_button.url == Config.TERMS_OF_USE_URL
-
-        confirm_button = buttons[1][0]
-        assert isinstance(confirm_button, CallbackButton)
-        assert confirm_button.text == Texts.Buttons.confirm_terms_of_use
-        assert confirm_button.payload == "confirm_terms_of_use"
-
-        # Ensure no user is added to the database yet
+        # Ensure user is created in the database
         user = await User.get_or_none(max_id=user_with_photo.user_id)
-        assert user is None
+        assert user is not None
+        assert user.first_name == user_with_photo.first_name
+        assert user.last_name == user_with_photo.last_name
+        assert user.username == user_with_photo.username
 
 
 @pytest.mark.asyncio
@@ -133,29 +118,17 @@ async def test_send_message_handler_user_registered(
     finally:
         assert (
             await state_machine.get_state(user_with_photo.user_id)
-            == UserState.WRITE_MESSAGE
+            == UserState.GET_MESSAGE
         )
 
         assert len(test_session.requests) == 1
 
-        # Edit message with confirmation
+        # Edit message with get message prompt
         assert isinstance(test_session.requests[0], AnswerCallback)
         assert test_session.requests[0].callback_id == update_callback.callback_id
         assert test_session.requests[0].message is not None
-        assert test_session.requests[0].message.text == Texts.Messages.write_message
-        assert test_session.requests[0].message.attachments is not None
-        assert len(test_session.requests[0].message.attachments) == 1
-        assert test_session.requests[0].message.attachments[0].type == "inline_keyboard"
-
-        # Check the buttons in the confirmation message
-        buttons = test_session.requests[0].message.attachments[0].payload.buttons
-        assert len(buttons) == 1
-        assert len(buttons[0]) == 1
-
-        button = buttons[0][0]
-        assert isinstance(button, CallbackButton)
-        assert button.text == Texts.Buttons.write_message
-        assert button.payload == "write_message"
+        assert test_session.requests[0].message.text == Texts.Messages.get_message
+        assert test_session.requests[0].message.attachments == []
 
         # Ensure user is still in the database
         user = await User.get_or_none(max_id=user_with_photo.user_id)
