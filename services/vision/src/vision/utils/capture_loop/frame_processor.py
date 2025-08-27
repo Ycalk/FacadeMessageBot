@@ -28,8 +28,6 @@ def ffmpeg_reader(
     video_fps: int,
 ) -> None:
     frame_size = video_width * video_height * video_channels
-    print(f"Connecting to RTMP stream: {Config.RTMP_URL}")
-    
     ffmpeg_proc = subprocess.Popen(
         [
             "ffmpeg",
@@ -37,16 +35,16 @@ def ffmpeg_reader(
             "-rtmp_live", "live",
             "-rtmp_buffer", "1000",  # Увеличиваем буфер 
             "-i", Config.RTMP_URL,
-            "-vf", f"scale={video_width}:{video_height}",  # Изменение размера через фильтры
             "-r", str(video_fps),
             "-f", "rawvideo",
             "-pix_fmt", "bgr24",
             "-an",  # Отключаем аудио
+            "-s", f"{video_width}x{video_height}",
             "-"
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        bufsize=frame_size * 2,  # Увеличиваем буфер
+        bufsize=frame_size,
     )
     try:
         while True:
