@@ -10,12 +10,8 @@ async def get_name(update: MessageCreatedUpdate, bot: Bot) -> None:
     if not update.message or not update.message.sender:
         return
 
-    # Проверяем корректность имени пользователя
-    if (
-        not update.message.body.text
-        or len(update.message.body.text) < 1
-        or not await name_validator(update.message.body.text)
-    ):
+    # Проверяем что имя не пустое
+    if not update.message.body.text or len(update.message.body.text) < 1:
         await bot(
             SendMessage(
                 user_id=update.message.sender.user_id,

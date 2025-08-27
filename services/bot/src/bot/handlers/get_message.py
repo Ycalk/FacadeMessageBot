@@ -8,7 +8,7 @@ from aiomax.types import (
 from aiomax import Bot
 from aiomax.methods import SendMessage
 from bot.utils import Texts, UserState, Config
-from bot.bot import state_machine, name_validator
+from bot.bot import state_machine
 
 
 async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
@@ -29,7 +29,7 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
             )
         )
         return
-    if any(char not in Config.ALPHABET for char in update.message.body.text):
+    if any(char not in Config.ALLOWED_CHARACTERS for char in update.message.body.text):
         await bot(
             SendMessage(
                 user_id=update.message.sender.user_id,
@@ -41,8 +41,8 @@ async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
 
     # Следующий шаг - запрос имени пользователя
 
-    if await name_validator(update.message.sender.first_name):
-        # Если имя пользователя валидно, добавляем кнопку с именем
+    if update.message.sender.first_name and len(update.message.sender.first_name) > 0:
+        # Если имя пользователя есть, добавляем кнопку с именем
         attachments = [
             InlineKeyboardAttachmentRequest(
                 payload=Keyboard(
