@@ -277,13 +277,13 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    depends_on:
-      - postgres
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #     - postgres
 volumes:
   rabbitmq-data-dev:
   postgres-data-dev:
