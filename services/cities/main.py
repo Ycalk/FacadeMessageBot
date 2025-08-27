@@ -1,3 +1,7 @@
+import os
+import sentry_sdk
+if sentry := os.getenv("SENTRY_DSN"):
+    sentry_sdk.init(dsn=sentry, send_default_pii=True)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -15,7 +19,7 @@ async def lifespan(app: FastAPI):
         es = get_elasticsearch_client()
         if not es.indices.exists(index=INDEX_NAME):
             es.indices.create(
-                index=INDEX_NAME, 
+                index=INDEX_NAME,
                 settings=INDEX_MAPPING["settings"],
                 mappings=INDEX_MAPPING["mappings"]
             )
@@ -27,7 +31,7 @@ async def lifespan(app: FastAPI):
                 print(f"Failed to load cities: {result.get('error', 'Unknown error')}")
     except Exception as e:
         print(f"Startup error: {e}")
-    
+
     yield
 
 app = FastAPI(
@@ -37,17 +41,17 @@ app = FastAPI(
     ## API для поиска российских городов 🇷🇺
 
     Этот API предоставляет возможности для работы с базой данных российских городов:
-    
+
     * **Поиск городов** - нечёткий поиск по названию на русском языке
     * **Добавление городов** - создание новых записей в базе
     * **Получение информации** - простая информация о конкретном городе
     * **Мониторинг** - проверка состояния сервиса и подключений
-    
+
     ### Технологии
     - **FastAPI** - современный веб-фреймворк
     - **Elasticsearch** - полнотекстовый поиск с поддержкой русского языка
     - **Pydantic** - валидация данных
-    
+
     ### Особенности поиска
     - Русский анализатор с стеммингом
     - Поддержка опечаток (fuzziness)
