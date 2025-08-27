@@ -1,0 +1,107 @@
+name: Deploy
+
+on:
+  push:
+    branches: [stage]
+
+jobs:
+  test-bot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/bot
+    env:
+      BOT_TOKEN: f9LHodD0cOK9FCQR5-mTNoXfQT4u7iEBPK2j3PoWO77zjySLFoWo9ial6RbOxydqoPHcNyTQE6orS3FQFVYp
+      NAME_API_KEY: 60903c28-a108-43ea-95aa-7b50ed3d561f
+      POSTGRES_USER: some user
+      POSTGRES_PASSWORD: some password
+      POSTGRES_DB: some database
+      IS_TESTING: "1"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir poetry==2.1.3
+          poetry install --with dev
+
+      - name: Run tests
+        run: |
+          poetry run pytest --disable-warnings -v
+
+  copy:
+    needs: test-bot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Archive code for deploy
+        run: |
+          zip -r deploy.zip . -x '*.git*' '*.github/*'
+
+      - name: Create secrets.env file
+        run: |
+          echo "SENTRY_DSN=http://52cb9f7304933df00e6f4dc2de598ba7@82.202.129.230:9000/4"
+          echo "BOT_TOKEN=f9LHodD0cOK9FCQR5-mTNoXfQT4u7iEBPK2j3PoWO77zjySLFoWo9ial6RbOxydqoPHcNyTQE6orS3FQFVYp" >> secrets.env
+          echo "NAME_API_KEY=60903c28-a108-43ea-95aa-7b50ed3d561f" >> secrets.env
+          echo "MISTRAL_API_KEY=f8ZUgmWSbWf0jP0nuhWUmppR6slkTTYn" >> secrets.env
+          echo "TELEGRAM_BOT_TOKEN=8208310640:AAHX-vf-FsEfvHeeEIjvJFI0wDNyOO5XBkY" >> secrets.env
+          echo "MAIN_ADMIN_ID=75178947" >> secrets.env
+          echo "MEDIA_FACADE_API_TOKEN=c2776116-3537-45d4-81df-926e49974f86" >> secrets.env
+          echo "SECRET_KEY=0d16efe6-8770-4ee6-a78d-f9cfae4a0fed" >> secrets.env
+          echo "START_MESSAGE_IMAGE_TOKEN=" >> secrets.env
+          echo "GOOGLE_SHEET_ID=1Ef6OUBgWFuJcykGuJWt6zRIjad9aVNbZ8Hvu4ro9pxM" >> secrets.env
+          echo "GOOGLE_ACCOUNT_CREDENTIALS={  \"type\": \"service_account\",  \"project_id\": \"bnw-baza\",  \"private_key_id\": \"f36583308d8ba2afa8ff484e8dd607273dd939d5\",  \"private_key\": \"-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCn9w95IqwvNJ6E\nr9RnYRyin9FHFoBuz7Djed05N1J8jBjrup46syRkItrHLkGj4pC8z+iTFWR8f88T\nNiRfYY2rqRaPD5zeitKJ9oDSD/jP+IP8Q4eTFTRqV/SOOrglcshi+jFt2gJzPR4A\n5IwnDw7rTh4lNkYpO09TcGWS9VqPBxq3fwqgodx+dkARiqzf0rubo2PPv1ynQQYO\nNp3hlEbwDsh3fZp17NddLWj4ivsZDqOlMP3iX0g08JpJZ9AMSxwmxaLeOWIu7PWD\nkgKX0g9PoPYCCvM2jHfGI5VUrqzKnhIKNZNENvHFj/rPtmXFc17hUoqRzJBf0ec7\n+g6FlBwLAgMBAAECggEANXVWKOVGrQ2PyEZYEYEghofcKUZ5oQscTwIZzVyUtcw3\nIEu4kZEzq2VGgW9w99Kj41w+txVvcoqRIxmv0OWxG+oIoobDFDdV1BAvJuxrcfG0\nPEVX8JGmqZQN43i/5DdYnNvpgH+LGRdiJcGX89SAmJa31HsmMHhOgo163p+Vb4C7\nweQPKmvvNB/S+S6YYblto7VN31NNo5CRDCCvt+2LEhQxXW/RGg0sbSxNsuh2NUM9\npkZfbDq4GysJZVcwfn9FycjmTlwuxiNrr8A9UCIgxuAlqtLnmTUijH66WiILpI3n\nbdC2A0kWpErFsqEOOPmKNx2wHUeO8JJ7vW8bOIfN/QKBgQDr3NGxjcN7SObb8ftX\nzNtXLtDo2RRYIPyZpDeE62N0wJmUn+0neFWL0xoxUvrw6lIGIzAjnw06+Cl8GaNt\ny4qqSil6MODDGPgDE08s6ntM5BuiolCiUxgOc3Wm3yk0WkgXyndGmhCi9f6MDB90\nhWHhMqurbYXxQ+4WumKTVx3wdQKBgQC2Tjml5dsHEXO9CteI3OrrFBsyqSLgv/Lc\nWWHB3q2ggIf7LNq8/LdaVigewqEzz3eGRkaRY8ZyRYVLzSUd6eKUQB/twByr5SAo\nKYgcHUoVFf8B7fRgC2OGyg0RoSqBI6cJMe2dWsvTJEKbu/C48+2wEV29NoFrazsU\nPJspRlhKfwKBgA2K8VNjk2zZw7+vRkJFVfbMjlxAUqW4xyg/QJzWMzC5+leJU0Gn\n7CmKJn/chuIcYjdN/+6brFPNefxRMIwWWtDqTzVf5xfssBjlG++1Sv0gP+H3te+M\nG96AjKnXOHN0F52eF3krUXc57rK143x6SCN5GFhQgpdW0i3l59ET+HkdAoGAD7Sh\nhsdMnUlFnU2nz+SoYGQ1C6JCnPYsaAtTPq5+astn652roohrC19MyYme9aWz+F9p\niPD9ka6nkyYzQmZ53KfBmGvqjGyK3qrlTPbBARwKAhKL8RJKGryhb5lg3gtCQqqI\ne/vsf14qVtxUGrr5CSgV2U0uzSBJ0K5/94hV5uUCgYBIJFnUStwyckg8+8cJ2UXo\n7btwK9BfwGFINn4Il7GZZ0fE4erCeUyiUme262p9Iu1aEkdhbH7MpJMADuA/GPRy\nc4uHcUPcct4qVovTJEFaIDsjqrlCkW2o8q64J2gcLL+loOmjDzJ2NMAYmLLVAvXS\nGIwNscZUBp8DGJW5CUHRnA==\n-----END PRIVATE KEY-----\n\",  \"client_email\": \"stage-facade@bnw-baza.iam.gserviceaccount.com\",  \"client_id\": \"117374840171432793425\",  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",  \"token_uri\": \"https://oauth2.googleapis.com/token\",  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/stage-facade%40bnw-baza.iam.gserviceaccount.com\",  \"universe_domain\": \"googleapis.com\"}" >> secrets.env
+
+      - name: Transfer files to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: 83.222.26.189
+          username: root
+          key: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+            QyNTUxOQAAACAtnFp+Y2e0VUmmNqzrkmDv25WbZrQO0oL0KLVUDa9+7wAAAJhPCWjrTwlo
+            6wAAAAtzc2gtZWQyNTUxOQAAACAtnFp+Y2e0VUmmNqzrkmDv25WbZrQO0oL0KLVUDa9+7w
+            AAAECpplG++laSSRORFuERvo7Miun9VFaeHJz3Y97hoe18oS2cWn5jZ7RVSaY2rOuSYO/b
+            lZtmtA7SgvQotVQNr37vAAAAD3Jvb3RAa3JlZ3pkZXFpdwECAwQFBg==
+            -----END OPENSSH PRIVATE KEY-----
+          port: 22
+          source: "deploy.zip,secrets.env"
+          target: "/home/root/facade-message-bot/deploy/"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: copy
+    steps:
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 83.222.26.189
+          username: root
+          key: |
+            key: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+            QyNTUxOQAAACAtnFp+Y2e0VUmmNqzrkmDv25WbZrQO0oL0KLVUDa9+7wAAAJhPCWjrTwlo
+            6wAAAAtzc2gtZWQyNTUxOQAAACAtnFp+Y2e0VUmmNqzrkmDv25WbZrQO0oL0KLVUDa9+7w
+            AAAECpplG++laSSRORFuERvo7Miun9VFaeHJz3Y97hoe18oS2cWn5jZ7RVSaY2rOuSYO/b
+            lZtmtA7SgvQotVQNr37vAAAAD3Jvb3RAa3JlZ3pkZXFpdwECAwQFBg==
+            -----END OPENSSH PRIVATE KEY-----
+          port: 22
+          script: |
+            cd /home/root/facade-message-bot/deploy/
+            unzip -o deploy.zip
+            sudo docker compose build
+            sudo docker compose down
+            sudo docker compose up -d --remove-orphans
+            sudo docker image prune -f
+            rm deploy.zip
