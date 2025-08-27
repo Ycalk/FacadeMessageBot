@@ -100,8 +100,8 @@ jobs:
           script: |
             cd /home/root/facade-message-bot/deploy/
             unzip -o deploy.zip
-            sudo docker compose build
-            sudo docker compose down
-            sudo docker compose up -d --remove-orphans
+            sudo docker compose -f docker-compose.dev.yaml build
+            sudo docker compose -f docker-compose.dev.yaml down
+            sudo docker compose -f docker-compose.dev.yaml up -d --remove-orphans
             sudo docker image prune -f
             rm deploy.zip
