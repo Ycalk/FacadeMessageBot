@@ -47,7 +47,6 @@ class Texts:
         )
         invalid_message_alphabet: Final[str] = (
             "Ваше сообщение содержит недопустимые символы.\n"
-            "Текст должен быть без эможди.\n"
             "Попробуйте еще раз!"
         )
         get_name: Final[str] = (
