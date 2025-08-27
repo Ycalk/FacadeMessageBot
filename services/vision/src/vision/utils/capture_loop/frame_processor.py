@@ -28,43 +28,35 @@ def ffmpeg_reader(
     video_fps: int,
 ) -> None:
     frame_size = video_width * video_height * video_channels
+    print(f"Connecting to RTMP stream: {Config.RTMP_URL}")
+    
     ffmpeg_proc = subprocess.Popen(
         [
             "ffmpeg",
-            "-fflags",
-            "nobuffer",
-            "-flags",
-            "low_delay",
-            "-analyzeduration",
-            "0",
-            "-probesize",
-            "32",
-            "-max_delay",
-            "0",
-            "-i",
-            Config.RTMP_URL,
-            "-f",
-            "rawvideo",
-            "-pix_fmt",
-            "bgr24",
-            "-r",
-            str(video_fps),
-            "-s",
-            f"{video_width}x{video_height}",
-            "-tune",
-            "zerolatency",
-            "-preset",
-            "ultrafast",
-            "-",
+            "-v", "error",  # Только ошибки в stderr
+            "-rtmp_live", "live",
+            "-rtmp_buffer", "1000",  # Увеличиваем буфер 
+            "-i", Config.RTMP_URL,
+            "-vf", f"scale={video_width}:{video_height}",  # Изменение размера через фильтры
+            "-r", str(video_fps),
+            "-f", "rawvideo",
+            "-pix_fmt", "bgr24",
+            "-an",  # Отключаем аудио
+            "-"
         ],
         stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        bufsize=frame_size,
+        stderr=subprocess.PIPE,
+        bufsize=frame_size * 2,  # Увеличиваем буфер
     )
     try:
         while True:
             raw_frame = ffmpeg_proc.stdout.read(frame_size)  # type: ignore
             if not raw_frame:
+                # Проверяем stderr для получения информации об ошибке
+                error_output = ffmpeg_proc.stderr.read().decode('utf-8')
+                if error_output:
+                    print(f"ffmpeg error: {error_output}")
+                print("No raw frame received, ffmpeg stream ended")
                 break
             try:
                 queue.get_nowait()
@@ -75,8 +67,9 @@ def ffmpeg_reader(
             except Full:
                 continue
     finally:
-        ffmpeg_proc.terminate()
-        ffmpeg_proc.wait()
+        if ffmpeg_proc.poll() is None:
+            ffmpeg_proc.terminate()
+            ffmpeg_proc.wait()
         queue.close()
         queue.join_thread()
 
@@ -111,15 +104,42 @@ class FrameProcessor:
     async def start(self):
         self.logger.info("Starting frame processor loop...")
         proceeded_frames = 0
+        no_frame_count = 0
+        max_no_frame_attempts = 30  # Максимум 30 секунд без кадров
+        
         try:
             while True:
                 try:
                     try:
                         raw_frame = self.queue.get_nowait()
+                        no_frame_count = 0  # Сброс счетчика при получении кадра
                     except Empty:
-                        self.logger.warning("No frames received from ffmpeg.")
-                        await asyncio.sleep(1)
-                        continue
+                        no_frame_count += 1
+                        if no_frame_count <= max_no_frame_attempts:
+                            self.logger.warning(f"No frames received from ffmpeg ({no_frame_count}/{max_no_frame_attempts}).")
+                            await asyncio.sleep(1)
+                            continue
+                        else:
+                            self.logger.error("No frames for too long, restarting ffmpeg process...")
+                            # Перезапуск ffmpeg процесса
+                            if self.proc.is_alive():
+                                self.proc.terminate()
+                                self.proc.join()
+                            
+                            self.proc = multiprocessing.Process(
+                                target=ffmpeg_reader,
+                                args=(
+                                    self.queue,
+                                    Config.VIDEO_WIDTH,
+                                    Config.VIDEO_HEIGHT,
+                                    Config.VIDEO_CHANNELS,
+                                    Config.VIDEO_FPS,
+                                ),
+                            )
+                            self.proc.start()
+                            no_frame_count = 0
+                            await asyncio.sleep(5)  # Ждем перед повторной попыткой
+                            continue
 
                     frame = np.frombuffer(raw_frame, np.uint8).reshape(
                         (
@@ -146,8 +166,9 @@ class FrameProcessor:
         except KeyboardInterrupt:
             self.logger.info("Frame processor stopped by user.")
         finally:
-            self.proc.terminate()
-            self.proc.join()
+            if self.proc.is_alive():
+                self.proc.terminate()
+                self.proc.join()
             self.logger.info("Frame processor terminated.")
 
     async def process_frame(self, frame: cv2.typing.MatLike) -> None:
