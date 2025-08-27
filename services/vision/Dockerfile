@@ -22,7 +22,7 @@ RUN useradd -m -s /bin/bash vision && \
 USER vision
 WORKDIR /home/vision/app
 
-COPY --chown=vision:vision pyproject.toml .
+COPY --chown=vision:vision pyproject.toml poetry.lock ./
 RUN poetry install --no-root
 
 COPY --chown=vision:vision . .
