@@ -49,7 +49,7 @@ jobs:
 
       - name: Create secrets.env file
         run: |
-          echo "SENTRY_DSN=http://52cb9f7304933df00e6f4dc2de598ba7@82.202.129.230:9000/4"
+          echo "SENTRY_DSN=http://52cb9f7304933df00e6f4dc2de598ba7@82.202.129.230:9000/4" >> secrets.env
           echo "BOT_TOKEN=f9LHodD0cOK9FCQR5-mTNoXfQT4u7iEBPK2j3PoWO77zjySLFoWo9ial6RbOxydqoPHcNyTQE6orS3FQFVYp" >> secrets.env
           echo "NAME_API_KEY=60903c28-a108-43ea-95aa-7b50ed3d561f" >> secrets.env
           echo "MISTRAL_API_KEY=f8ZUgmWSbWf0jP0nuhWUmppR6slkTTYn" >> secrets.env
