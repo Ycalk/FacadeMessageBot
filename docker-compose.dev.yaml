@@ -16,7 +16,7 @@ services:
     restart: always
     volumes:
       - rabbitmq-data-dev:/var/lib/rabbitmq
-  
+
   postgres:
     image: postgres:17.5-alpine
     restart: always
@@ -28,7 +28,6 @@ services:
     volumes:
       - postgres-data-dev:/var/lib/postgresql/data
 
-
   elasticsearch:
     image: elasticsearch:8.15.4
     restart: always
@@ -39,14 +38,15 @@ services:
     volumes:
       - elasticsearch-data-dev:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
 
   # Services
-  
+
   # Cities search service
   cities:
     build:
@@ -54,7 +54,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "8080:8080"  # Direct access for testing
+      - "8080:8080" # Direct access for testing
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - CITIES_FILE_PATH=/home/cities/app/_cities.csv
@@ -64,6 +64,8 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    env_file:
+      - secrets.env
 
   # Bot service
   bot:
@@ -103,14 +105,14 @@ services:
       --save 300 10
       --appendonly yes
       --appendfsync everysec
-  
+
   media-facade:
     build:
       context: services/media_facade
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "8082:8000"  # Direct access for testing
+      - "8082:8000" # Direct access for testing
     environment:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
@@ -124,7 +126,7 @@ services:
     depends_on:
       - rabbitmq
       - postgres
-  
+
   # Auto moderator service
   auto-moderator-redis:
     image: redis:8.2.0-alpine
@@ -151,7 +153,7 @@ services:
     depends_on:
       - rabbitmq
       - auto-moderator-redis
-  
+
   # Manual moderator service
   manual-moderator-redis:
     image: redis:8.2.0-alpine
@@ -178,7 +180,7 @@ services:
     depends_on:
       - rabbitmq
       - manual-moderator-redis
-  
+
   # Table moderator service
   table-moderator:
     build:
@@ -193,7 +195,7 @@ services:
     depends_on:
       - rabbitmq
       - table-moderator-redis
-  
+
   table-moderator-redis:
     image: redis:8.2.0-alpine
     restart: always
@@ -237,7 +239,7 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
-  
+
   vision-frame-matcher:
     build:
       context: services/vision
@@ -256,7 +258,7 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
-  
+
   vision-frame-processor:
     build:
       context: services/vision
@@ -275,7 +277,13 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
-
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
 volumes:
   rabbitmq-data-dev:
   postgres-data-dev:
