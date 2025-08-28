@@ -1,3 +1,4 @@
+import logging
 from aiomax.types.updates import MessageCallbackUpdate
 from aiomax.types import (
     NewMessageBody,
@@ -20,6 +21,9 @@ from shared_models.messaging import (
     MessageInput,
 )
 from shared_models.messaging import Message as MessageSharedModel
+
+
+logger = logging.getLogger(__name__)
 
 
 async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
@@ -129,8 +133,44 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
 
 
 async def confirm_fields_filter(update: MessageCallbackUpdate) -> bool:
-    return (
-        update.callback.payload in ("confirm_fields", "start_over")
-        and await state_machine.get_state(update.callback.user.user_id)
-        == UserState.CONFIRM_FIELDS
-    )
+    user_id = update.callback.user.user_id
+    payload = update.callback.payload
+    
+    # Базовые проверки
+    if payload not in ("confirm_fields", "start_over"):
+        return False
+    
+    current_state = await state_machine.get_state(user_id)
+    if current_state != UserState.CONFIRM_FIELDS:
+        return False
+    
+    # Для кнопки "start_over" не проверяем дубликаты (пользователь хочет начать заново)
+    if payload == "start_over":
+        return True
+    
+    # Проверяем что пользователь не отправлял уже это сообщение на модерацию
+    try:
+        user = await User.get_or_none(max_id=user_id)
+        
+        if user:
+            # Получаем контекст пользователя с данными сообщения
+            message_text = await state_machine.get_context(user_id, "message")
+            name = await state_machine.get_context(user_id, "name")
+            city = await state_machine.get_context(user_id, "city")
+            
+            if message_text and name and city:
+                # Проверяем есть ли уже сообщение с такими же данными в процессе обработки
+                existing_message = await Message.filter(
+                    user=user,
+                    text=message_text,
+                    name=name,
+                    city=city,
+                ).first()
+                
+                if existing_message:
+                    return False  # Дубликат уже в обработке, не обрабатываем
+            
+    except Exception as e:
+        logger.error(f"ОШИБКА при проверке дубликатов: {e}")
+    
+    return True
