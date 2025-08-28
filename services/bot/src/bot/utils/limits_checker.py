@@ -14,8 +14,8 @@ async def messages_limit_reached(max_id: int) -> bool:
     )
 
     # TODO: Add admin ids?
-    # if max_id == 5472490:
-    #     return False
+    if max_id in [5472490, 1043557, 3567550, 13687838]:
+        return False
 
     return messages_count >= Config.MAXIMUM_MESSAGES_PER_USER
 
@@ -24,6 +24,10 @@ async def attempts_limit_reached(max_id: int) -> bool:
     user = await User.get_or_none(max_id=max_id)
     if not user:
         return True
+
+    # TODO: Add admin ids?
+    if max_id in [5472490, 1043557, 3567550, 13687838]:
+        return False
 
     messages = await Message.filter(user=user).order_by("created_at")
     remaining_attempts = Config.MAXIMUM_ATTEMPTS_PER_MESSAGE
@@ -41,6 +45,10 @@ async def messages_time_out_reached(max_id: int) -> bool:
     user = await User.get_or_none(max_id=max_id)
     if not user:
         return True
+
+    # TODO: Add admin ids?
+    if max_id in [5472490, 1043557, 3567550, 13687838]:
+        return False
 
     messages = await Message.filter(user=user).order_by("created_at")
     if len(messages) == 0:
