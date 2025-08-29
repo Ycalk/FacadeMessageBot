@@ -28,8 +28,8 @@ async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> N
              Attachment(
                  type=AttachmentType.IMAGE,
                  payload=PhotoAttachmentPayload(
-                     photo_id="",
-                     token="d1YxSzZ0VVRYWFhQamRJVlFpLzZLR0JuLzZlWU5SU09ZRFlpYU5SVGZlTldUWXROQTM0Sk92QW02Q043UTNyUTE5YzR6RU5RdXhCWS93ZnYxR1BrTG8xckk1bjZTS1luS1E1Y0hSWSt0WmxKT2l6RlVDbFA5ZE0rRUdkeGVJUGR6SHZHeGtvbmFRbTZTSFFJOS9aVnpYU2xxVU5FQmdZTmI3ZFNPRmpIWitXNC9jbk9OQWxVNFFcdTAwM2RcdTAwM2Q==",
+                     photo_id="vhxt8mbo7Nr/ZML0L9lARPhHOktooq/sCrktUyfo4uv2VSDDiELO0A==",
+                     token="wV1K6tUTXXXPjdIVQi/6KGBn/6eYNRSOYDYiaNRTfeNWTYtNA34JOvAm6CN7Q3rQ19c4zENQuxBY/wfv1GPkLo1rI5n6SKYnKQ5cHRY+tZlJOizFUClP9dM+EGdxeIPdzHvGxkonaQm6SHQI9/ZVzXSlqUNEBgYNb7dSOFjHZ+W4/cnONAlU4Q==",
                      url=""
                  ),
                  bot=bot
