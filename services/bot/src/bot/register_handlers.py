@@ -21,8 +21,6 @@ def register_all_handlers(dp: Dispatcher) -> None:
         stop_handler,
         send_message_handler,
         new_message,
-        confirm_terms_of_use,
-        write_message_handler
     )
     
     # Обработчик команды /create
