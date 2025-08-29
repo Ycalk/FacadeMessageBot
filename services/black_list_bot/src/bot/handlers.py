@@ -10,19 +10,19 @@ from shared_models.messaging import (
 
 
 async def message(event: MessageCreated) -> None:
-    if not event.message or not event.message.from_user or not event.message.body.text:
+    if not event.message or not event.message.sender or not event.message.body.text:
         return
 
-    if (await redis.sismember("registered_users", event.message.from_user.user_id)) == 0:  # type: ignore
+    if (await redis.sismember("registered_users", event.message.sender.user_id)) == 0:  # type: ignore
         if event.message.body.text == Config.BLACK_LIST_BOT_SECRET_KEY:
-            await redis.sadd("registered_users", event.message.from_user.user_id)  # type: ignore
+            await redis.sadd("registered_users", event.message.sender.user_id)  # type: ignore
             await event.bot.send_message(
-                user_id=event.message.from_user.user_id,
+                user_id=event.message.sender.user_id,
                 text="Вы успешно зарегистрированы.\nВсе ваши сообщения будут автоматически добавляться в черный список.",
             )
         else:
             await event.bot.send_message(
-                user_id=event.message.from_user.user_id,
+                user_id=event.message.sender.user_id,
                 text="Введите секретный ключ.",
             )
     else:
@@ -34,10 +34,10 @@ async def message(event: MessageCreated) -> None:
             moderator_exchange,
         )
         await redis.sadd(
-            f"user_black_list:{event.message.from_user.user_id}", event.message.body.text
+            f"user_black_list:{event.message.sender.user_id}", event.message.body.text
         )  # type: ignore
         await event.bot.send_message(
-            user_id=event.message.from_user.user_id,
+            user_id=event.message.sender.user_id,
             text="Ваше сообщение добавлено в черный список.",
         )
 

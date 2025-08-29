@@ -1,3 +1,4 @@
+import logging
 from maxapi import Bot, Dispatcher
 from .utils import (
     Config,
@@ -7,6 +8,18 @@ from .utils import (
     NameValidator,
     MemoryStateMachine,
 )
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+# Включаем debug логи для httpx и maxapi
+logging.getLogger('httpx').setLevel(logging.DEBUG)
+logging.getLogger('maxapi').setLevel(logging.DEBUG)
+
+logger = logging.getLogger(__name__)
 
 # Attention: cities_client is None in testing mode
 cities_client: CitiesClient
