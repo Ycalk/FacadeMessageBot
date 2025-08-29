@@ -1,10 +1,7 @@
 from maxapi import F
 from ..utils import UserState
 
-# Фильтры для callback обработчиков
-confirm_terms_of_use_filter = F.callback.payload == "confirm_terms_of_use"
 send_message_filter = F.callback.payload == "send_message"
-write_message_filter = F.callback.payload == "write_message"
 select_city_filter = F.callback.payload.startswith("select_city_")
 confirm_city_filter = F.callback.payload == "confirm_city"
 get_photo_solution_filter = F.callback.payload.startswith("accept_get_photo") | F.callback.payload.startswith("reject_get_photo")
