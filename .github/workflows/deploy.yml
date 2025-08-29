@@ -55,7 +55,7 @@ jobs:
           echo "MAIN_ADMIN_ID=${{ secrets.MAIN_ADMIN_ID }}" >> secrets.env
           echo "MEDIA_FACADE_API_TOKEN=${{ secrets.MEDIA_FACADE_API_TOKEN }}" >> secrets.env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> secrets.env
-          echo "START_MESSAGE_IMAGE_TOKEN=CUrv9t7NB4FZnKYvq2O5D28Jk+zSQOEz4LZDJL4PPlyewZNmlSSSC9K0CSqpyrLsv9hgMQQpRUhhYc5/VYvxfHDShV7vYYJiYVisJJSPl+mruvQoZspLaGeZJr+TTWFdfvas5H4094r1mO9hhiwat94DapmOkzgKhjcadpBKxduPBBJUixJ8yA==" >> secrets.env
+          echo "START_MESSAGE_IMAGE_TOKEN=vhxt8mbo7Nr/ZML0L9lARPhHOktooq/sCrktUyfo4uv2VSDDiELO0A==" >> secrets.env
           echo "GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }}" >> secrets.env
           echo "GOOGLE_ACCOUNT_CREDENTIALS=$(echo "${{ secrets.GOOGLE_ACCOUNT_CREDENTIALS_BASE64 }}" | base64 -d)" >> secrets.env
           echo "SENTRY_DSN=***REMOVED***" >> secrets.env
