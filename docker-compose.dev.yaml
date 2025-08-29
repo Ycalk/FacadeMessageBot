@@ -282,7 +282,7 @@ services:
 
   tuna:
     image: yuccastream/tuna
-    command: http http://bot:8081/ --subdomain=webhook-max
+    command: http http://bot:8081/ --subdomain=webhook-max-firzat
     environment:
       # Значение должно быть заменено токеном из профиля:
       # https://my.tuna.am/#!/profile
