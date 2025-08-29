@@ -1,4 +1,4 @@
-from aiomax.types import User, Recipient, Attachment, Message, MessageBody, Callback
+from maxapi.types import User, Recipient, Attachment, Message, MessageBody, Callback
 from uuid import uuid4
 
 

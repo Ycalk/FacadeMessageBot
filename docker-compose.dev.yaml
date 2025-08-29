@@ -87,6 +87,8 @@ services:
       - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
       - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
       - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
+    ports:
+      - "16384:16384"
     env_file:
       - secrets.env
     depends_on:
@@ -278,6 +280,17 @@ services:
     depends_on:
       - rabbitmq
       - vision-redis
+
+  tuna:
+    image: yuccastream/tuna
+    command: http http://bot:16384/ --subdomain=webhook-max
+    environment:
+      # Значение должно быть заменено токеном из профиля:
+      # https://my.tuna.am/#!/profile
+      - TUNA_TOKEN=***REMOVED***
+    depends_on:
+      - bot
+
   # adminer:
   #   image: adminer
   #   restart: always

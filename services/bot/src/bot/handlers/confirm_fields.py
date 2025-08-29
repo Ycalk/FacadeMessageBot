@@ -1,15 +1,9 @@
 import logging
-from aiomax.types.updates import MessageCallbackUpdate
-from aiomax.types import (
-    NewMessageBody,
-    TextFormat,
-    InlineKeyboardAttachmentRequest,
-    Keyboard,
+from maxapi.types import (
+    MessageCallback,
     CallbackButton,
-    ButtonIntent,
 )
-from aiomax.methods import AnswerCallback, SendMessage
-from aiomax import Bot
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 from bot.utils import Texts, UserState
 from bot.bot import state_machine
 from shared_models.database import Message, User
@@ -26,84 +20,64 @@ from shared_models.messaging import Message as MessageSharedModel
 logger = logging.getLogger(__name__)
 
 
-async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
-    if update.callback.payload == "start_over":
+async def confirm_fields(callback: MessageCallback) -> None:
+    if callback.callback.payload == "start_over":
         # Пользователь хочет начать заново,
         # сбрасываем контекст и устанавливаем состояние на ввод сообщения
-        await bot(
-            AnswerCallback(
-                callback_id=update.callback.callback_id,
-                message=NewMessageBody(
-                    text=Texts.Messages.get_message,
-                    attachments=[],
-                    notify=True,
-                    format=TextFormat.MARKDOWN,
-                ),
-            )
+        await callback.message.answer(
+            text=Texts.Messages.get_message,
         )
         await state_machine.set_state(
-            update.callback.user.user_id, UserState.GET_MESSAGE
+            callback.callback.user.user_id, UserState.GET_MESSAGE
         )
-        await state_machine.clear_context(update.callback.user.user_id)
+        await state_machine.clear_context(callback.callback.user.user_id)
 
-    elif update.callback.payload == "confirm_fields":
-        user = await User.get_or_none(max_id=update.callback.user.user_id)
-        message = await state_machine.get_context(
-            update.callback.user.user_id, "message"
+    elif callback.callback.payload == "edit_fields":
+        # Пользователь хочет отредактировать поля - возвращаем к вводу сообщения
+        await callback.message.answer(
+            text=Texts.Messages.get_message,
         )
-        name = await state_machine.get_context(update.callback.user.user_id, "name")
-        city = await state_machine.get_context(update.callback.user.user_id, "city")
+        await state_machine.set_state(
+            callback.callback.user.user_id, UserState.GET_MESSAGE
+        )
+        # Контекст оставляем, чтобы пользователь мог редактировать
+    
+    elif callback.callback.payload == "confirm_fields":
+        user = await User.get_or_none(max_id=callback.callback.user.user_id)
+        message = await state_machine.get_context(
+            callback.callback.user.user_id, "message"
+        )
+        name = await state_machine.get_context(callback.callback.user.user_id, "name")
+        city = await state_machine.get_context(callback.callback.user.user_id, "city")
 
         if not message or not name or not city or not user:
             # Если какое-то из полей пустое, отправляем сообщение об ошибке
-            await bot(
-                AnswerCallback(
-                    callback_id=update.callback.callback_id,
-                    message=NewMessageBody(
-                        text=Texts.Messages.missing_fields,
-                        attachments=[],
-                        notify=True,
-                        format=TextFormat.MARKDOWN,
-                    ),
-                )
+            await callback.message.answer(
+                text=Texts.Messages.missing_fields,
             )
             return
 
-        await bot(
-            AnswerCallback(
-                callback_id=update.callback.callback_id,
-                message=NewMessageBody(
-                    text=Texts.Messages.confirm_fields.format(
-                        message=message,
-                        name=name,
-                        city=city,
-                    ),
-                    attachments=[],
-                    notify=True,
-                    format=TextFormat.MARKDOWN,
-                ),
+        await callback.message.answer(
+            text=Texts.Messages.confirm_fields.format(
+                message=message,
+                name=name,
+                city=city,
+            ),
+        )
+        keyboard = InlineKeyboardBuilder()
+        keyboard.row(
+            CallbackButton(
+                text=Texts.Buttons.new_message,
+                payload="new_message",
             )
         )
-        await bot(
-            SendMessage(
-                user_id=update.callback.user.user_id,
-                text=Texts.Messages.start_moderation,
-                attachments=[
-                    InlineKeyboardAttachmentRequest(
-                        payload=Keyboard(
-                            buttons=[
-                                [
-                                    CallbackButton(
-                                        text=Texts.Buttons.new_message,
-                                        payload="new_message",
-                                        intent=ButtonIntent.POSITIVE,
-                                    )
-                                ],
-                            ],
-                        )
-                    )
-                ],
-            )
+        
+        await callback.bot.send_message(
+            user_id=callback.callback.user.user_id,
+            text=Texts.Messages.start_moderation,
+            attachments=[
+                keyboard.as_markup()
+            ],
         )
 
         # Создаем новое сообщение с подтвержденными полями
@@ -132,20 +106,20 @@ async def confirm_fields(update: MessageCallbackUpdate, bot: Bot) -> None:
         )
 
 
-async def confirm_fields_filter(update: MessageCallbackUpdate) -> bool:
-    user_id = update.callback.user.user_id
-    payload = update.callback.payload
+async def confirm_fields_filter(callback: MessageCallback) -> bool:
+    user_id = callback.callback.user.user_id
+    payload = callback.callback.payload
     
     # Базовые проверки
-    if payload not in ("confirm_fields", "start_over"):
+    if payload not in ("confirm_fields", "start_over", "edit_fields"):
         return False
     
     current_state = await state_machine.get_state(user_id)
     if current_state != UserState.CONFIRM_FIELDS:
         return False
     
-    # Для кнопки "start_over" не проверяем дубликаты (пользователь хочет начать заново)
-    if payload == "start_over":
+    # Для кнопок "start_over" и "edit_fields" не проверяем дубликаты (пользователь хочет изменить данные)
+    if payload in ("start_over", "edit_fields"):
         return True
     
     # Проверяем что пользователь не отправлял уже это сообщение на модерацию
