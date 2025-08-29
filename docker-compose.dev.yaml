@@ -287,7 +287,7 @@ services:
     environment:
       # Значение должно быть заменено токеном из профиля:
       # https://my.tuna.am/#!/profile
-      - TUNA_TOKEN=tt_o7xca3srr3ewjqbo7rzongyqur14o1rw
+      - TUNA_TOKEN=***REMOVED***
     depends_on:
       - bot
 
