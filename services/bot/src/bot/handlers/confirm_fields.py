@@ -28,17 +28,17 @@ async def confirm_fields(callback: MessageCallback) -> None:
             text=Texts.Messages.get_message,
         )
         await state_machine.set_state(
-            callback.user.user_id, UserState.GET_MESSAGE
+            callback.callback.user.user_id, UserState.GET_MESSAGE
         )
-        await state_machine.clear_context(callback.user.user_id)
+        await state_machine.clear_context(callback.callback.user.user_id)
 
     elif callback.payload == "confirm_fields":
-        user = await User.get_or_none(max_id=callback.user.user_id)
+        user = await User.get_or_none(max_id=callback.callback.user.user_id)
         message = await state_machine.get_context(
-            callback.user.user_id, "message"
+            callback.callback.user.user_id, "message"
         )
-        name = await state_machine.get_context(callback.user.user_id, "name")
-        city = await state_machine.get_context(callback.user.user_id, "city")
+        name = await state_machine.get_context(callback.callback.user.user_id, "name")
+        city = await state_machine.get_context(callback.callback.user.user_id, "city")
 
         if not message or not name or not city or not user:
             # Если какое-то из полей пустое, отправляем сообщение об ошибке
@@ -63,7 +63,7 @@ async def confirm_fields(callback: MessageCallback) -> None:
         )
         
         await callback.bot.send_message(
-            user_id=callback.user.user_id,
+            user_id=callback.callback.user.user_id,
             text=Texts.Messages.start_moderation,
             attachments=[
                 keyboard.as_markup()
@@ -97,7 +97,7 @@ async def confirm_fields(callback: MessageCallback) -> None:
 
 
 async def confirm_fields_filter(callback: MessageCallback) -> bool:
-    user_id = callback.user.user_id
+    user_id = callback.callback.user.user_id
     payload = callback.payload
     
     # Базовые проверки

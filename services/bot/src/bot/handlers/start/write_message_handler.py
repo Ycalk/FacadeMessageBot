@@ -25,20 +25,20 @@ async def write_message_handler(callback: MessageCallback) -> None:
     # Проверяем, достиг ли пользователь лимита попыток отправки сообщений
     # или лимита количества сообщений
     # Если достигнут, то отправляем соответствующее сообщение и выходим
-    if await attempts_limit_reached(callback.user.user_id):
+    if await attempts_limit_reached(callback.callback.user.user_id):
         await callback.message.answer(
             text=Texts.Messages.attempts_limit,
         )
         return
-    if await messages_limit_reached(callback.user.user_id):
+    if await messages_limit_reached(callback.callback.user.user_id):
         await callback.bot.send_message(
-            user_id=callback.user.user_id,
+            user_id=callback.callback.user.user_id,
             text=Texts.Messages.messages_limit,
         )
         return
-    if await messages_time_out_reached(callback.user.user_id):
+    if await messages_time_out_reached(callback.callback.user.user_id):
         await callback.bot.send_message(
-            user_id=callback.user.user_id,
+            user_id=callback.callback.user.user_id,
             text=Texts.Messages.messages_time_out,
         )
         return
@@ -46,15 +46,15 @@ async def write_message_handler(callback: MessageCallback) -> None:
     # Начинаем сбор послания пользователя
     # Сначала спрашиваем сообщение, которое пользователь хочет отправить
     await callback.bot.send_message(
-        user_id=callback.user.user_id,
+        user_id=callback.callback.user.user_id,
         text=Texts.Messages.get_message,
     )
-    await state_machine.set_state(callback.user.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(callback.callback.user.user_id, UserState.GET_MESSAGE)
 
 
 async def write_message_filter(callback: MessageCallback) -> bool:
     return (
         callback.payload == "write_message"
-        and await state_machine.get_state(callback.user.user_id)
+        and await state_machine.get_state(callback.callback.user.user_id)
         == UserState.WRITE_MESSAGE
     )
