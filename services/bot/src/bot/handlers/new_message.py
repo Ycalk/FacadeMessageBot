@@ -38,7 +38,7 @@ async def new_message(callback: MessageCallback) -> None:
         )
         return
 
-    if callback.payload == "new_message":
+    if callback.callback.payload == "new_message":
         await callback.message.answer(
             text="",
         )
@@ -60,4 +60,4 @@ async def new_message(callback: MessageCallback) -> None:
 
 
 def new_message_filter(callback: MessageCallback) -> bool:
-    return callback.payload in ("new_message", "new_message_no_edit")
+    return callback.callback.payload in ("new_message", "new_message_no_edit")

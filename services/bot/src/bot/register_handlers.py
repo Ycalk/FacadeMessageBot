@@ -1,5 +1,7 @@
 import logging
 from maxapi import Dispatcher, F
+from bot.bot import state_machine
+from bot.utils import UserState
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
     )
     
     # Обработчик команды /create
-    @dp.message_created(F.message.text == "/create")
+    @dp.message_created(F.message.body.text == "/create")
     async def _(event):
         logger.debug(f"Получена команда /create от пользователя {event.message.sender.user_id}")
         await create_command_handler(event, event.bot)
@@ -64,11 +66,18 @@ def register_all_handlers(dp: Dispatcher) -> None:
         logger.debug(f"Callback confirm/edit fields от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await confirm_fields(event)
     
-    # Обработчики сообщений - проверка состояния происходит внутри handler'ов через фильтры
-    @dp.message_created(F.message.text)  # Любое текстовое сообщение
+    # Обработчики сообщений - проверка состояния происходит внутри handler'ов через фильтры  
+    @dp.message_created(F.message.body.text)  # Любое текстовое сообщение
     async def _(event):
-        logger.debug(f"Получено текстовое сообщение от пользователя {event.message.sender.user_id}: '{event.message.text}'")
-        # Обработчики сами проверяют состояния и решают, обрабатывать ли событие
-        await get_message(event, event.bot)
-        await get_name(event, event.bot) 
-        await get_city(event, event.bot)
+        current_state = await state_machine.get_state(event.message.sender.user_id)
+        logger.debug(f"Обработчик текстовых сообщений: пользователь {event.message.sender.user_id}, текст: '{event.message.body.text}', состояние: {current_state}")
+        
+        # Выбираем обработчик в зависимости от состояния пользователя
+        if current_state == UserState.GET_MESSAGE:
+            await get_message(event, event.bot)
+        elif current_state == UserState.GET_NAME:
+            await get_name(event, event.bot)
+        elif current_state == UserState.GET_CITY:
+            await get_city(event, event.bot)
+        else:
+            logger.debug(f"Неожиданное состояние {current_state} для пользователя {event.message.sender.user_id}, игнорируем сообщение")

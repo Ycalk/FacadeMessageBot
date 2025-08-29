@@ -21,22 +21,22 @@ async def get_message(event: MessageCreated, bot: Bot) -> None:
         logger.debug(f"get_message: Неверное состояние {current_state} для пользователя {event.message.sender.user_id}, пропускаем")
         return
         
-    logger.debug(f"get_message: Обработка сообщения от пользователя {event.message.sender.user_id}: '{event.message.text}'")
+    logger.debug(f"get_message: Обработка сообщения от пользователя {event.message.sender.user_id}: '{event.message.body.text}'")
 
     # Валидация текста сообщения
     if (
-        not event.message.text
-        or len(event.message.text) > Config.MAX_MESSAGE_LENGTH
-        or len(event.message.text) < 1
+        not event.message.body.text
+        or len(event.message.body.text) > Config.MAX_MESSAGE_LENGTH
+        or len(event.message.body.text) < 1
     ):
-        logger.debug(f"get_message: Невалидное сообщение от пользователя {event.message.sender.user_id}: длина {len(event.message.text) if event.message.text else 0}")
+        logger.debug(f"get_message: Невалидное сообщение от пользователя {event.message.sender.user_id}: длина {len(event.message.body.text) if event.message.body.text else 0}")
         await bot.send_message(
             user_id=event.message.sender.user_id,
             text=Texts.Messages.invalid_message_text,
             parse_mode=ParseMode.MARKDOWN,
         )
         return
-    if any(char not in Config.ALLOWED_CHARACTERS for char in event.message.text):
+    if any(char not in Config.ALLOWED_CHARACTERS for char in event.message.body.text):
         logger.debug(f"get_message: Недопустимые символы в сообщении от пользователя {event.message.sender.user_id}")
         await bot.send_message(
             user_id=event.message.sender.user_id,
@@ -70,7 +70,7 @@ async def get_message(event: MessageCreated, bot: Bot) -> None:
     await state_machine.set_state(event.message.sender.user_id, UserState.GET_NAME)
     # Обновляем контекст пользователя: сохраняем текст сообщения
     await state_machine.update_context(
-        event.message.sender.user_id, message=event.message.text
+        event.message.sender.user_id, message=event.message.body.text
     )
 
 

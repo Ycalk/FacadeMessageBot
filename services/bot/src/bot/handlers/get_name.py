@@ -19,10 +19,10 @@ async def get_name(event: MessageCreated, bot: Bot) -> None:
         logger.debug(f"get_name: Неверное состояние {current_state} для пользователя {event.message.sender.user_id}, пропускаем")
         return
         
-    logger.debug(f"get_name: Обработка имени от пользователя {event.message.sender.user_id}: '{event.message.text}'")
+    logger.debug(f"get_name: Обработка имени от пользователя {event.message.sender.user_id}: '{event.message.body.text}'")
 
     # Проверяем что имя не пустое
-    if not event.message.text or len(event.message.text) < 1:
+    if not event.message.body.text or len(event.message.body.text) < 1:
         logger.debug(f"get_name: Пустое имя от пользователя {event.message.sender.user_id}")
         await bot.send_message(
             user_id=event.message.sender.user_id,
@@ -42,7 +42,7 @@ async def get_name(event: MessageCreated, bot: Bot) -> None:
     await state_machine.set_state(event.message.sender.user_id, UserState.GET_CITY)
     # Обновляем контекст пользователя: сохраняем имя пользователя
     await state_machine.update_context(
-        event.message.sender.user_id, name=event.message.text.capitalize()
+        event.message.sender.user_id, name=event.message.body.text.capitalize()
     )
 
 
