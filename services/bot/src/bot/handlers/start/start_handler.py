@@ -1,10 +1,11 @@
-from maxapi.types import BotStarted, MessageCreated, CallbackButton, LinkButton, Attachment, PhotoAttachmentPayload
-from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.types import BotStarted, MessageCreated, InputFile, UploadType
+from maxapi.types import ImageAttachmentRequest, PhotoAttachmentRequestPayload
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder, CallbackButton, LinkButton
 from maxapi.enums.parse_mode import ParseMode
-from maxapi.enums.attachment import AttachmentType
 from maxapi import Bot
 from bot.utils import Texts, Config
 from typing import Union
+import os
 
 
 async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> None:
@@ -25,19 +26,31 @@ async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> N
     
     attachments = [keyboard.as_markup()]
     
-    if Config.START_MESSAGE_IMAGE_TOKEN and Config.START_MESSAGE_IMAGE_ID:
-        # attachments.append(
-        #     Attachment(
-        #         type=AttachmentType.IMAGE,
-        #         payload=PhotoAttachmentPayload(
-        #             photo_id=Config.START_MESSAGE_IMAGE_ID,
-        #             token=Config.START_MESSAGE_IMAGE_TOKEN,
-        #             url=Config.
-        #         ),
-        #         bot=bot
-        #     )
-        # )
-        pass
+    # Добавляем test.png изображение
+    test_image_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'test.png')
+    if os.path.exists(test_image_path):
+        try:
+            with open(test_image_path, 'rb') as f:
+                image_data = f.read()
+            
+            input_file = InputFile(
+                data=image_data,
+                filename='test.png',
+                upload_type=UploadType.IMAGE
+            )
+            
+            # Загружаем изображение и получаем токен
+            image_token = await bot.upload(input_file)
+            if image_token:
+                image_attachment = ImageAttachmentRequest(
+                    payload=PhotoAttachmentRequestPayload(
+                        token=image_token
+                    )
+                )
+                attachments.append(image_attachment)
+        except Exception as e:
+            # В случае ошибки просто продолжаем без изображения
+            print(f"Ошибка загрузки изображения: {e}")
 
     await bot.send_message(
         user_id=event.user.user_id if hasattr(event, 'user') else event.message.sender.user_id,
