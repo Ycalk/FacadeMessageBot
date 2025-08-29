@@ -109,4 +109,4 @@ class Config:
 
     # Webhook configuration
     WEBHOOK_HOST: Final[str] = os.getenv("WEBHOOK_HOST", "0.0.0.0")
-    WEBHOOK_PORT: Final[int] = int(os.getenv("WEBHOOK_PORT", 8843))
+    WEBHOOK_PORT: Final[int] = int(os.getenv("WEBHOOK_PORT", 16384))
