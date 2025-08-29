@@ -17,7 +17,7 @@ async def get_photo_solution(callback: MessageCallback) -> None:
         not message
         or not message.show_time_start
         or not message.show_time_end
-        or message.user.max_id != callback.from_user.user_id
+        or message.user.max_id != callback.user.user_id
     ):
         return
 

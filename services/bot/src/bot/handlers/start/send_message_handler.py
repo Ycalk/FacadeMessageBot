@@ -15,11 +15,11 @@ async def send_message_handler(callback: MessageCallback) -> None:
     # Создаем пользователя если он новый
     await User.update_or_create(
         defaults={
-            "first_name": callback.from_user.first_name,
-            "last_name": callback.from_user.last_name,
-            "username": callback.from_user.username,
+            "first_name": callback.user.first_name,
+            "last_name": callback.user.last_name,
+            "username": callback.user.username,
         },
-        max_id=callback.from_user.user_id,
+        max_id=callback.user.user_id,
     )
     
     # Проверяем глобальную блокировку сбора сообщений
@@ -30,19 +30,19 @@ async def send_message_handler(callback: MessageCallback) -> None:
         return
 
     # Проверяем лимиты пользователя
-    if await attempts_limit_reached(callback.from_user.user_id):
+    if await attempts_limit_reached(callback.user.user_id):
         await callback.message.answer(
             text=Texts.Messages.attempts_limit,
         )
         return
         
-    if await messages_limit_reached(callback.from_user.user_id):
+    if await messages_limit_reached(callback.user.user_id):
         await callback.message.answer(
             text=Texts.Messages.messages_limit,
         )
         return
         
-    if await messages_time_out_reached(callback.from_user.user_id):
+    if await messages_time_out_reached(callback.user.user_id):
         await callback.message.answer(
             text=Texts.Messages.messages_time_out,
         )
@@ -53,12 +53,12 @@ async def send_message_handler(callback: MessageCallback) -> None:
         text=Texts.Messages.get_message,
     )
 
-    await state_machine.set_state(callback.from_user.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(callback.user.user_id, UserState.GET_MESSAGE)
 
 
 async def send_message_filter(callback: MessageCallback) -> bool:
     return (
         callback.payload == "send_message"
-        and await state_machine.get_state(callback.from_user.user_id)
+        and await state_machine.get_state(callback.user.user_id)
         == UserState.SEND_MESSAGE
     )

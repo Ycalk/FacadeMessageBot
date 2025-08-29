@@ -12,10 +12,10 @@ async def confirm_city(callback: MessageCallback) -> None:
     if callback.payload == "confirm_city":
         # Проверяем, что все необходимые поля заполнены
         message = await state_machine.get_context(
-            callback.from_user.user_id, "message"
+            callback.user.user_id, "message"
         )
-        name = await state_machine.get_context(callback.from_user.user_id, "name")
-        city = await state_machine.get_context(callback.from_user.user_id, "city")
+        name = await state_machine.get_context(callback.user.user_id, "name")
+        city = await state_machine.get_context(callback.user.user_id, "city")
 
         # Если какое-то из полей пустое, отправляем сообщение об ошибке
         if not message or not name or not city:
@@ -53,7 +53,7 @@ async def confirm_city(callback: MessageCallback) -> None:
         )
 
         await state_machine.set_state(
-            callback.from_user.user_id, UserState.CONFIRM_FIELDS
+            callback.user.user_id, UserState.CONFIRM_FIELDS
         )
 
     elif callback.payload == "try_again_city":
@@ -62,11 +62,11 @@ async def confirm_city(callback: MessageCallback) -> None:
             text=Texts.Messages.add_city_without_geo,
         )
 
-        await state_machine.set_state(callback.from_user.user_id, UserState.GET_CITY)
+        await state_machine.set_state(callback.user.user_id, UserState.GET_CITY)
 
 
 async def confirm_city_filter(callback: MessageCallback) -> bool:
-    current_state = await state_machine.get_state(callback.from_user.user_id)
+    current_state = await state_machine.get_state(callback.user.user_id)
     return (
         callback.payload in ("confirm_city", "try_again_city")
         and current_state in (UserState.CONFIRM_CITY, UserState.SELECT_CITY)
