@@ -24,17 +24,17 @@ async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> N
     )
     
     attachments = [keyboard.as_markup()]
-    attachments.append(
-             Attachment(
-                 type=AttachmentType.IMAGE,
-                 payload=PhotoAttachmentPayload(
-                     photo_id="vhxt8mbo7Nr/ZML0L9lARPhHOktooq/sCrktUyfo4uv2VSDDiELO0A==",
-                     token="wV1K6tUTXXXPjdIVQi/6KGBn/6eYNRSOYDYiaNRTfeNWTYtNA34JOvAm6CN7Q3rQ19c4zENQuxBY/wfv1GPkLo1rI5n6SKYnKQ5cHRY+tZlJOizFUClP9dM+EGdxeIPdzHvGxkonaQm6SHQI9/ZVzXSlqUNEBgYNb7dSOFjHZ+W4/cnONAlU4Q==",
-                     url=""
-                 ),
-                 bot=bot
-             )
-         )
+    # attachments.append(
+    #          Attachment(
+    #              type=AttachmentType.IMAGE,
+    #              payload=PhotoAttachmentPayload(
+    #                  photo_id="vhxt8mbo7Nr/ZML0L9lARPhHOktooq/sCrktUyfo4uv2VSDDiELO0A==",
+    #                  token="wV1K6tUTXXXPjdIVQi/6KGBn/6eYNRSOYDYiaNRTfeNWTYtNA34JOvAm6CN7Q3rQ19c4zENQuxBY/wfv1GPkLo1rI5n6SKYnKQ5cHRY+tZlJOizFUClP9dM+EGdxeIPdzHvGxkonaQm6SHQI9/ZVzXSlqUNEBgYNb7dSOFjHZ+W4/cnONAlU4Q==",
+    #                  url=""
+    #              ),
+    #              bot=bot
+    #          )
+    #      )
     if Config.START_MESSAGE_IMAGE_TOKEN and Config.START_MESSAGE_IMAGE_ID:
         # attachments.append(
         #     Attachment(
