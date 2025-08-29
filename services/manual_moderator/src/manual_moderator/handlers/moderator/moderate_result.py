@@ -33,19 +33,23 @@ async def moderate_result_callback_handler(callback_query: CallbackQuery):
                 Texts.Messages.no_message_but_active,
                 show_alert=True,
             )
-            await callback_query.message.edit_text(
-                Texts.Messages.no_message_but_active,
-                reply_markup=None,
-            )
+            # Проверяем, нужно ли редактировать сообщение
+            if callback_query.message.text != Texts.Messages.no_message_but_active or callback_query.message.reply_markup is not None:
+                await callback_query.message.edit_text(
+                    Texts.Messages.no_message_but_active,
+                    reply_markup=None,
+                )
         else:
             await callback_query.answer(
                 Texts.Messages.no_message_and_inactive,
                 show_alert=True,
             )
-            await callback_query.message.edit_text(
-                Texts.Messages.no_message_and_inactive,
-                reply_markup=None,
-            )
+            # Проверяем, нужно ли редактировать сообщение
+            if callback_query.message.text != Texts.Messages.no_message_and_inactive or callback_query.message.reply_markup is not None:
+                await callback_query.message.edit_text(
+                    Texts.Messages.no_message_and_inactive,
+                    reply_markup=None,
+                )
         return
 
     if callback_query.data.startswith("approve:") or callback_query.data.startswith(
@@ -64,14 +68,19 @@ async def moderate_result_callback_handler(callback_query: CallbackQuery):
                 wrong_message_id_text,
                 show_alert=True,
             )
-            await callback_query.message.edit_text(
-                wrong_message_id_text,
-                reply_markup=None,
-            )
+            # Проверяем, нужно ли редактировать сообщение
+            if callback_query.message.text != wrong_message_id_text:
+                await callback_query.message.edit_text(
+                    wrong_message_id_text,
+                    reply_markup=None,
+                )
 
         else:
             await action()
-            await callback_query.message.edit_text(
-                Texts.Messages.approved if is_approve else Texts.Messages.rejected,
-                reply_markup=None,
-            )
+            result_text = Texts.Messages.approved if is_approve else Texts.Messages.rejected
+            # Проверяем, нужно ли редактировать сообщение
+            if callback_query.message.text != result_text or callback_query.message.reply_markup is not None:
+                await callback_query.message.edit_text(
+                    result_text,
+                    reply_markup=None,
+                )

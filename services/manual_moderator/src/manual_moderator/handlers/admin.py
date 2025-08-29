@@ -124,15 +124,21 @@ async def remove_admin_confirm(callback_query: CallbackQuery, state: FSMContext)
     if callback_query.data.startswith("confirm:"):
         telegram_id = int(callback_query.data.split(":")[1])
         await Admin.delete(telegram_id=telegram_id)
-        await callback_query.message.edit_text(
-            text=Texts.Messages.remove_admin_success.format(telegram_id=telegram_id),
-            reply_markup=None,
-        )
+        success_text = Texts.Messages.remove_admin_success.format(telegram_id=telegram_id)
+        # Проверяем, нужно ли редактировать сообщение
+        if callback_query.message.text != success_text or callback_query.message.reply_markup is not None:
+            await callback_query.message.edit_text(
+                text=success_text,
+                reply_markup=None,
+            )
         await state.clear()
     elif callback_query.data == "cancel":
-        await callback_query.message.edit_text(
-            text=Texts.Messages.remove_admin_cancelled, reply_markup=None
-        )
+        cancel_text = Texts.Messages.remove_admin_cancelled
+        # Проверяем, нужно ли редактировать сообщение
+        if callback_query.message.text != cancel_text or callback_query.message.reply_markup is not None:
+            await callback_query.message.edit_text(
+                text=cancel_text, reply_markup=None
+            )
         await state.clear()
 
 
@@ -273,17 +279,21 @@ async def remove_moderator_confirm(callback_query: CallbackQuery, state: FSMCont
         await removing_moderator.mark_inactive()
 
         await Moderator.delete(telegram_id=telegram_id)
-        await callback_query.message.edit_text(
-            text=Texts.Messages.remove_moderator_success.format(
-                telegram_id=telegram_id
-            ),
-            reply_markup=None,
-        )
+        success_text = Texts.Messages.remove_moderator_success.format(telegram_id=telegram_id)
+        # Проверяем, нужно ли редактировать сообщение
+        if callback_query.message.text != success_text or callback_query.message.reply_markup is not None:
+            await callback_query.message.edit_text(
+                text=success_text,
+                reply_markup=None,
+            )
         await state.clear()
     elif callback_query.data == "cancel":
-        await callback_query.message.edit_text(
-            text=Texts.Messages.remove_moderator_cancelled, reply_markup=None
-        )
+        cancel_text = Texts.Messages.remove_moderator_cancelled
+        # Проверяем, нужно ли редактировать сообщение
+        if callback_query.message.text != cancel_text or callback_query.message.reply_markup is not None:
+            await callback_query.message.edit_text(
+                text=cancel_text, reply_markup=None
+            )
         await state.clear()
 
 
