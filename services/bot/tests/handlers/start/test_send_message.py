@@ -5,8 +5,8 @@ from bot.handlers import send_message_handler, send_message_filter
 from tests.conftest import handler_with_event
 from bot.bot import state_machine
 from bot.utils import UserState, Texts, Config
-from aiomax.client import Bot, TestSession, TestResponse
-from aiomax.types import (
+from maxapi.client import Bot, TestSession, TestResponse
+from maxapi.types import (
     BotInfo,
     Recipient,
     UserWithPhoto,
@@ -14,8 +14,8 @@ from aiomax.types import (
     LinkButton,
     CallbackButton,
 )
-from aiomax.methods import AnswerCallback
-from aiomax.types.updates import MessageCallbackUpdate
+from maxapi.methods import AnswerCallback
+from maxapi.types import MessageCallback
 from shared_models.database import User, Message
 from shared_models.enums import MessageState
 from tests.test_models import callback_factory, message_factory
@@ -44,7 +44,7 @@ async def test_send_message_handler_user_not_registered(
     ]
     update_callback = callback_factory("send_message", user_with_photo)
     await test_session.add_update(
-        MessageCallbackUpdate(
+        MessageCallback(
             timestamp=1,
             callback=update_callback,
             message=message_factory(bot_info, user_recipient),
@@ -107,7 +107,7 @@ async def test_send_message_handler_user_registered(
     ]
     update_callback = callback_factory("send_message", user_with_photo)
     await test_session.add_update(
-        MessageCallbackUpdate(
+        MessageCallback(
             timestamp=1,
             callback=update_callback,
             message=message_factory(bot_info, user_recipient),
@@ -160,7 +160,7 @@ async def test_send_message_handler_incorrect_callback_payload(
 
     update_callback = callback_factory("Some incorrect payload", user_with_photo)
     await test_session.add_update(
-        MessageCallbackUpdate(
+        MessageCallback(
             timestamp=1,
             callback=update_callback,
             message=message_factory(bot_info, user_recipient),
@@ -226,7 +226,7 @@ async def test_send_message_handler_messages_limit_reached(
     test_session.responses = [TestResponse[Result](AnswerCallback, result)]
     update_callback = callback_factory("send_message", user_with_photo)
     await test_session.add_update(
-        MessageCallbackUpdate(
+        MessageCallback(
             timestamp=1,
             callback=update_callback,
             message=message_factory(bot_info, user_recipient),
@@ -288,7 +288,7 @@ async def test_send_message_handler_attempts_limit_reached(
     test_session.responses = [TestResponse[Result](AnswerCallback, result)]
     update_callback = callback_factory("send_message", user_with_photo)
     await test_session.add_update(
-        MessageCallbackUpdate(
+        MessageCallback(
             timestamp=1,
             callback=update_callback,
             message=message_factory(bot_info, user_recipient),
@@ -351,7 +351,7 @@ async def test_send_message_handler_timeout_not_reached(
     test_session.responses = [TestResponse[Result](AnswerCallback, result)]
     update_callback = callback_factory("send_message", user_with_photo)
     await test_session.add_update(
-        MessageCallbackUpdate(
+        MessageCallback(
             timestamp=1,
             callback=update_callback,
             message=message_factory(bot_info, user_recipient),
@@ -399,7 +399,7 @@ async def test_send_message_handler_message_collection_stopped(
         test_session.responses = [TestResponse[Result](AnswerCallback, result)]
         update_callback = callback_factory("send_message", user_with_photo)
         await test_session.add_update(
-            MessageCallbackUpdate(
+            MessageCallback(
                 timestamp=1,
                 callback=update_callback,
                 message=message_factory(bot_info, user_recipient),
@@ -449,7 +449,7 @@ async def test_send_message_handler_incorrect_state(
 
     update_callback = callback_factory("send_message", user_with_photo)
     await test_session.add_update(
-        MessageCallbackUpdate(
+        MessageCallback(
             timestamp=1,
             callback=update_callback,
             message=message_factory(bot_info, user_recipient),

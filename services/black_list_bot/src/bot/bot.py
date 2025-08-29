@@ -1,4 +1,4 @@
-from aiomax import Bot
+from maxapi import Bot
 from .utils import Config
 import logging
 from faststream.rabbit import RabbitBroker

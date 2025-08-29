@@ -4,10 +4,10 @@ from bot.handlers import start_handler
 from tests.conftest import handler_with_event
 from bot.bot import state_machine
 from bot.utils import UserState, Texts
-from aiomax.client import Bot, TestSession, TestResponse
-from aiomax.types import Message, BotInfo, Recipient, UserWithPhoto, CallbackButton
-from aiomax.methods import SendMessage
-from aiomax.types.updates import BotStartedUpdate
+from maxapi.client import Bot, TestSession, TestResponse
+from maxapi.types import Message, BotInfo, Recipient, UserWithPhoto, CallbackButton
+from maxapi.methods import SendMessage
+from maxapi.types import BotStarted
 from tests.test_models import message_factory
 
 
@@ -15,7 +15,7 @@ from tests.test_models import message_factory
 async def test_start_handler_behavior(
     test_session: TestSession,
     bot: Bot,
-    bot_started_update: BotStartedUpdate,
+    bot_started_update: BotStarted,
     bot_info: BotInfo,
     user_recipient: Recipient,
     user_with_photo: UserWithPhoto,

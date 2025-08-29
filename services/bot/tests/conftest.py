@@ -5,12 +5,12 @@ import asyncio
 import pytest_asyncio
 from functools import wraps
 from tortoise import Tortoise
-from aiomax import Bot
-from aiomax.types import BotInfo
-from aiomax.methods import GetMe
-from aiomax.client import TestResponse, TestSession
+from maxapi import Bot
+from maxapi.types import BotInfo
+from maxapi.methods import GetMe
+from maxapi.client import TestResponse, TestSession
 from asyncio import Event
-from aiomax.client.bot import UpdateT
+from maxapi.client.bot import UpdateT
 from typing import Callable, Awaitable, AsyncGenerator
 
 # Устанавливаем флаг тестирования перед импортом state_machine
