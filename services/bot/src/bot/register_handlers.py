@@ -29,7 +29,13 @@ def register_all_handlers(dp: Dispatcher) -> None:
         logger.debug(f"Получена команда /create от пользователя {event.message.sender.user_id}")
         await create_command_handler(event, event.bot)
     
-    # Обработчик команды /start
+    # Обработчик команды /start (текстовое сообщение)
+    @dp.message_created(F.message.body.text == "/start")
+    async def _(event):
+        logger.debug(f"Получена команда /start от пользователя {event.message.sender.user_id}")
+        await start_handler(event, event.bot)
+    
+    # Обработчик события bot_started (первый запуск)
     @dp.bot_started()
     async def _(event):
         logger.debug(f"Bot started для пользователя {event.user.user_id}")
@@ -71,14 +77,9 @@ def register_all_handlers(dp: Dispatcher) -> None:
     async def _(event):
         logger.debug(f"Callback new_message от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await new_message(event)
-    
-    @dp.message_callback(F.callback.payload.in_(["confirm_fields", "edit_fields", "start_over"]))
-    async def _(event):
-        logger.debug(f"Callback confirm/edit fields от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
-        await confirm_fields(event)
 
     # Обработчики сообщений - проверка состояния происходит внутри handler'ов через фильтры
-    @dp.message_created(F.message.body.text)  # Любое текстовое сообщение
+    @dp.message_created(F.message.body.text & ~F.message.body.text.in_(["/start", "/create"]))  # Любое текстовое сообщение кроме команд
     async def _(event):
         current_state = await state_machine.get_state(event.message.sender.user_id)
         logger.debug(f"Обработчик текстовых сообщений: пользователь {event.message.sender.user_id}, текст: '{event.message.body.text}', состояние: {current_state}")
