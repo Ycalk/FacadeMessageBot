@@ -40,7 +40,7 @@ async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> N
         pass
 
     await bot.send_message(
-        user_id=event.user.user_id,
+        user_id=event.user.user_id if hasattr(event, 'user') else event.message.sender.user_id,
         text=Texts.Messages.start,
         parse_mode=ParseMode.MARKDOWN,
         attachments=attachments,
