@@ -58,7 +58,7 @@ async def send_message_handler(callback: MessageCallback) -> None:
 
 async def send_message_filter(callback: MessageCallback) -> bool:
     return (
-        callback.payload == "send_message"
+        callback.callback.payload == "send_message"
         and await state_machine.get_state(callback.callback.user.user_id)
         == UserState.SEND_MESSAGE
     )

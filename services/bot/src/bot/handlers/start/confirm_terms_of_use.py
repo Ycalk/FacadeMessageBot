@@ -42,7 +42,7 @@ async def confirm_terms_of_use(callback: MessageCallback) -> None:
 
 async def confirm_terms_of_use_filter(callback: MessageCallback) -> bool:
     return (
-        callback.payload == "confirm_terms_of_use"
+        callback.callback.payload == "confirm_terms_of_use"
         and await state_machine.get_state(callback.callback.user.user_id)
         == UserState.CONFIRM_TERMS_OF_USE
     )

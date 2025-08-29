@@ -9,7 +9,7 @@ from bot.bot import state_machine
 
 
 async def confirm_city(callback: MessageCallback) -> None:
-    if callback.payload == "confirm_city":
+    if callback.callback.payload == "confirm_city":
         # Проверяем, что все необходимые поля заполнены
         message = await state_machine.get_context(
             callback.callback.user.user_id, "message"
@@ -56,7 +56,7 @@ async def confirm_city(callback: MessageCallback) -> None:
             callback.callback.user.user_id, UserState.CONFIRM_FIELDS
         )
 
-    elif callback.payload == "try_again_city":
+    elif callback.callback.payload == "try_again_city":
         # Пользователь хочет ввести город заново
         await callback.message.answer(
             text=Texts.Messages.add_city_without_geo,
@@ -68,6 +68,6 @@ async def confirm_city(callback: MessageCallback) -> None:
 async def confirm_city_filter(callback: MessageCallback) -> bool:
     current_state = await state_machine.get_state(callback.callback.user.user_id)
     return (
-        callback.payload in ("confirm_city", "try_again_city")
+        callback.callback.payload in ("confirm_city", "try_again_city")
         and current_state in (UserState.CONFIRM_CITY, UserState.SELECT_CITY)
     )

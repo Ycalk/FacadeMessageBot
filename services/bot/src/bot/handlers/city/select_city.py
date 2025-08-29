@@ -5,9 +5,9 @@ from bot.bot import state_machine
 
 
 async def select_city(callback: MessageCallback) -> None:
-    if callback.payload.startswith("select_city:"):
+    if callback.callback.payload.startswith("select_city:"):
         # Извлекаем название города из payload
-        city_name = callback.payload.split("select_city:", 1)[1]
+        city_name = callback.callback.payload.split("select_city:", 1)[1]
         
         keyboard = InlineKeyboardBuilder()
         keyboard.row(
@@ -36,7 +36,7 @@ async def select_city(callback: MessageCallback) -> None:
 
 async def select_city_filter(callback: MessageCallback) -> bool:
     return (
-        callback.payload.startswith("select_city:")
+        callback.callback.payload.startswith("select_city:")
         and await state_machine.get_state(callback.callback.user.user_id)
         == UserState.SELECT_CITY
     )

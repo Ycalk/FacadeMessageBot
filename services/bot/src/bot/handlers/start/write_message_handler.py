@@ -54,7 +54,7 @@ async def write_message_handler(callback: MessageCallback) -> None:
 
 async def write_message_filter(callback: MessageCallback) -> bool:
     return (
-        callback.payload == "write_message"
+        callback.callback.payload == "write_message"
         and await state_machine.get_state(callback.callback.user.user_id)
         == UserState.WRITE_MESSAGE
     )

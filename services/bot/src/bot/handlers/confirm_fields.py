@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 async def confirm_fields(callback: MessageCallback) -> None:
-    if callback.payload == "start_over":
+    if callback.callback.payload == "start_over":
         # Пользователь хочет начать заново,
         # сбрасываем контекст и устанавливаем состояние на ввод сообщения
         await callback.message.answer(
@@ -32,7 +32,7 @@ async def confirm_fields(callback: MessageCallback) -> None:
         )
         await state_machine.clear_context(callback.callback.user.user_id)
 
-    elif callback.payload == "confirm_fields":
+    elif callback.callback.payload == "confirm_fields":
         user = await User.get_or_none(max_id=callback.callback.user.user_id)
         message = await state_machine.get_context(
             callback.callback.user.user_id, "message"
@@ -98,7 +98,7 @@ async def confirm_fields(callback: MessageCallback) -> None:
 
 async def confirm_fields_filter(callback: MessageCallback) -> bool:
     user_id = callback.callback.user.user_id
-    payload = callback.payload
+    payload = callback.callback.payload
     
     # Базовые проверки
     if payload not in ("confirm_fields", "start_over"):

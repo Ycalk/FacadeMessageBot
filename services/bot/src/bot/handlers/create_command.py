@@ -76,6 +76,6 @@ def create_command_filter(event: MessageCreated) -> bool:
     return (
         event.message is not None
         and event.message.sender is not None
-        and event.message.text is not None
-        and event.message.text == "/create"
+        and event.message.body.text is not None
+        and event.message.body.text == "/create"
     )

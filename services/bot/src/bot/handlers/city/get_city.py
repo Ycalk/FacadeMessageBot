@@ -20,11 +20,11 @@ async def get_city(event: MessageCreated, bot: Bot) -> None:
         logger.debug(f"get_city: Неверное состояние {current_state} для пользователя {event.message.sender.user_id}, пропускаем")
         return
         
-    logger.debug(f"get_city: Обработка города от пользователя {event.message.sender.user_id}: '{event.message.text}'")
+    logger.debug(f"get_city: Обработка города от пользователя {event.message.sender.user_id}: '{event.message.body.text}'")
 
     # Пользователь ввел текстовое сообщение с названием города
     # Проверяем, что текст сообщения не пустой
-    if not event.message.text:
+    if not event.message.body.text:
         logger.debug(f"get_city: Пустое сообщение от пользователя {event.message.sender.user_id}")
         await bot.send_message(
             user_id=event.message.sender.user_id,
@@ -34,15 +34,15 @@ async def get_city(event: MessageCreated, bot: Bot) -> None:
         return
     else:
         # Ищем города в cities service
-        logger.debug(f"get_city: Поиск города '{event.message.text}' через cities service")
-        search_result = await cities_client.search_cities(event.message.text, limit=5)
+        logger.debug(f"get_city: Поиск города '{event.message.body.text}' через cities service")
+        search_result = await cities_client.search_cities(event.message.body.text, limit=5)
 
         if search_result and search_result.cities:
             city = search_result.cities[0].name
             logger.debug(f"get_city: Найден город через cities service: {city}")
         else:
             # Если cities service не доступен или не найдено совпадений, используем старую логику
-            city = city_extractor.extract_from_text(event.message.text)
+            city = city_extractor.extract_from_text(event.message.body.text)
             logger.debug(f"get_city: Используем city_extractor, найден: {city}")
         
         # Создаем клавиатуру с кнопками

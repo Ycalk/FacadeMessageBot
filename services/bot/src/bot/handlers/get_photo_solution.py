@@ -4,10 +4,10 @@ from bot.utils import Texts
 
 
 async def get_photo_solution(callback: MessageCallback) -> None:
-    if not isinstance(callback.payload, str):
+    if not isinstance(callback.callback.payload, str):
         return
     try:
-        action, message_id = callback.payload.split(":", 1)
+        action, message_id = callback.callback.payload.split(":", 1)
         message_id = int(message_id)
     except ValueError:
         return
@@ -38,7 +38,7 @@ async def get_photo_solution(callback: MessageCallback) -> None:
 
 
 def get_photo_solution_filter(callback: MessageCallback) -> bool:
-    return isinstance(callback.payload, str) and (
-        callback.payload.startswith("accept_get_photo")
-        or callback.payload.startswith("reject_get_photo")
+    return isinstance(callback.callback.payload, str) and (
+        callback.callback.payload.startswith("accept_get_photo")
+        or callback.callback.payload.startswith("reject_get_photo")
     )
