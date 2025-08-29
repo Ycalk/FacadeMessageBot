@@ -37,7 +37,6 @@ jobs:
           poetry run pytest --disable-warnings -v
 
   copy:
-    needs: test-bot
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
