@@ -77,6 +77,8 @@ class Config:
     START_MESSAGE_IMAGE_TOKEN: Final[str | None] = os.getenv(
         "START_MESSAGE_IMAGE_TOKEN"
     )
+    START_MESSAGE_IMAGE_ID: Final[int] = os.getenv("START_MESSAGE_IMAGE_ID", '+0j1rPUs1H65/7ZKMhu76Bo+pAIoMVIpwX99/nRI2gA3F57In52ZPg')
+    START_MESSAGE_IMAGE_URL: Final[str] = os.getenv("START_MESSAGE_IMAGE_ID", '')
 
     COORDINATE_EXTRACTOR_URL: Final[str] = os.getenv(
         "COORDINATE_EXTRACTOR_URL", "https://nominatim.openstreetmap.org/reverse"
@@ -104,3 +106,7 @@ class Config:
 
     if POSTGRES_DB == "":
         raise ValueError("POSTGRES_DB environment variable is not set")
+
+    # Webhook configuration
+    WEBHOOK_HOST: Final[str] = os.getenv("WEBHOOK_HOST", "0.0.0.0")
+    WEBHOOK_PORT: Final[int] = int(os.getenv("WEBHOOK_PORT", 8081))

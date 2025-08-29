@@ -2,56 +2,18 @@ import asyncio
 import locale
 from .utils import Config
 from .notification_processor import app
-from .handlers import (
-    start_handler,
-    confirm_terms_of_use,
-    confirm_terms_of_use_filter,
-    send_message_handler,
-    send_message_filter,
-    write_message_handler,
-    write_message_filter,
-    get_message,
-    get_message_filter,
-    get_name,
-    get_name_filter,
-    get_city,
-    get_city_filter,
-    select_city,
-    select_city_filter,
-    confirm_city,
-    confirm_city_filter,
-    get_photo_solution,
-    get_photo_solution_filter,
-    confirm_fields,
-    confirm_fields_filter,
-    create_command_filter,
-    create_command_handler,
-    new_message,
-    new_message_filter,
-    stop_handler,  # noqa: F401
-)
-from .bot import bot
+from .bot import bot, dispatcher
 from shared_models.database import get_tortoise_orm_config
 from tortoise import Tortoise
 
 
 async def main():
     locale.setlocale(locale.LC_TIME, "ru_RU.UTF-8")
-    bot.register_handler(create_command_handler, filter=create_command_filter)
-    bot.register_handler(start_handler)
-    # bot.register_handler(stop_handler)
-    bot.register_handler(confirm_terms_of_use, filter=confirm_terms_of_use_filter)
-    bot.register_handler(send_message_handler, filter=send_message_filter)
-    bot.register_handler(write_message_handler, filter=write_message_filter)
-    bot.register_handler(get_message, filter=get_message_filter)
-    bot.register_handler(get_name, filter=get_name_filter)
-    bot.register_handler(get_city, filter=get_city_filter)
-    bot.register_handler(select_city, filter=select_city_filter)
-    bot.register_handler(confirm_city, filter=confirm_city_filter)
-    bot.register_handler(get_photo_solution, filter=get_photo_solution_filter)
-    bot.register_handler(confirm_fields, filter=confirm_fields_filter)
-    bot.register_handler(new_message, filter=new_message_filter)
-
+    
+    # Регистрируем обработчики событий
+    from . import register_handlers
+    register_handlers.register_all_handlers(dispatcher)
+    
     await Tortoise.init(
         config=get_tortoise_orm_config(
             user=Config.POSTGRES_USER,
@@ -64,13 +26,18 @@ async def main():
     await Tortoise.generate_schemas()
 
     notification_processor_task = asyncio.create_task(app.run())
-    polling_task = asyncio.create_task(bot.start_polling())
-
-    await notification_processor_task
-
-    polling_task.cancel()
-    notification_processor_task.cancel()
-    await Tortoise.close_connections()
+    
+    # Запускаем webhook вместо polling
+    try:
+        await dispatcher.handle_webhook(
+            bot=bot,
+            host=Config.WEBHOOK_HOST,
+            port=Config.WEBHOOK_PORT,
+            log_level='info'
+        )
+    finally:
+        notification_processor_task.cancel()
+        await Tortoise.close_connections()
 
 
 def run():

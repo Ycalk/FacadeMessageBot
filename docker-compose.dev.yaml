@@ -87,6 +87,8 @@ services:
       - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
       - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
       - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
+    ports:
+      - "8081:8081"
     env_file:
       - secrets.env
     depends_on:

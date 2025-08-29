@@ -1,7 +1,6 @@
 import httpx
 from typing import List, Optional
 from dataclasses import dataclass
-from .config import Config
 
 
 @dataclass
