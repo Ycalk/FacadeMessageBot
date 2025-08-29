@@ -1,5 +1,5 @@
 import pytest
-from aiomax.types import BotInfo, UserWithPhoto, Recipient, ChatType, Result
+from maxapi.types import BotInfo, UserWithPhoto, Recipient, ChatType, Result
 
 
 @pytest.fixture(scope="session")

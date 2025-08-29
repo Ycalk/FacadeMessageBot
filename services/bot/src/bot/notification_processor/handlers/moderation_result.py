@@ -6,14 +6,13 @@ from shared_models.messaging import (
     bot_moderate_response_queue,
     ModerationResult,
 )
-from aiomax import Bot
-from aiomax.types.attachment_requests import InlineKeyboardAttachmentRequest
-from aiomax.types.keyboard import Keyboard, CallbackButton, LinkButton
-from aiomax.types import ButtonIntent, TextFormat
+from maxapi import Bot
+from maxapi.types.attachments.buttons import CallbackButton, LinkButton
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.enums.parse_mode import ParseMode
 from faststream import Context
 from shared_models.enums import ModeratorType, MessageState
 from shared_models.enums import ModerationResult as ModerationResultEnum
-from aiomax.methods import SendMessage
 from shared_models.database import Message, ModerationLog
 from bot.utils import Texts, Config
 from babel.dates import format_datetime
@@ -24,13 +23,11 @@ moderation_result_router = RabbitRouter()
 
 async def send_user_message(bot: Bot, user_id: int, text: str, attachments=None):
     """Отправка сообщения пользователю."""
-    await bot(
-        SendMessage(
-            user_id=user_id,
-            text=text,
-            text_format=TextFormat.MARKDOWN,
-            attachments=attachments or [],
-        )
+    await bot.send_message(
+        user_id=user_id,
+        text=text,
+        parse_mode=ParseMode.MARKDOWN,
+        attachments=attachments or [],
     )
 
 
@@ -79,24 +76,16 @@ async def moderation_result_handler(
                 if moderation_result.source == ModeratorType.AUTO
                 else Texts.Messages.manual_moderation_rejected
             )
-            attachments = (
-                [
-                    InlineKeyboardAttachmentRequest(
-                        payload=Keyboard(
-                            buttons=[
-                                [
-                                    LinkButton(
-                                        text=Texts.Buttons.terms_of_use,
-                                        url=Config.TERMS_OF_USE_URL,
-                                    )
-                                ]
-                            ]
-                        )
+            attachments = None
+            if moderation_result.source == ModeratorType.AUTO:
+                keyboard = InlineKeyboardBuilder()
+                keyboard.add(
+                    LinkButton(
+                        text=Texts.Buttons.terms_of_use,
+                        url=Config.TERMS_OF_USE_URL,
                     )
-                ]
-                if moderation_result.source == ModeratorType.AUTO
-                else None
-            )
+                )
+                attachments = [keyboard.as_markup()]
             await send_user_message(
                 bot, message.user.max_id, rejection_text, attachments
             )
@@ -189,23 +178,16 @@ async def moderation_result_handler(
                     f"{format_datetime(end_local, 'HH:mm', locale='ru')}"
                 )
 
-                keyboard = InlineKeyboardAttachmentRequest(
-                    payload=Keyboard(
-                        buttons=[
-                            [
-                                CallbackButton(
-                                    text=Texts.Buttons.accept_get_photo,
-                                    payload=f"accept_get_photo:{message.id}",
-                                    intent=ButtonIntent.POSITIVE,
-                                ),
-                                CallbackButton(
-                                    text=Texts.Buttons.reject_get_photo,
-                                    payload=f"reject_get_photo:{message.id}",
-                                    intent=ButtonIntent.NEGATIVE,
-                                ),
-                            ]
-                        ]
-                    )
+                keyboard = InlineKeyboardBuilder()
+                keyboard.add(
+                    CallbackButton(
+                        text=Texts.Buttons.accept_get_photo,
+                        payload=f"accept_get_photo:{message.id}",
+                    ),
+                    CallbackButton(
+                        text=Texts.Buttons.reject_get_photo,
+                        payload=f"reject_get_photo:{message.id}",
+                    ),
                 )
                 await send_user_message(
                     bot,
@@ -217,7 +199,7 @@ async def moderation_result_handler(
                     bot,
                     message.user.max_id,
                     Texts.Messages.moderation_completed.format(show_at=show_at),
-                    attachments=[keyboard],
+                    attachments=[keyboard.as_markup()],
                 )
             else:
                 await log_and_cancel(

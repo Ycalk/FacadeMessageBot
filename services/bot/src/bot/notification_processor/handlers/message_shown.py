@@ -6,22 +6,15 @@ from shared_models.messaging import (
     bot_exchange,
     MessageShown,
 )
-from aiomax import Bot
-from aiomax.types import (
-    PhotoAttachmentRequestPayload,
-    ImageAttachmentRequest,
-    AttachmentRequest,
-    InputFile,
-    UploadType,
-    TextFormat,
-    InlineKeyboardAttachmentRequest,
-    Keyboard,
-    CallbackButton,
-    ButtonIntent,
-)
+from maxapi import Bot
+from maxapi.types.attachments.buttons import CallbackButton
+from maxapi.types.input_media import InputMediaBuffer
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.enums.parse_mode import ParseMode
+from maxapi.enums.upload_type import UploadType
+
 from faststream import Context
 from shared_models.enums import MessageState
-from aiomax.methods import SendMessage
 from shared_models.database import Message
 from bot.utils import Texts
 
@@ -33,16 +26,14 @@ async def send_user_message(
     bot: Bot,
     user_id: int,
     text: str,
-    attachments: list[AttachmentRequest] | None = None,
+    attachments=None,
 ):
     """Отправка сообщения пользователю."""
-    await bot(
-        SendMessage(
-            user_id=user_id,
-            text=text,
-            text_format=TextFormat.MARKDOWN,
-            attachments=attachments,
-        )
+    await bot.send_message(
+        user_id=user_id,
+        text=text,
+        parse_mode=ParseMode.MARKDOWN,
+        attachments=attachments or [],
     )
 
 
@@ -64,36 +55,28 @@ async def moderation_result_handler(
     await message.save()
 
     if message_shown.photo_base64 and message.send_photo:
-        photo = InputFile(
-            data=base64.b64decode(message_shown.photo_base64),
+        # Загружаем фото 
+        photo_data = base64.b64decode(message_shown.photo_base64)
+        photo_media = InputMediaBuffer(
+            buffer=photo_data,
             filename="Фото на память.jpg",
-            upload_type=UploadType.IMAGE,
+            type=UploadType.IMAGE,
         )
-        token = await bot.upload(photo)
+        
+        # Создаем клавиатуру
+        keyboard = InlineKeyboardBuilder()
+        keyboard.add(
+            CallbackButton(
+                text=Texts.Buttons.new_message,
+                payload="new_message_no_edit",
+            )
+        )
+        
         await send_user_message(
             bot,
             message.user.max_id,
             Texts.Messages.photo_sent,
-            attachments=[
-                ImageAttachmentRequest(
-                    payload=PhotoAttachmentRequestPayload(
-                        url=None, token=token, photos=None
-                    )
-                ),
-                InlineKeyboardAttachmentRequest(
-                    payload=Keyboard(
-                        buttons=[
-                            [
-                                CallbackButton(
-                                    text=Texts.Buttons.new_message,
-                                    payload="new_message_no_edit",
-                                    intent=ButtonIntent.POSITIVE,
-                                )
-                            ],
-                        ],
-                    )
-                ),
-            ],
+            attachments=[photo_media, keyboard.as_markup()],
         )
     else:
         await send_user_message(

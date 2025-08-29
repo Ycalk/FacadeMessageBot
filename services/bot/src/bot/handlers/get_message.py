@@ -1,85 +1,85 @@
-from aiomax.types.updates import MessageCreatedUpdate
-from aiomax.types import (
-    InlineKeyboardAttachmentRequest,
-    TextFormat,
-    Keyboard,
-    MessageButton,
-)
-from aiomax import Bot
-from aiomax.methods import SendMessage
+import logging
+from maxapi.types import MessageCreated
+from maxapi.types.attachments.buttons import MessageButton
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.enums.parse_mode import ParseMode
+from maxapi import Bot
 from bot.utils import Texts, UserState, Config
 from bot.bot import state_machine
 
+logger = logging.getLogger(__name__)
 
-async def get_message(update: MessageCreatedUpdate, bot: Bot) -> None:
-    if not update.message or not update.message.sender:
+
+async def get_message(event: MessageCreated, bot: Bot) -> None:
+    if not event.message or not event.message.sender:
+        logger.debug("get_message: Нет сообщения или отправителя")
         return
+        
+    # Проверяем состояние пользователя
+    current_state = await state_machine.get_state(event.message.sender.user_id)
+    if current_state != UserState.GET_MESSAGE:
+        logger.debug(f"get_message: Неверное состояние {current_state} для пользователя {event.message.sender.user_id}, пропускаем")
+        return
+        
+    logger.debug(f"get_message: Обработка сообщения от пользователя {event.message.sender.user_id}: '{event.message.body.text}'")
 
     # Валидация текста сообщения
     if (
-        not update.message.body.text
-        or len(update.message.body.text) > Config.MAX_MESSAGE_LENGTH
-        or len(update.message.body.text) < 1
+        not event.message.body.text
+        or len(event.message.body.text) > Config.MAX_MESSAGE_LENGTH
+        or len(event.message.body.text) < 1
     ):
-        await bot(
-            SendMessage(
-                user_id=update.message.sender.user_id,
-                text=Texts.Messages.invalid_message_text,
-                text_format=TextFormat.MARKDOWN,
-            )
+        logger.debug(f"get_message: Невалидное сообщение от пользователя {event.message.sender.user_id}: длина {len(event.message.body.text) if event.message.body.text else 0}")
+        await bot.send_message(
+            user_id=event.message.sender.user_id,
+            text=Texts.Messages.invalid_message_text,
+            parse_mode=ParseMode.MARKDOWN,
         )
         return
-    if any(char not in Config.ALLOWED_CHARACTERS for char in update.message.body.text):
-        await bot(
-            SendMessage(
-                user_id=update.message.sender.user_id,
-                text=Texts.Messages.invalid_message_alphabet,
-                text_format=TextFormat.MARKDOWN,
-            )
+    if any(char not in Config.ALLOWED_CHARACTERS for char in event.message.body.text):
+        logger.debug(f"get_message: Недопустимые символы в сообщении от пользователя {event.message.sender.user_id}")
+        await bot.send_message(
+            user_id=event.message.sender.user_id,
+            text=Texts.Messages.invalid_message_alphabet,
+            parse_mode=ParseMode.MARKDOWN,
         )
         return
 
     # Следующий шаг - запрос имени пользователя
-
-    if update.message.sender.first_name and len(update.message.sender.first_name) > 0:
+    attachments = []
+    if event.message.sender.first_name and len(event.message.sender.first_name) > 0:
         # Если имя пользователя есть, добавляем кнопку с именем
-        attachments = [
-            InlineKeyboardAttachmentRequest(
-                payload=Keyboard(
-                    buttons=[
-                        [
-                            MessageButton(text=update.message.sender.first_name),
-                        ]
-                    ]
-                )
-            )
-        ]
-    else:
-        attachments = []
-    await bot(
-        SendMessage(
-            user_id=update.message.sender.user_id,
-            text=Texts.Messages.get_name_with_name_from_profile
-            if attachments
-            else Texts.Messages.get_name,
-            text_format=TextFormat.MARKDOWN,
-            notify=True,
-            attachments=attachments,
-        ),
+        keyboard = InlineKeyboardBuilder()
+        keyboard.add(
+            MessageButton(text=event.message.sender.first_name)
+        )
+        attachments = [keyboard.as_markup()]
+
+    logger.debug(f"get_message: Сообщение принято, переходим к получению имени для пользователя {event.message.sender.user_id}")
+    await bot.send_message(
+        user_id=event.message.sender.user_id,
+        text=Texts.Messages.get_name_with_name_from_profile
+        if attachments
+        else Texts.Messages.get_name,
+        parse_mode=ParseMode.MARKDOWN,
+        notify=True,
+        attachments=attachments,
     )
 
     # Устанавливаем состояние пользователя на получение имени
-    await state_machine.set_state(update.message.sender.user_id, UserState.GET_NAME)
+    await state_machine.set_state(event.message.sender.user_id, UserState.GET_NAME)
     # Обновляем контекст пользователя: сохраняем текст сообщения
     await state_machine.update_context(
-        update.message.sender.user_id, message=update.message.body.text
+        event.message.sender.user_id, message=event.message.body.text
     )
 
 
-async def get_message_filter(update: MessageCreatedUpdate) -> bool:
-    if not update.message or not update.message.sender:
+async def get_message_filter(event: MessageCreated) -> bool:
+    if not event.message or not event.message.sender:
         return False
-    return (
-        await state_machine.get_state(update.message.sender.user_id)
+    result = (
+        await state_machine.get_state(event.message.sender.user_id)
         == UserState.GET_MESSAGE
     )
+    logger.debug(f"get_message_filter: Пользователь {event.message.sender.user_id}, результат фильтра: {result}")
+    return result
