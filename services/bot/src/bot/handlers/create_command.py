@@ -23,7 +23,7 @@ async def create_command_handler(event: MessageCreated, bot: Bot) -> None:
         
     logger.debug(f"create_command_handler: Обработка команды create от пользователя {event.message.sender.user_id}")
 
-    user = await User.get_or_none(max_id=event.message.sender.user_id)
+    user = await User.get_or_create(max_id=event.message.sender.user_id)
     if not user:
         logger.debug(f"create_command_handler: Пользователь {event.message.sender.user_id} не найден в БД")
         return
