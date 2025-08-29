@@ -88,7 +88,7 @@ services:
       - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
       - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
     ports:
-      - "8843:8843"
+      - "16384:16384"
     env_file:
       - secrets.env
     depends_on:
@@ -283,7 +283,7 @@ services:
 
   tuna:
     image: yuccastream/tuna
-    command: http http://bot:8843/ --subdomain=webhook-max-firzat
+    command: http http://bot:16384/ --subdomain=webhook-max-firzat
     environment:
       # Значение должно быть заменено токеном из профиля:
       # https://my.tuna.am/#!/profile
