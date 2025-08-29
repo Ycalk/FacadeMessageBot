@@ -94,6 +94,8 @@ services:
       - rabbitmq
       - postgres
       - cities
+    ports:
+      - "16384:16384"
 
   client-bot-redis:
     image: redis:8.2.0-alpine
@@ -221,6 +223,17 @@ services:
       --save 300 10
       --appendonly yes
       --appendfsync everysec
+
+  tuna:
+    image: yuccastream/tuna
+    command: http http://bot:16384/ --subdomain=webhook-max
+    environment:
+      # Значение должно быть заменено токеном из профиля:
+      # https://my.tuna.am/#!/profile
+      - TUNA_TOKEN=***REMOVED***
+    depends_on:
+      - bot
+
 
   # nginx-rtmp: # Remove in production
   #   image: tiangolo/nginx-rtmp:latest-2025-08-18
