@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import html
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from .user_storage import BotData, Moderator
@@ -102,9 +103,9 @@ class ModerationLoop:
                 await self.bot.send_message(
                     chosen_moderator.telegram_id,
                     Texts.Messages.new_message_for_moderation.format(
-                        text=message.text,
-                        name=message.name,
-                        city=message.city,
+                        text=html.escape(message.text),
+                        name=html.escape(message.name),
+                        city=html.escape(message.city),
                     ),
                     reply_markup=InlineKeyboardMarkup(
                         inline_keyboard=[
