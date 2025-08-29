@@ -60,7 +60,7 @@ jobs:
           echo "GOOGLE_ACCOUNT_CREDENTIALS=$(echo "${{ secrets.GOOGLE_ACCOUNT_CREDENTIALS_BASE64 }}" | base64 -d)" >> secrets.env
           echo "SENTRY_DSN=***REMOVED***" >> secrets.env
           echo "SENTRY_ENV=production" >> secrets.env
-          echo "START_MESSAGE_IMAGE_TOKEN=wV1K6tUTXXXPjdIVQi/6KGBn/6eYNRSOYDYiaNRTfeNWTYtNA34JOvAm6CN7Q3rQ19c4zENQuxBY/wfv1GPkLo1rI5n6SKYnKQ5cHRY+tZlJOizFUClP9dM+EGdxeIPdzHvGxkonaQm6SHQI9/ZVzXSlqUNEBgYNb7dSOFjHZ+W4/cnONAlU4Q\u003d\u003d" >> secrets.env
+          echo "START_MESSAGE_IMAGE_TOKEN=wV1K6tUTXXXPjdIVQi/6KGBn/6eYNRSOYDYiaNRTfeNWTYtNA34JOvAm6CN7Q3rQ19c4zENQuxBY/wfv1GPkLo1rI5n6SKYnKQ5cHRY+tZlJOizFUClP9dM+EGdxeIPdzHvGxkonaQm6SHQI9/ZVzXSlqUNEBgYNb7dSOFjHZ+W4/cnONAlU4Q==" >> secrets.env
 
       - name: Transfer files to server
         uses: appleboy/scp-action@v1
