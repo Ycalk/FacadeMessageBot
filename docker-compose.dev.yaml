@@ -122,8 +122,8 @@ services:
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=mydatabase
       - RABBIT_HOST=rabbitmq
-      - USE_MOCK=0
-      - MEDIA_FACADE_API_BASE_URL=https://light.maergroup.ru/api/vk
+      - MEDIA_FACADE_API_TOKEN=nQ8rvrlNbyqbOn9Rk2bae227da4nqbOn9
+      - MEDIA_FACADE_API_BASE_URL=https://light.maergroup.ru/api/vk/alt/message
     env_file:
       - secrets.env
     depends_on:

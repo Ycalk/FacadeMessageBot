@@ -1,5 +1,6 @@
 import asyncio
 import locale
+import logging
 from .utils import Config
 from .notification_processor import app
 from .bot import bot, dispatcher
@@ -14,6 +15,20 @@ async def main():
     from . import register_handlers
     register_handlers.register_all_handlers(dispatcher)
     
+    # Настройка детального логирования HTTP запросов для отладки фантомных апдейтов
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),
+        ]
+    )
+    
+    # Включить логирование для httpx (используется в aiomax)
+    logging.getLogger("httpx").setLevel(logging.DEBUG)
+    # Включить логирование для aiomax
+    logging.getLogger("aiomax").setLevel(logging.DEBUG)
+
     await Tortoise.init(
         config=get_tortoise_orm_config(
             user=Config.POSTGRES_USER,

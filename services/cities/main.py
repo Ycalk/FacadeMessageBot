@@ -1,7 +1,7 @@
 import os
 import sentry_sdk
 if sentry := os.getenv("SENTRY_DSN"):
-    sentry_sdk.init(dsn=sentry, send_default_pii=True)
+    sentry_sdk.init(dsn=sentry, send_default_pii=True, environment=os.getenv("SENTRY_ENV"))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
