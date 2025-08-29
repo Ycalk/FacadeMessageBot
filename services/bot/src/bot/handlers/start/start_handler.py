@@ -7,6 +7,8 @@ from bot.utils import Texts, Config
 from typing import Union
 
 
+IMAGE_ATTACHMENT = None
+
 async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> None:
     keyboard = InlineKeyboardBuilder()
     keyboard.add(
@@ -22,11 +24,11 @@ async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> N
             payload="send_message",
         )
     )
-
+    if not IMAGE_ATTACHMENT:
     # Создаем изображение для стартового сообщения
-    image_attachment = InputMedia(path="/home/bot/app/test.png")
+        IMAGE_ATTACHMENT = InputMedia(path="/home/bot/app/test.png")
 
-    attachments = [keyboard.as_markup(), image_attachment]
+    attachments = [keyboard.as_markup(), IMAGE_ATTACHMENT]
 
     await bot.send_message(
         user_id=event.user.user_id if hasattr(event, 'user') else event.message.sender.user_id,
