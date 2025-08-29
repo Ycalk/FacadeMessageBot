@@ -19,7 +19,10 @@ def register_all_handlers(dp: Dispatcher) -> None:
         confirm_fields,
         create_command_handler,
         stop_handler,
-        send_message_handler
+        send_message_handler,
+        new_message,
+        confirm_terms_of_use,
+        write_message_handler
     )
     
     # Обработчик команды /create
@@ -65,8 +68,18 @@ def register_all_handlers(dp: Dispatcher) -> None:
     async def _(event):
         logger.debug(f"Callback confirm/edit fields от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await confirm_fields(event)
+        
+    @dp.message_callback(F.callback.payload.in_(["new_message", "new_message_no_edit"]))
+    async def _(event):
+        logger.debug(f"Callback new_message от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
+        await new_message(event)
     
-    # Обработчики сообщений - проверка состояния происходит внутри handler'ов через фильтры  
+    @dp.message_callback(F.callback.payload.in_(["confirm_fields", "edit_fields", "start_over"]))
+    async def _(event):
+        logger.debug(f"Callback confirm/edit fields от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
+        await confirm_fields(event)
+
+    # Обработчики сообщений - проверка состояния происходит внутри handler'ов через фильтры
     @dp.message_created(F.message.body.text)  # Любое текстовое сообщение
     async def _(event):
         current_state = await state_machine.get_state(event.message.sender.user_id)
