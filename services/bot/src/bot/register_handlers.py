@@ -63,7 +63,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
         logger.debug(f"Callback confirm_city от пользователя {event.callback.user.user_id}")
         await confirm_city(event)
     
-    @dp.message_callback(F.callback.payload.in_(["accept_get_photo", "reject_get_photo"]))
+    @dp.message_callback(F.callback.payload.startswith("accept_get_photo") | F.callback.payload.startswith("reject_get_photo"))
     async def _(event):
         logger.debug(f"Callback photo solution от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await get_photo_solution(event)
