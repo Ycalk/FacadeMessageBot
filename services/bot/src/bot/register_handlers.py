@@ -51,7 +51,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
         logger.debug(f"Callback select_city от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await select_city(event)
     
-    @dp.message_callback(F.callback.payload in ["confirm_city", "try_again_city"])
+    @dp.message_callback(F.callback.payload.in_(["confirm_city", "try_again_city"]))
     async def _(event):
         logger.debug(f"Callback confirm_city от пользователя {event.callback.user.user_id}")
         await confirm_city(event)
