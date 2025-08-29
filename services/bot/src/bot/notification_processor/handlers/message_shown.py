@@ -59,8 +59,7 @@ async def moderation_result_handler(
         photo_data = base64.b64decode(message_shown.photo_base64)
         photo_media = InputMediaBuffer(
             buffer=photo_data,
-            filename="Фото на память.jpg",
-            type=UploadType.IMAGE,
+            filename="Фото на память.jpg"
         )
         
         # Создаем клавиатуру
