@@ -24,7 +24,17 @@ async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> N
     )
     
     attachments = [keyboard.as_markup()]
-    
+    attachments.append(
+             Attachment(
+                 type=AttachmentType.IMAGE,
+                 payload=PhotoAttachmentPayload(
+                     photo_id="",
+                     token="d1YxSzZ0VVRYWFhQamRJVlFpLzZLR0JuLzZlWU5SU09ZRFlpYU5SVGZlTldUWXROQTM0Sk92QW02Q043UTNyUTE5YzR6RU5RdXhCWS93ZnYxR1BrTG8xckk1bjZTS1luS1E1Y0hSWSt0WmxKT2l6RlVDbFA5ZE0rRUdkeGVJUGR6SHZHeGtvbmFRbTZTSFFJOS9aVnpYU2xxVU5FQmdZTmI3ZFNPRmpIWitXNC9jbk9OQWxVNFFcdTAwM2RcdTAwM2Q==",
+                     url=""
+                 ),
+                 bot=bot
+             )
+         )
     if Config.START_MESSAGE_IMAGE_TOKEN and Config.START_MESSAGE_IMAGE_ID:
         # attachments.append(
         #     Attachment(
