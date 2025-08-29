@@ -183,7 +183,9 @@ async def moderation_result_handler(
                     CallbackButton(
                         text=Texts.Buttons.accept_get_photo,
                         payload=f"accept_get_photo:{message.id}",
-                    ),
+                    )
+                )
+                keyboard.add(
                     CallbackButton(
                         text=Texts.Buttons.reject_get_photo,
                         payload=f"reject_get_photo:{message.id}",
