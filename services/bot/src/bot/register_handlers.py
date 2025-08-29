@@ -39,7 +39,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
     async def _(event):
         logger.debug(f"Bot stopped для пользователя {event.user.user_id}")
         await stop_handler(event, event.bot)
-    
+
     # Callback обработчики
     @dp.message_callback(F.callback.payload == "send_message")
     async def _(event):
@@ -51,7 +51,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
         logger.debug(f"Callback select_city от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await select_city(event)
     
-    @dp.message_callback(F.callback.payload == "confirm_city")
+    @dp.message_callback(F.callback.payload in ["confirm_city", "try_again_city"])
     async def _(event):
         logger.debug(f"Callback confirm_city от пользователя {event.callback.user.user_id}")
         await confirm_city(event)
@@ -61,7 +61,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
         logger.debug(f"Callback photo solution от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await get_photo_solution(event)
     
-    @dp.message_callback(F.callback.payload.in_(["confirm_fields", "edit_fields"]))
+    @dp.message_callback(F.callback.payload.in_(["confirm_fields", "edit_fields", "start_over"]))
     async def _(event):
         logger.debug(f"Callback confirm/edit fields от пользователя {event.callback.user.user_id}, payload: {event.callback.payload}")
         await confirm_fields(event)
