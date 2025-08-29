@@ -31,16 +31,15 @@ def ffmpeg_reader(
     ffmpeg_proc = subprocess.Popen(
         [
             "ffmpeg",
-            "-v", "error",  # Только ошибки в stderr
-            "-rtmp_live", "live",
-            "-rtmp_buffer", "1000",  # Увеличиваем буфер 
+            "-hide_banner", "-loglevel", "error",
+            "-rtmp_live", "live", "-rtmp_buffer", "300", "-fflags", "nobuffer", "-flags", "low_delay",
             "-i", Config.RTMP_URL,
-            "-r", str(video_fps),
-            "-f", "rawvideo",
+            "-vf", "crop=ih*9/16:ih:(iw-ih*9/16)/2:0",
             "-pix_fmt", "bgr24",
-            "-an",  # Отключаем аудио
-            "-s", f"{video_width}x{video_height}",
-            "-"
+            "-f", "rawvideo",
+            "-an",
+            "-vsync", "passthrough",
+            "pipe:1",
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
