@@ -55,7 +55,7 @@ jobs:
           echo "MISTRAL_API_KEY=f8ZUgmWSbWf0jP0nuhWUmppR6slkTTYn" >> secrets.env
           echo "TELEGRAM_BOT_TOKEN=8208310640:AAHX-vf-FsEfvHeeEIjvJFI0wDNyOO5XBkY" >> secrets.env
           echo "MAIN_ADMIN_ID=75178947" >> secrets.env
-          echo "MEDIA_FACADE_API_TOKEN=c2776116-3537-45d4-81df-926e49974f86" >> secrets.env
+          echo "MEDIA_FACADE_API_TOKEN=nQ8rvrlNbyqbOn9Rk2bae227da4nqbOn9" >> secrets.env
           echo "SECRET_KEY=0d16efe6-8770-4ee6-a78d-f9cfae4a0fed" >> secrets.env
           echo "START_MESSAGE_IMAGE_TOKEN=CUrv9t7NB4FZnKYvq2O5D28Jk+zSQOEz4LZDJL4PPlyewZNmlSSSC9K0CSqpyrLsv9hgMQQpRUhhYc5/VYvxfHDShV7vYYJiYVisJJSPl+mruvQoZspLaGeZJr+TTWFdfvas5H4094r1mO9hhiwat94DapmOkzgKhjcadpBKxduPBBJUixJ8yA==" >> secrets.env
           echo "GOOGLE_SHEET_ID=1Ef6OUBgWFuJcykGuJWt6zRIjad9aVNbZ8Hvu4ro9pxM" >> secrets.env
