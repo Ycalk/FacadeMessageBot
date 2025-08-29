@@ -32,6 +32,16 @@ async def confirm_fields(callback: MessageCallback) -> None:
         )
         await state_machine.clear_context(callback.callback.user.user_id)
 
+    elif callback.callback.payload == "edit_fields":
+        # Пользователь хочет отредактировать поля - возвращаем к вводу сообщения
+        await callback.message.answer(
+            text=Texts.Messages.get_message,
+        )
+        await state_machine.set_state(
+            callback.callback.user.user_id, UserState.GET_MESSAGE
+        )
+        # Контекст оставляем, чтобы пользователь мог редактировать
+    
     elif callback.callback.payload == "confirm_fields":
         user = await User.get_or_none(max_id=callback.callback.user.user_id)
         message = await state_machine.get_context(
@@ -101,15 +111,15 @@ async def confirm_fields_filter(callback: MessageCallback) -> bool:
     payload = callback.callback.payload
     
     # Базовые проверки
-    if payload not in ("confirm_fields", "start_over"):
+    if payload not in ("confirm_fields", "start_over", "edit_fields"):
         return False
     
     current_state = await state_machine.get_state(user_id)
     if current_state != UserState.CONFIRM_FIELDS:
         return False
     
-    # Для кнопки "start_over" не проверяем дубликаты (пользователь хочет начать заново)
-    if payload == "start_over":
+    # Для кнопок "start_over" и "edit_fields" не проверяем дубликаты (пользователь хочет изменить данные)
+    if payload in ("start_over", "edit_fields"):
         return True
     
     # Проверяем что пользователь не отправлял уже это сообщение на модерацию
