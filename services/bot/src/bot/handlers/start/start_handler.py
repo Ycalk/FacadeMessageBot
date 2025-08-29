@@ -1,7 +1,7 @@
-from maxapi.types import BotStarted, MessageCreated, CallbackButton, LinkButton, Attachment, PhotoAttachmentPayload
+from maxapi.types import BotStarted, MessageCreated, CallbackButton, LinkButton
 from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 from maxapi.enums.parse_mode import ParseMode
-from maxapi.enums.attachment import AttachmentType
+from maxapi.types import InputMedia
 from maxapi import Bot
 from bot.utils import Texts, Config
 from typing import Union
@@ -22,32 +22,11 @@ async def start_handler(event: Union[BotStarted, MessageCreated], bot: Bot) -> N
             payload="send_message",
         )
     )
-    
-    attachments = [keyboard.as_markup()]
-    # attachments.append(
-    #          Attachment(
-    #              type=AttachmentType.IMAGE,
-    #              payload=PhotoAttachmentPayload(
-    #                  photo_id="vhxt8mbo7Nr/ZML0L9lARPhHOktooq/sCrktUyfo4uv2VSDDiELO0A==",
-    #                  token="wV1K6tUTXXXPjdIVQi/6KGBn/6eYNRSOYDYiaNRTfeNWTYtNA34JOvAm6CN7Q3rQ19c4zENQuxBY/wfv1GPkLo1rI5n6SKYnKQ5cHRY+tZlJOizFUClP9dM+EGdxeIPdzHvGxkonaQm6SHQI9/ZVzXSlqUNEBgYNb7dSOFjHZ+W4/cnONAlU4Q==",
-    #                  url=""
-    #              ),
-    #              bot=bot
-    #          )
-    #      )
-    if Config.START_MESSAGE_IMAGE_TOKEN and Config.START_MESSAGE_IMAGE_ID:
-        # attachments.append(
-        #     Attachment(
-        #         type=AttachmentType.IMAGE,
-        #         payload=PhotoAttachmentPayload(
-        #             photo_id=Config.START_MESSAGE_IMAGE_ID,
-        #             token=Config.START_MESSAGE_IMAGE_TOKEN,
-        #             url=Config.
-        #         ),
-        #         bot=bot
-        #     )
-        # )
-        pass
+
+    # Создаем изображение для стартового сообщения
+    image_attachment = InputMedia(path="/home/bot/app/test.png")
+
+    attachments = [keyboard.as_markup(), image_attachment]
 
     await bot.send_message(
         user_id=event.user.user_id if hasattr(event, 'user') else event.message.sender.user_id,
