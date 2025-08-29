@@ -27,16 +27,16 @@ async def select_city(callback: MessageCallback) -> None:
         )
         
         await state_machine.set_state(
-            callback.user.user_id, UserState.CONFIRM_CITY
+            callback.callback.user.user_id, UserState.CONFIRM_CITY
         )
         await state_machine.update_context(
-            callback.user.user_id, city=city_name
+            callback.callback.user.user_id, city=city_name
         )
 
 
 async def select_city_filter(callback: MessageCallback) -> bool:
     return (
         callback.payload.startswith("select_city:")
-        and await state_machine.get_state(callback.user.user_id)
+        and await state_machine.get_state(callback.callback.user.user_id)
         == UserState.SELECT_CITY
     )

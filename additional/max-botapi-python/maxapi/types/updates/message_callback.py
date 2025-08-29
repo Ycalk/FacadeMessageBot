@@ -79,7 +79,7 @@ class MessageCallback(Update):
             tuple[Optional[int], int]: Идентификаторы чата и пользователя.
         """
         
-        return (self.message.recipient.chat_id, self.callback.user.user_id)
+        return (self.message.recipient.chat_id, self.callback.callback.user.user_id)
     
     async def answer(
             self,

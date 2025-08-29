@@ -17,6 +17,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
         confirm_fields,
         create_command_handler,
         stop_handler,
+        send_message_handler
     )
     
     # Обработчик команды /create
@@ -41,7 +42,7 @@ def register_all_handlers(dp: Dispatcher) -> None:
     @dp.message_callback(F.callback.payload == "send_message")
     async def _(event):
         logger.debug(f"Callback send_message от пользователя {event.callback.user.user_id}")
-        await create_command_handler(event, event.bot)
+        await send_message_handler(event)
     
     @dp.message_callback(F.callback.payload.startswith("select_city_"))
     async def _(event):
