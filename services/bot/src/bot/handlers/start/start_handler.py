@@ -1,58 +1,46 @@
-from aiomax.types.updates import BotStartedUpdate
-from aiomax.types.attachment_requests import (
-    InlineKeyboardAttachmentRequest,
-    ImageAttachmentRequest,
-)
-from aiomax.types import PhotoAttachmentRequestPayload, AttachmentRequest
-from aiomax.types.keyboard import CallbackButton, Keyboard, LinkButton
-from aiomax.types import TextFormat, ButtonIntent
-from aiomax.methods import SendMessage
-from aiomax import Bot
-from bot.bot import state_machine
-from bot.utils import Texts, UserState, Config
+from maxapi.types import BotStarted, CallbackButton, LinkButton, Attachment, PhotoAttachmentPayload
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.enums.parse_mode import ParseMode
+from maxapi.enums.attachment import AttachmentType
+from maxapi import Bot
+from bot.utils import Texts, Config
 
 
-async def start_handler(update: BotStartedUpdate, bot: Bot) -> None:
-    attachments: list[AttachmentRequest] = [
-        InlineKeyboardAttachmentRequest(
-            payload=Keyboard(
-                buttons=[
-                    [
-                        LinkButton(
-                            text=Texts.Buttons.terms_of_use,
-                            url=Config.TERMS_OF_USE_URL,
-                        )
-                    ],
-                    [
-                        CallbackButton(
-                            text=Texts.Buttons.send_message,
-                            payload="send_message",
-                            intent=ButtonIntent.POSITIVE,
-                        )
-                    ],
-                ]
-            )
-        ),
-    ]
-    if Config.START_MESSAGE_IMAGE_TOKEN:
-        attachments.append(
-            ImageAttachmentRequest(
-                payload=PhotoAttachmentRequestPayload(
-                    url=None, photos=None, token=Config.START_MESSAGE_IMAGE_TOKEN
-                )
-            )
-        )
-    await bot(
-        SendMessage(
-            user_id=update.user.user_id,
-            text=Texts.Messages.start,
-            text_format=TextFormat.MARKDOWN,
-            attachments=attachments,
+async def start_handler(event: BotStarted, bot: Bot) -> None:
+    keyboard = InlineKeyboardBuilder()
+    keyboard.add(
+        LinkButton(
+            text=Texts.Buttons.terms_of_use,
+            url=Config.TERMS_OF_USE_URL,
         )
     )
-    # Устанавливаем состояние пользователя на SEND_MESSAGE
-    # Сначала реакция на кнопку "Отправить сообщение" ->
-    # подтверждение условий использования (если пользователь новый) ->
-    # Отправка сообщения о том, что сообщение пройдет модерацию ->
-    # реакция на кнопку "Написать сообщение"
-    await state_machine.set_state(update.user.user_id, UserState.SEND_MESSAGE)
+    keyboard.row()
+    keyboard.add(
+        CallbackButton(
+            text=Texts.Buttons.send_message,
+            payload="send_message",
+        )
+    )
+    
+    attachments = [keyboard.as_markup()]
+    
+    if Config.START_MESSAGE_IMAGE_TOKEN and Config.START_MESSAGE_IMAGE_ID:
+        # attachments.append(
+        #     Attachment(
+        #         type=AttachmentType.IMAGE,
+        #         payload=PhotoAttachmentPayload(
+        #             photo_id=Config.START_MESSAGE_IMAGE_ID,
+        #             token=Config.START_MESSAGE_IMAGE_TOKEN,
+        #             url=Config.
+        #         ),
+        #         bot=bot
+        #     )
+        # )
+        pass
+
+    await bot.send_message(
+        user_id=event.user.user_id,
+        text=Texts.Messages.start,
+        parse_mode=ParseMode.MARKDOWN,
+        attachments=attachments,
+    )

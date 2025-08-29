@@ -1,11 +1,7 @@
 from .start import (
     start_handler,
-    confirm_terms_of_use,
-    confirm_terms_of_use_filter,
     send_message_handler,
     send_message_filter,
-    write_message_handler,
-    write_message_filter,
 )
 from .get_message import get_message, get_message_filter
 from .get_name import get_name, get_name_filter
@@ -29,8 +25,6 @@ from .stop import stop_handler
 
 __all__ = [
     "start_handler",
-    "confirm_terms_of_use",
-    "confirm_terms_of_use_filter",
     "get_message",
     "get_message_filter",
     "get_name",
@@ -51,7 +45,5 @@ __all__ = [
     "new_message_filter",
     "send_message_handler",
     "send_message_filter",
-    "write_message_handler",
-    "write_message_filter",
     "stop_handler",
 ]

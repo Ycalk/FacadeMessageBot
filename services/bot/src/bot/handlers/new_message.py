@@ -1,6 +1,4 @@
-from aiomax.types.updates import MessageCallbackUpdate
-from aiomax.types import NewMessageBody, TextFormat
-from aiomax.methods import AnswerCallback, SendMessage
+from maxapi.types import MessageCallback
 from ..utils import (
     Texts,
     UserState,
@@ -9,88 +7,57 @@ from ..utils import (
     messages_limit_reached,
     messages_time_out_reached,
 )
-from aiomax import Bot
 from shared_models.database import User
 from bot.bot import state_machine
 
 
-async def new_message(update: MessageCallbackUpdate, bot: Bot) -> None:
+async def new_message(callback: MessageCallback) -> None:
     if Config.MESSAGE_COLLECTION_STOPPED:
-        await bot(
-            AnswerCallback(
-                callback_id=update.callback.callback_id,
-                message=NewMessageBody(
-                    text=Texts.Messages.message_collection_stopped,
-                    attachments=[],
-                    notify=True,
-                    format=TextFormat.MARKDOWN,
-                ),
-            )
+        await callback.message.answer(
+            text=Texts.Messages.message_collection_stopped,
         )
         return
     # Проверяем, достиг ли пользователь лимита попыток отправки сообщений
     # или лимита количества сообщений
     # Если достигнут, то отправляем соответствующее сообщение и выходим
-    if await attempts_limit_reached(update.callback.user.user_id):
-        await bot(
-            AnswerCallback(
-                callback_id=update.callback.callback_id,
-                message=NewMessageBody(
-                    text=Texts.Messages.attempts_limit,
-                    attachments=[],
-                    notify=True,
-                    format=TextFormat.MARKDOWN,
-                ),
-            )
+    if await attempts_limit_reached(callback.callback.user.user_id):
+        await callback.message.answer(
+            text=Texts.Messages.attempts_limit,
         )
         return
-    if await messages_limit_reached(update.callback.user.user_id):
-        await bot(
-            SendMessage(
-                user_id=update.callback.user.user_id,
-                text=Texts.Messages.messages_limit,
-            )
+    if await messages_limit_reached(callback.callback.user.user_id):
+        await callback.bot.send_message(
+            user_id=callback.callback.user.user_id,
+            text=Texts.Messages.messages_limit,
         )
         return
-    if await messages_time_out_reached(update.callback.user.user_id):
-        await bot(
-            SendMessage(
-                user_id=update.callback.user.user_id,
-                text=Texts.Messages.messages_time_out,
-            )
+    if await messages_time_out_reached(callback.callback.user.user_id):
+        await callback.bot.send_message(
+            user_id=callback.callback.user.user_id,
+            text=Texts.Messages.messages_time_out,
         )
         return
 
-    if update.callback.payload == "new_message":
-        await bot(
-            AnswerCallback(
-                callback_id=update.callback.callback_id,
-                message=NewMessageBody(
-                    text=None,
-                    attachments=[],
-                    notify=True,
-                    format=TextFormat.MARKDOWN,
-                ),
-            )
+    if callback.callback.payload == "new_message":
+        await callback.message.answer(
+            text="",
         )
-    await bot(
-        SendMessage(
-            user_id=update.callback.user.user_id,
-            text=Texts.Messages.get_message,
-        )
+    await callback.bot.send_message(
+        user_id=callback.callback.user.user_id,
+        text=Texts.Messages.get_message,
     )
 
     await User.update_or_create(
         defaults={
-            "first_name": update.callback.user.first_name,
-            "last_name": update.callback.user.last_name,
-            "username": update.callback.user.username,
+            "first_name": callback.callback.user.first_name,
+            "last_name": callback.callback.user.last_name,
+            "username": callback.callback.user.username,
         },
-        max_id=update.callback.user.user_id,
+        max_id=callback.callback.user.user_id,
     )
 
-    await state_machine.set_state(update.callback.user.user_id, UserState.GET_MESSAGE)
+    await state_machine.set_state(callback.callback.user.user_id, UserState.GET_MESSAGE)
 
 
-def new_message_filter(update: MessageCallbackUpdate) -> bool:
-    return update.callback.payload in ("new_message", "new_message_no_edit")
+def new_message_filter(callback: MessageCallback) -> bool:
+    return callback.callback.payload in ("new_message", "new_message_no_edit")
