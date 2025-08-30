@@ -28,13 +28,14 @@ def ffmpeg_reader(
     video_fps: int,
 ) -> None:
     frame_size = video_width * video_height * video_channels
+    
     ffmpeg_proc = subprocess.Popen(
         [
             "ffmpeg",
             "-hide_banner", "-loglevel", "error",
             "-rtmp_live", "live", "-rtmp_buffer", "300", "-fflags", "nobuffer", "-flags", "low_delay",
             "-i", Config.RTMP_URL,
-            "-vf", "crop=ih*9/16:ih:(iw-ih*9/16)/2:0",
+            "-vf", f"crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=800:1340",
             "-pix_fmt", "bgr24",
             "-f", "rawvideo",
             "-an",
@@ -45,6 +46,7 @@ def ffmpeg_reader(
         stderr=subprocess.PIPE,
         bufsize=frame_size,
     )
+    
     try:
         while True:
             raw_frame = ffmpeg_proc.stdout.read(frame_size)  # type: ignore
