@@ -54,7 +54,7 @@ async def moderation_result_handler(
     message.state = MessageState.SHOWN
     await message.save()
 
-    if message_shown.photo_base64 and message.send_photo:
+    if message_shown.photo_base64 and message.send_photo and False:
         # Загружаем фото 
         photo_data = base64.b64decode(message_shown.photo_base64)
         photo_media = InputMediaBuffer(
