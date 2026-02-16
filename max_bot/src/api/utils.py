@@ -104,3 +104,34 @@ async def notify_user_moderation_result(message_id: int, approved: bool) -> None
             )
 
     logger.info(f"Модерация сообщения {message_id}: {message.status}")
+
+
+async def send_rejection_notification(message_id: int) -> None:
+    """
+    Отправляет пользователю уведомление об отклонении сообщения.
+
+    Args:
+        message_id: ID сообщения в БД
+    """
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                select(Message, User)
+                .join(User, Message.user_id == User.id)
+                .where(Message.id == message_id)
+            )
+            row = result.one_or_none()
+
+            if not row:
+                logger.error(f"Сообщение {message_id} не найдено для отправки уведомления об отклонении")
+                return
+
+            message, user = row
+
+        await bot.send_message(
+            user_id=user.max_id,
+            text=Texts.Messages.rejected,
+        )
+        logger.info(f"Уведомление об отклонении отправлено пользователю {user.max_id} для сообщения {message_id}")
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомления об отклонении для сообщения {message_id}: {e}")

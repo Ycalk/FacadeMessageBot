@@ -51,6 +51,10 @@ async def moderate_by_moderator(message_id: int, moderator_id: str, approve: boo
             message.status = MessageStatus.REJECTED
             await session.commit()
             logger.info(f"Сообщение {message_id} отклонено модератором {moderator_id}")
+
+            from api.utils import send_rejection_notification
+            await send_rejection_notification(message_id)
+
             return {
                 "success": True,
                 "status": "rejected",

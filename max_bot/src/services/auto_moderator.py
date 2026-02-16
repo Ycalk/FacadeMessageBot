@@ -67,6 +67,10 @@ async def auto_moderate_message(message_id: int, max_retries: int = 3) -> bool:
                     message.status = MessageStatus.REJECTED
                     await session.commit()
                     logger.info(f"Сообщение {message_id} отклонено автомодерацией")
+
+                    from api.utils import send_rejection_notification
+                    await send_rejection_notification(message_id)
+
                     return False
 
                 # Mistral одобрил — отправляем на внутреннюю модерацию

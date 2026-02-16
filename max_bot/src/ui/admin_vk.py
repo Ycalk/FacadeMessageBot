@@ -17,7 +17,6 @@ async def load_vk_messages():
     async with async_session() as session:
         result = await session.execute(
             select(Message)
-            .where(Message.status == MessageStatus.VK_MODERATION)
             .order_by(Message.created_at.desc())
         )
         rows = result.scalars().all()
@@ -70,6 +69,7 @@ async def vk_moderator_page():
             rows.append({
                 'id': msg.id,
                 'image_url': msg.image_url,
+                'status_order': 0 if msg.status == MessageStatus.VK_MODERATION else 1,
                 'text': msg.text or '',
                 'name': msg.name,
                 'city': msg.city,
@@ -131,7 +131,7 @@ async def vk_moderator_page():
         columns=columns,
         rows=prepare_table_rows(),
         row_key='id',
-        pagination={'rowsPerPage': 100, 'sortBy': 'id', 'descending': True}
+        pagination={'rowsPerPage': 100, 'sortBy': 'status_order', 'descending': False}
     ).classes('w-full')
 
     table.add_slot('top-right', '''

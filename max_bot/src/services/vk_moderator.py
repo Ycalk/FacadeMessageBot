@@ -52,6 +52,10 @@ async def moderate_by_vk_moderator(message_id: int, moderator_id: str, approve: 
             message.status = MessageStatus.REJECTED
             await session.commit()
             logger.info(f"Сообщение {message_id} отклонено VK модератором {moderator_id}")
+
+            from api.utils import send_rejection_notification
+            await send_rejection_notification(message_id)
+
             return {
                 "success": True,
                 "status": "rejected",

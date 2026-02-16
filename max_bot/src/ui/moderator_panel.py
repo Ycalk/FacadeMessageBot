@@ -66,8 +66,11 @@ async def moderator_page():
         rows = []
         for item in messages:
             msg = item['message']
+            # internal_moderation первым (0), остальные (1)
+            status_order = 0 if msg.status == MessageStatus.INTERNAL_MODERATION else 1
             rows.append({
                 'id': msg.id,
+                'status_order': status_order,
                 'image_url': msg.image_url,
                 'text': msg.text or '',
                 'name': msg.name,
@@ -132,7 +135,7 @@ async def moderator_page():
         columns=columns,
         rows=prepare_table_rows(),
         row_key='id',
-        pagination={'rowsPerPage': 100, 'sortBy': 'id', 'descending': True}
+        pagination={'rowsPerPage': 100, 'sortBy': 'status_order', 'descending': False}
     ).classes('w-full')
 
     # Добавляем слот для кнопки обновления в топ-правый угол
