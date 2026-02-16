@@ -1,44 +1,71 @@
 services:
-  # Additional
-  nginx:
-    image: nginx:1.29-alpine
-    container_name: nginx_proxy
+  app:
+    build:
+      context: .
+      dockerfile: max_bot/Dockerfile
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx-configs/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - "8000:8000"
+    env_file: .env
     depends_on:
-      - media-facade
-      - cities
-
-  rabbitmq:
-    image: rabbitmq:4.1-alpine
-    restart: always
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      cities:
+        condition: service_started
+      minio:
+        condition: service_healthy
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+      - ./max_bot/src:/home/app:rw
 
   postgres:
-    image: postgres:17.5-alpine
-    restart: always
+    image: postgres:16-alpine
     environment:
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=mydatabase
-      - TZ=Europe/Moscow
+      POSTGRES_USER: botuser
+      POSTGRES_PASSWORD: botpass
+      POSTGRES_DB: botdb
+    ports:
+      - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U botuser -d botdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
   elasticsearch:
     image: elasticsearch:8.15.4
-    restart: always
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
       test:
         ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
@@ -46,294 +73,21 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-  # Services
 
-  # Cities search service
   cities:
-    build:
-      context: services/cities
-      dockerfile: Dockerfile
-    restart: always
+    build: cities
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - CITIES_FILE_PATH=/home/cities/app/data/cities.csv
+    ports:
+      - "8080:8080"
     volumes:
-      - /home/$USER/data:/home/cities/app/data:ro
+      - ./data/cities.csv:${CITIES_FILE_PATH:-/home/cities/app/data/cities.csv}:ro
     depends_on:
       elasticsearch:
         condition: service_healthy
-    env_file:
-      - secrets.env
-
-  # Bot service
-  bot:
-    build:
-      context: services/bot
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=mydatabase
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=client-bot-redis
-      - CITIES_SERVICE_URL=http://cities:8080
-      - TERMS_OF_USE_URL=***REMOVED***
-      - PROCESSING_OF_PERSONAL_DATA_URL=***REMOVED***
-      - START_MESSAGE_IMAGE_TOKEN=d1YxSzZ0VVRYWFhQamRJVlFpLzZLR0JuLzZlWU5SU09ZRFlpYU5SVGZlTldUWXROQTM0Sk92QW02Q043UTNyUTE5YzR6RU5RdXhCWS93ZnYxR1BrTG8xckk1bjZTS1luS1E1Y0hSWSt0WmxKT2l6RlVDbFA5ZE0rRUdkeGVJUGR6SHZHeGtvbmFRbTZTSFFJOS9aVnpYU2xxVU5FQmdZTmI3ZFNPRmpIWitXNC9jbk9OQWxVNFFcdTAwM2RcdTAwM2Q==
-      # - MESSAGES_TIME_OUT_MINUTES=0 # remove after testing
-      # - MAXIMUM_MESSAGES_PER_USER=1000 # remove after testing
-      # - MAXIMUM_ATTEMPTS_PER_MESSAGE=1000 # remove after testing
-      - MESSAGES_TIME_OUT_MINUTES=1
-      - MAXIMUM_MESSAGES_PER_USER=2
-      - MAXIMUM_ATTEMPTS_PER_MESSAGE=3
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - postgres
-      - cities
-    ports:
-      - "16384:16384"
-
-  client-bot-redis:
-    image: redis:8.2.0-alpine
-    restart: always
-    volumes:
-      - client-bot-redis:/data
-    command: >
-      redis-server
-      --save 60 1
-      --save 300 10
-      --appendonly yes
-      --appendfsync everysec
-
-  media-facade:
-    build:
-      context: services/media_facade
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=mydatabase
-      - RABBIT_HOST=rabbitmq
-      # - USE_MOCK=1 # Set to 0 in production and set MEDIA_FACADE_API_BASE_URL
-      - USE_MOCK=0
-      - MEDIA_FACADE_API_BASE_URL=https://light.maergroup.ru/api/vk
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - postgres
-
-  # Auto moderator service
-  auto-moderator-redis:
-    image: redis:8.2.0-alpine
-    restart: always
-    volumes:
-      - auto-moderator-redis:/data
-    command: >
-      redis-server
-      --save 60 1
-      --save 300 10
-      --appendonly yes
-      --appendfsync everysec
-
-  auto-moderator:
-    build:
-      context: services/auto_moderator
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=auto-moderator-redis
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - auto-moderator-redis
-
-  # Manual moderator service
-  manual-moderator-redis:
-    image: redis:8.2.0-alpine
-    restart: always
-    volumes:
-      - manual-moderator-redis:/data
-    command: >
-      redis-server
-      --save 60 1
-      --save 300 10
-      --appendonly yes
-      --appendfsync everysec
-
-  manual-moderator:
-    build:
-      context: services/manual_moderator
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=manual-moderator-redis
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - manual-moderator-redis
-
-  # Table moderator service
-  table-moderator:
-    build:
-      context: services/table_moderator
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=table-moderator-redis
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - auto-moderator-redis
-
-  table-moderator-redis:
-    image: redis:8.2.0-alpine
-    restart: always
-    volumes:
-      - table-moderator-redis:/data
-    command: >
-      redis-server
-      --save 60 1
-      --save 300 10
-      --appendonly yes
-      --appendfsync everysec
-
-  # Vision service
-  vision-redis:
-    image: redis:8.2.0-alpine
-    restart: always
-    volumes:
-      - vision-redis:/data
-    command: >
-      redis-server
-      --save 60 1
-      --save 300 10
-      --appendonly yes
-      --appendfsync everysec
-
-  tuna:
-    image: yuccastream/tuna
-    command: http http://bot:16384/ --subdomain=webhook-max-prod
-    environment:
-      # Значение должно быть заменено токеном из профиля:
-      # https://my.tuna.am/#!/profile
-      - TUNA_TOKEN=***REMOVED***
-    depends_on:
-      - bot
-
-
-  # nginx-rtmp: # Remove in production
-  #   image: tiangolo/nginx-rtmp:latest-2025-08-18
-  #   container_name: nginx_rtmp
-  #   restart: always
-  #   volumes:
-  #     - ./nginx-configs/rtmp-nginx.conf:/etc/nginx/nginx.conf:ro
-
-  # vision-mock-video-stream: # Remove in production
-  #   build:
-  #     context: services/vision
-  #     dockerfile: Dockerfile
-  #     args:
-  #       - SERVICE_NAME=mock_video_stream
-  #   restart: always
-  #   environment:
-  #     - RABBIT_HOST=rabbitmq
-  #     - RTMP_URL=rtmp://nginx-rtmp:1935/live
-  #     - REDIS_HOST=vision-redis
-  #     - DEBUG_MODE=1
-  #   env_file:
-  #     - secrets.env
-  #   depends_on:
-  #     - rabbitmq
-  #     - vision-redis
-  #     - nginx-rtmp
-
-  vision-app:
-    build:
-      context: services/vision
-      dockerfile: Dockerfile
-      args:
-        - SERVICE_NAME=app
-    restart: always
-    environment:
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=vision-redis
-      # - RTMP_URL=rtmp://nginx-rtmp:1935/live # Use mock RTMP server for testing
-      # - DEBUG_MODE=1 # Set to 0 in production
-      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest3
-      - DEBUG_MODE=0
-      - ANALYTICS_DELAY_SECONDS=600
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - vision-redis
-      # - nginx-rtmp # Use mock RTMP server for testing
-
-  vision-frame-matcher:
-    build:
-      context: services/vision
-      dockerfile: Dockerfile
-      args:
-        - SERVICE_NAME=frame_matcher
-    restart: always
-    environment:
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=vision-redis
-      # - RTMP_URL=rtmp://nginx-rtmp:1935/live # Use mock RTMP server for testing
-      # - DEBUG_MODE=1 # Set to 0 in production
-      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest3
-      - DEBUG_MODE=0
-      - ANALYTICS_DELAY_SECONDS=600
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - vision-redis
-      # - nginx-rtmp # Use mock RTMP server for testing
-
-  vision-frame-processor:
-    build:
-      context: services/vision
-      dockerfile: Dockerfile
-      args:
-        - SERVICE_NAME=frame_processor
-    restart: always
-    environment:
-      - RABBIT_HOST=rabbitmq
-      - REDIS_HOST=vision-redis
-      # - RTMP_URL=rtmp://nginx-rtmp:1935/live # Use mock RTMP server for testing
-      # - DEBUG_MODE=1 # Set to 0 in production
-      - RTMP_URL=rtmp://h2a.media.maergroup.ru:1940/live/webcamtest3
-      - DEBUG_MODE=0
-      - ANALYTICS_DELAY_SECONDS=600
-    env_file:
-      - secrets.env
-    depends_on:
-      - rabbitmq
-      - vision-redis
-      # - nginx-rtmp # Use mock RTMP server for testing
 
 volumes:
-  rabbitmq-data:
-  postgres-data:
-  elasticsearch-data:
-  manual-moderator-redis:
-  table-moderator-redis:
-  auto-moderator-redis:
-  vision-redis:
-  client-bot-redis:
+  postgres_data:
+  redis_data:
+  elasticsearch_data:
+  minio_data:

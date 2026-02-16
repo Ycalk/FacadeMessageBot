@@ -11,6 +11,9 @@ secrets.env
 # C extensions
 *.so
 
+additional/
+.DS_Store
+
 # Distribution / packaging
 .Python
 build/
