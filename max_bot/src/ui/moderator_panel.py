@@ -50,7 +50,7 @@ async def moderate_message_by_moderator_ui(message_id: int, moderator_id: str, a
         return False, {"error": str(e)}
 
 
-@ui.page('/admin_internal')
+@ui.page('/admin_internal', title='Внутренняя модерация')
 async def moderator_page():
     """Страница панели модератора с авторизацией."""
 

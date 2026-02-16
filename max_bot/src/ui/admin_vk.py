@@ -50,7 +50,7 @@ async def moderate_message_by_vk_moderator_ui(message_id: int, moderator_id: str
         return False, {"error": str(e)}
 
 
-@ui.page('/admin_vk')
+@ui.page('/admin_vk', title='VK модерация')
 async def vk_moderator_page():
     """Страница панели VK модерации с авторизацией."""
 
