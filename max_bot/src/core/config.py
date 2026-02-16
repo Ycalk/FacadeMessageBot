@@ -84,6 +84,10 @@ class Settings(BaseSettings):
     # VK модераторы (список имён/ID для VK модерации)
     VK_MODERATORS: str = "vk_moderator_1, vk_moderator_2, vk_moderator_3"
 
+    # Пароли для админ-панелей
+    ADMIN_INTERNAL_PASSWORD: str = "admin"
+    ADMIN_VK_PASSWORD: str = "vkadmin"
+
     # Maer API (внешняя модерация)
     MAER_API_URL: str = ""
     MAER_API_TOKEN: str = ""

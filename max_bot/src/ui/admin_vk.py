@@ -1,6 +1,9 @@
 """Панель VK модерации для управления сообщениями."""
 
-from nicegui import ui
+import hashlib
+import secrets
+
+from nicegui import app, ui
 from sqlalchemy import select
 
 from core.config import Config
@@ -12,8 +15,13 @@ from services.vk_moderator import moderate_by_vk_moderator
 logger = get_logger(__name__)
 
 
+def _hash_password(password: str) -> str:
+    """Хеширует пароль для сравнения."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
 async def load_vk_messages():
-    """Загружает сообщения в статусе VK модерации из БД."""
+    """Загружает все сообщения из БД."""
     async with async_session() as session:
         result = await session.execute(
             select(Message)
@@ -44,7 +52,36 @@ async def moderate_message_by_vk_moderator_ui(message_id: int, moderator_id: str
 
 @ui.page('/admin_vk')
 async def vk_moderator_page():
-    """Страница панели VK модерации."""
+    """Страница панели VK модерации с авторизацией."""
+
+    # Проверяем авторизацию
+    if not app.storage.user.get('auth_vk'):
+        # Показываем форму входа
+        with ui.card().classes('absolute-center'):
+            ui.label('Вход в панель VK модерации').classes('text-h5 q-mb-md')
+            password_input = ui.input(
+                'Пароль', password=True, password_toggle_button=True
+            ).classes('w-64')
+            error_label = ui.label('').classes('text-negative')
+
+            async def try_login():
+                if not Config.ADMIN_VK_PASSWORD:
+                    error_label.text = 'Пароль не настроен в конфигурации'
+                    return
+                if secrets.compare_digest(
+                    _hash_password(password_input.value),
+                    _hash_password(Config.ADMIN_VK_PASSWORD)
+                ):
+                    app.storage.user['auth_vk'] = True
+                    ui.navigate.to('/admin_vk')
+                else:
+                    error_label.text = 'Неверный пароль'
+
+            ui.button('Войти', on_click=try_login).classes('w-64')
+            password_input.on('keydown.enter', try_login)
+        return
+
+    # === Авторизованная часть ===
 
     messages = await load_vk_messages()
     moderators = Config.vk_moderators_list
@@ -66,10 +103,10 @@ async def vk_moderator_page():
         rows = []
         for item in messages:
             msg = item['message']
+            status_order = 0 if msg.status == MessageStatus.VK_MODERATION else 1
             rows.append({
                 'id': msg.id,
-                'image_url': msg.image_url,
-                'status_order': 0 if msg.status == MessageStatus.VK_MODERATION else 1,
+                'status_order': status_order,
                 'text': msg.text or '',
                 'name': msg.name,
                 'city': msg.city,
@@ -114,11 +151,18 @@ async def vk_moderator_page():
         else:
             ui.notify(f'Ошибка: {result}', type='negative')
 
-    ui.label('Панель VK модерации').classes('text-h4 mb-4')
+    async def logout():
+        """Выход из панели."""
+        app.storage.user['auth_vk'] = False
+        ui.navigate.to('/admin_vk')
+
+    # Заголовок с кнопкой выхода
+    with ui.row().classes('w-full items-center justify-between mb-4'):
+        ui.label('Панель VK модерации').classes('text-h4')
+        ui.button('Выйти', on_click=logout, color='negative').props('outline size=sm')
 
     columns = [
         {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
-        {'name': 'image_url', 'label': 'Фото', 'field': 'image_url', 'sortable': False, 'align': 'center'},
         {'name': 'text', 'label': 'Текст', 'field': 'text', 'sortable': True, 'align': 'center'},
         {'name': 'name', 'label': 'Имя', 'field': 'name', 'sortable': True, 'align': 'center'},
         {'name': 'city', 'label': 'Город', 'field': 'city', 'sortable': True, 'align': 'center'},
@@ -136,14 +180,6 @@ async def vk_moderator_page():
 
     table.add_slot('top-right', '''
         <q-btn color="primary" icon="refresh" label="Обновить" @click="$parent.$emit('refresh')" />
-    ''')
-
-    table.add_slot('body-cell-image_url', '''
-        <q-td :props="props">
-            <a v-if="props.row.image_url" :href="props.row.image_url" target="_blank">
-                <q-img :src="props.row.image_url" style="width: 30px; height: 30px" class="rounded cursor-pointer" />
-            </a>
-        </q-td>
     ''')
 
     table.add_slot('body-cell-status', '''

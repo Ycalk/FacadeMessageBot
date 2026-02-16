@@ -1,6 +1,9 @@
 """Панель модератора для управления сообщениями."""
 
-from nicegui import ui
+import hashlib
+import secrets
+
+from nicegui import app, ui
 from sqlalchemy import select
 
 from core.config import Config
@@ -10,6 +13,11 @@ from db.session import async_session
 from services.internal_moderator import moderate_by_moderator
 
 logger = get_logger(__name__)
+
+
+def _hash_password(password: str) -> str:
+    """Хеширует пароль для сравнения."""
+    return hashlib.sha256(password.encode()).hexdigest()
 
 
 async def load_messages():
@@ -44,12 +52,40 @@ async def moderate_message_by_moderator_ui(message_id: int, moderator_id: str, a
 
 @ui.page('/admin_internal')
 async def moderator_page():
-    """Страница панели модератора."""
+    """Страница панели модератора с авторизацией."""
+
+    # Проверяем авторизацию
+    if not app.storage.user.get('auth_internal'):
+        # Показываем форму входа
+        with ui.card().classes('absolute-center'):
+            ui.label('Вход в панель модерации').classes('text-h5 q-mb-md')
+            password_input = ui.input(
+                'Пароль', password=True, password_toggle_button=True
+            ).classes('w-64')
+            error_label = ui.label('').classes('text-negative')
+
+            async def try_login():
+                if not Config.ADMIN_INTERNAL_PASSWORD:
+                    error_label.text = 'Пароль не настроен в конфигурации'
+                    return
+                if secrets.compare_digest(
+                    _hash_password(password_input.value),
+                    _hash_password(Config.ADMIN_INTERNAL_PASSWORD)
+                ):
+                    app.storage.user['auth_internal'] = True
+                    ui.navigate.to('/admin_internal')
+                else:
+                    error_label.text = 'Неверный пароль'
+
+            ui.button('Войти', on_click=try_login).classes('w-64')
+            password_input.on('keydown.enter', try_login)
+        return
+
+    # === Авторизованная часть ===
 
     messages = await load_messages()
     moderators = Config.moderators_list
 
-    # Определяем цвета статусов
     status_colors = {
         MessageStatus.CREATED: 'blue',
         MessageStatus.AUTO_MODERATION: 'cyan',
@@ -66,12 +102,10 @@ async def moderator_page():
         rows = []
         for item in messages:
             msg = item['message']
-            # internal_moderation первым (0), остальные (1)
             status_order = 0 if msg.status == MessageStatus.INTERNAL_MODERATION else 1
             rows.append({
                 'id': msg.id,
                 'status_order': status_order,
-                'image_url': msg.image_url,
                 'text': msg.text or '',
                 'name': msg.name,
                 'city': msg.city,
@@ -89,7 +123,7 @@ async def moderator_page():
         messages = await load_messages()
         table.rows = prepare_table_rows()
         table.update()
-        ui.notify('✅ Данные обновлены', type='positive')
+        ui.notify('Данные обновлены', type='positive')
 
     async def handle_moderator_approve(message_id: int, moderator_id: str):
         """Обработчик одобрения от модератора."""
@@ -102,26 +136,32 @@ async def moderator_page():
 
         success, result = await moderate_message_by_moderator_ui(message_id, moderator_id, True)
         if success:
-            ui.notify(f'✅ {moderator_id} одобрил сообщение {message_id}', type='positive')
+            ui.notify(f'{moderator_id} одобрил сообщение {message_id}', type='positive')
             await refresh_table()
         else:
-            ui.notify(f'❌ Ошибка: {result}', type='negative')
+            ui.notify(f'Ошибка: {result}', type='negative')
 
     async def handle_reject(message_id: int):
         """Обработчик отклонения."""
         success, result = await moderate_message_by_moderator_ui(message_id, moderators[0], False)
         if success:
-            ui.notify(f'🚫 Сообщение {message_id} отклонено', type='warning')
+            ui.notify(f'Сообщение {message_id} отклонено', type='warning')
             await refresh_table()
         else:
-            ui.notify(f'❌ Ошибка: {result}', type='negative')
+            ui.notify(f'Ошибка: {result}', type='negative')
 
-    ui.label('📋 Панель модератора').classes('text-h4 mb-4')
+    async def logout():
+        """Выход из панели."""
+        app.storage.user['auth_internal'] = False
+        ui.navigate.to('/admin_internal')
 
-    # Определяем колонки таблицы
+    # Заголовок с кнопкой выхода
+    with ui.row().classes('w-full items-center justify-between mb-4'):
+        ui.label('Панель модератора').classes('text-h4')
+        ui.button('Выйти', on_click=logout, color='negative').props('outline size=sm')
+
     columns = [
         {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
-        {'name': 'image_url', 'label': 'Фото', 'field': 'image_url', 'sortable': False, 'align': 'center'},
         {'name': 'text', 'label': 'Текст', 'field': 'text', 'sortable': True, 'align': 'center'},
         {'name': 'name', 'label': 'Имя', 'field': 'name', 'sortable': True, 'align': 'center'},
         {'name': 'city', 'label': 'Город', 'field': 'city', 'sortable': True, 'align': 'center'},
@@ -130,7 +170,6 @@ async def moderator_page():
         {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
     ]
 
-    # Создаем таблицу с пагинацией
     table = ui.table(
         columns=columns,
         rows=prepare_table_rows(),
@@ -138,28 +177,16 @@ async def moderator_page():
         pagination={'rowsPerPage': 100, 'sortBy': 'status_order', 'descending': False}
     ).classes('w-full')
 
-    # Добавляем слот для кнопки обновления в топ-правый угол
     table.add_slot('top-right', '''
         <q-btn color="primary" icon="refresh" label="Обновить" @click="$parent.$emit('refresh')" />
     ''')
 
-    # Кастомный слот для отображения фото
-    table.add_slot('body-cell-image_url', '''
-        <q-td :props="props">
-            <a v-if="props.row.image_url" :href="props.row.image_url" target="_blank">
-                <q-img :src="props.row.image_url" style="width: 30px; height: 30px" class="rounded cursor-pointer" />
-            </a>
-        </q-td>
-    ''')
-
-    # Кастомный слот для статуса с badge
     table.add_slot('body-cell-status', '''
         <q-td :props="props">
             <q-badge :color="props.row.status_color">{{ props.row.status }}</q-badge>
         </q-td>
     ''')
 
-    # Кастомный слот для модерации
     moderators_checkboxes = ''.join([
         f'''
         <q-checkbox
@@ -189,9 +216,6 @@ async def moderator_page():
         </q-td>
     ''')
 
-    # Обработчики событий
     table.on('refresh', refresh_table)
     table.on('approve', lambda e: handle_moderator_approve(e.args['message_id'], e.args['moderator_id']))
     table.on('reject', lambda e: handle_reject(e.args))
-
-
