@@ -35,7 +35,7 @@ async def external_moderate_message(message_id: int) -> bool:
             logger.error(f"Сообщение {message_id} не найдено для внешней модерации")
             return False
 
-        if message.status != MessageStatus.EXTERNAL_MODERATION:
+        if message.status != MessageStatus.MAER_MODERATION:
             logger.warning(
                 f"Сообщение {message_id} не в статусе внешней модерации (текущий: {message.status})"
             )

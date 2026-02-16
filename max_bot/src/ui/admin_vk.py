@@ -1,4 +1,4 @@
-"""Панель модератора для управления сообщениями."""
+"""Панель VK модерации для управления сообщениями."""
 
 from nicegui import ui
 from sqlalchemy import select
@@ -7,16 +7,17 @@ from core.config import Config
 from core.logger import get_logger
 from db.models import Message, MessageStatus
 from db.session import async_session
-from services.internal_moderator import moderate_by_moderator
+from services.vk_moderator import moderate_by_vk_moderator
 
 logger = get_logger(__name__)
 
 
-async def load_messages():
-    """Загружает все сообщения из БД."""
+async def load_vk_messages():
+    """Загружает сообщения в статусе VK модерации из БД."""
     async with async_session() as session:
         result = await session.execute(
             select(Message)
+            .where(Message.status == MessageStatus.VK_MODERATION)
             .order_by(Message.created_at.desc())
         )
         rows = result.scalars().all()
@@ -25,31 +26,30 @@ async def load_messages():
         for msg in rows:
             messages.append({
                 'message': msg,
-                'approvals': msg.meta.get('approvals', []) if msg.meta else [],
-                'rejections': msg.meta.get('rejections', []) if msg.meta else [],
+                'vk_approvals': msg.meta.get('vk_approvals', []) if msg.meta else [],
+                'vk_rejections': msg.meta.get('vk_rejections', []) if msg.meta else [],
             })
         return messages
 
 
-async def moderate_message_by_moderator_ui(message_id: int, moderator_id: str, approve: bool):
-    """Модерация сообщения конкретным модератором."""
+async def moderate_message_by_vk_moderator_ui(message_id: int, moderator_id: str, approve: bool):
+    """Модерация сообщения VK модератором."""
     try:
-        result = await moderate_by_moderator(message_id, moderator_id, approve)
-        logger.info(f"Модерация {message_id} от {moderator_id}: {result}")
+        result = await moderate_by_vk_moderator(message_id, moderator_id, approve)
+        logger.info(f"VK модерация {message_id} от {moderator_id}: {result}")
         return result.get("success", False), result
     except Exception as e:
-        logger.error(f"Ошибка при модерации сообщения {message_id}: {e}")
+        logger.error(f"Ошибка при VK модерации сообщения {message_id}: {e}")
         return False, {"error": str(e)}
 
 
-@ui.page('/admin_internal')
-async def moderator_page():
-    """Страница панели модератора."""
+@ui.page('/admin_vk')
+async def vk_moderator_page():
+    """Страница панели VK модерации."""
 
-    messages = await load_messages()
-    moderators = Config.moderators_list
+    messages = await load_vk_messages()
+    moderators = Config.vk_moderators_list
 
-    # Определяем цвета статусов
     status_colors = {
         MessageStatus.CREATED: 'blue',
         MessageStatus.AUTO_MODERATION: 'cyan',
@@ -58,6 +58,7 @@ async def moderator_page():
         MessageStatus.MAER_MODERATION: 'amber',
         MessageStatus.APPROVED: 'green',
         MessageStatus.REJECTED: 'red',
+        MessageStatus.SHOWN_ON_FACADE: 'deep-purple',
         MessageStatus.PHOTO_SENT: 'purple',
     }
 
@@ -75,47 +76,46 @@ async def moderator_page():
                 'status': msg.status,
                 'status_color': status_colors.get(msg.status, 'grey'),
                 'created_at': msg.created_at.strftime("%Y-%m-%d %H:%M"),
-                'approvals': item['approvals'],
-                'is_moderation_active': msg.status == MessageStatus.INTERNAL_MODERATION,
+                'vk_approvals': item['vk_approvals'],
+                'is_moderation_active': msg.status == MessageStatus.VK_MODERATION,
             })
         return rows
 
     async def refresh_table():
         """Обновляет данные таблицы."""
         nonlocal messages
-        messages = await load_messages()
+        messages = await load_vk_messages()
         table.rows = prepare_table_rows()
         table.update()
-        ui.notify('✅ Данные обновлены', type='positive')
+        ui.notify('Данные обновлены', type='positive')
 
-    async def handle_moderator_approve(message_id: int, moderator_id: str):
-        """Обработчик одобрения от модератора."""
+    async def handle_vk_moderator_approve(message_id: int, moderator_id: str):
+        """Обработчик одобрения от VK модератора."""
         current_msg = next((m for m in messages if m['message'].id == message_id), None)
         if not current_msg:
             return
 
-        if moderator_id in current_msg['approvals']:
+        if moderator_id in current_msg['vk_approvals']:
             return
 
-        success, result = await moderate_message_by_moderator_ui(message_id, moderator_id, True)
+        success, result = await moderate_message_by_vk_moderator_ui(message_id, moderator_id, True)
         if success:
-            ui.notify(f'✅ {moderator_id} одобрил сообщение {message_id}', type='positive')
+            ui.notify(f'{moderator_id} одобрил сообщение {message_id}', type='positive')
             await refresh_table()
         else:
-            ui.notify(f'❌ Ошибка: {result}', type='negative')
+            ui.notify(f'Ошибка: {result}', type='negative')
 
     async def handle_reject(message_id: int):
         """Обработчик отклонения."""
-        success, result = await moderate_message_by_moderator_ui(message_id, moderators[0], False)
+        success, result = await moderate_message_by_vk_moderator_ui(message_id, moderators[0], False)
         if success:
-            ui.notify(f'🚫 Сообщение {message_id} отклонено', type='warning')
+            ui.notify(f'Сообщение {message_id} отклонено', type='warning')
             await refresh_table()
         else:
-            ui.notify(f'❌ Ошибка: {result}', type='negative')
+            ui.notify(f'Ошибка: {result}', type='negative')
 
-    ui.label('📋 Панель модератора').classes('text-h4 mb-4')
+    ui.label('Панель VK модерации').classes('text-h4 mb-4')
 
-    # Определяем колонки таблицы
     columns = [
         {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
         {'name': 'image_url', 'label': 'Фото', 'field': 'image_url', 'sortable': False, 'align': 'center'},
@@ -127,7 +127,6 @@ async def moderator_page():
         {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
     ]
 
-    # Создаем таблицу с пагинацией
     table = ui.table(
         columns=columns,
         rows=prepare_table_rows(),
@@ -135,12 +134,10 @@ async def moderator_page():
         pagination={'rowsPerPage': 100, 'sortBy': 'id', 'descending': True}
     ).classes('w-full')
 
-    # Добавляем слот для кнопки обновления в топ-правый угол
     table.add_slot('top-right', '''
         <q-btn color="primary" icon="refresh" label="Обновить" @click="$parent.$emit('refresh')" />
     ''')
 
-    # Кастомный слот для отображения фото
     table.add_slot('body-cell-image_url', '''
         <q-td :props="props">
             <a v-if="props.row.image_url" :href="props.row.image_url" target="_blank">
@@ -149,20 +146,18 @@ async def moderator_page():
         </q-td>
     ''')
 
-    # Кастомный слот для статуса с badge
     table.add_slot('body-cell-status', '''
         <q-td :props="props">
             <q-badge :color="props.row.status_color">{{ props.row.status }}</q-badge>
         </q-td>
     ''')
 
-    # Кастомный слот для модерации
     moderators_checkboxes = ''.join([
         f'''
         <q-checkbox
             label="{mod}"
-            :model-value="props.row.approvals.includes('{mod}')"
-            :disable="props.row.approvals.includes('{mod}') || !props.row.is_moderation_active"
+            :model-value="props.row.vk_approvals.includes('{mod}')"
+            :disable="props.row.vk_approvals.includes('{mod}') || !props.row.is_moderation_active"
             @update:model-value="(val) => val && $parent.$emit('approve', {{ message_id: props.row.id, moderator_id: '{mod}' }})"
         />
         ''' for mod in moderators
@@ -186,9 +181,6 @@ async def moderator_page():
         </q-td>
     ''')
 
-    # Обработчики событий
     table.on('refresh', refresh_table)
-    table.on('approve', lambda e: handle_moderator_approve(e.args['message_id'], e.args['moderator_id']))
+    table.on('approve', lambda e: handle_vk_moderator_approve(e.args['message_id'], e.args['moderator_id']))
     table.on('reject', lambda e: handle_reject(e.args))
-
-

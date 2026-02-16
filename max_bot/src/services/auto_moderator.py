@@ -9,7 +9,6 @@ from core.logger import get_logger
 from db.models import Message, MessageStatus
 from db.session import async_session
 from services.mistral_moderator import moderate_with_mistral
-from services.maer_client import send_to_maer_moderation, MaerAPIError
 
 logger = get_logger(__name__)
 
@@ -70,29 +69,11 @@ async def auto_moderate_message(message_id: int, max_retries: int = 3) -> bool:
                     logger.info(f"Сообщение {message_id} отклонено автомодерацией")
                     return False
 
-                # Mistral одобрил - отправляем на Maer (внешнюю модерацию)
-                try:
-                    await send_to_maer_moderation(
-                        message_id=message.id,
-                        name=message.name,
-                        city=message.city,
-                        text=message.text,
-                        layout=message.frame_id or 1,  # frame_id как layout
-                    )
-
-                    # Успешно отправлено на Maer
-                    message.status = MessageStatus.EXTERNAL_MODERATION
-                    logger.info(
-                        f"Сообщение {message_id} прошло Mistral → отправлено на Maer"
-                    )
-
-                except MaerAPIError as e:
-                    # Ошибка Maer API - отправляем на внутреннюю модерацию
-                    logger.error(
-                        f"Ошибка Maer API для сообщения {message_id}: {e}. "
-                        f"Отправляем на внутреннюю модерацию"
-                    )
-                    message.status = MessageStatus.INTERNAL_MODERATION
+                # Mistral одобрил — отправляем на внутреннюю модерацию
+                message.status = MessageStatus.INTERNAL_MODERATION
+                logger.info(
+                    f"Сообщение {message_id} прошло Mistral → внутренняя модерация"
+                )
 
                 await session.commit()
                 return approved

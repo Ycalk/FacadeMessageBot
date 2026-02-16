@@ -10,7 +10,8 @@ class MessageStatus(StrEnum):
     CREATED = "created"                            # Создано
     AUTO_MODERATION = "auto_moderation"            # Автоматическая модерация
     INTERNAL_MODERATION = "internal_moderation"    # На внутренней модерации
-    EXTERNAL_MODERATION = "external_moderation"    # На внешней модерации
+    VK_MODERATION = "vk_moderation"                # На VK модерации
+    MAER_MODERATION = "maer_moderation"            # На модерации Maer
     APPROVED = "approved"                          # Одобрено модератором
     REJECTED = "rejected"                          # Отклонено модератором
     SHOWN_ON_FACADE = "shown_on_facade"            # Показано на фасаде

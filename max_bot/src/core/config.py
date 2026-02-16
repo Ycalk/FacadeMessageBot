@@ -79,7 +79,10 @@ class Settings(BaseSettings):
     MINIO_PRESIGNED_URL_EXPIRY: int = 7 * 24 * 3600  # 7 дней в секундах
 
     # Модераторы (список имён/ID для внутренней модерации)
-    MODERATORS: str = "moderator1,moderator2,moderator3"
+    MODERATORS: str = "moderator_1, moderator_2"
+
+    # VK модераторы (список имён/ID для VK модерации)
+    VK_MODERATORS: str = "vk_moderator_1, vk_moderator_2, vk_moderator_3"
 
     # Maer API (внешняя модерация)
     MAER_API_URL: str = ""
@@ -89,6 +92,11 @@ class Settings(BaseSettings):
     def moderators_list(self) -> list[str]:
         """Возвращает список модераторов."""
         return [m.strip() for m in self.MODERATORS.split(",") if m.strip()]
+
+    @property
+    def vk_moderators_list(self) -> list[str]:
+        """Возвращает список VK модераторов."""
+        return [m.strip() for m in self.VK_MODERATORS.split(",") if m.strip()]
 
 
 Config = Settings()

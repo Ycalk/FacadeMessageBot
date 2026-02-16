@@ -67,20 +67,16 @@ async def moderate_by_moderator(message_id: int, moderator_id: str, approve: boo
         approved_moderators = set(message.meta.get("approvals", []))
 
         if required_moderators.issubset(approved_moderators):
-            # Все одобрили - переходим к внешней модерации
-            message.status = MessageStatus.EXTERNAL_MODERATION
+            # Все одобрили — переходим к VK модерации
+            message.status = MessageStatus.VK_MODERATION
             await session.commit()
             logger.info(
-                f"Сообщение {message_id} одобрено всеми модераторами → внешняя модерация"
+                f"Сообщение {message_id} одобрено всеми модераторами → VK модерация"
             )
-
-            # Запускаем внешнюю модерацию
-            from services.external_moderator import external_moderate_message
-            await external_moderate_message(message_id)
 
             return {
                 "success": True,
-                "status": "external_moderation",
+                "status": "vk_moderation",
                 "moderator": moderator_id,
                 "all_approved": True
             }
