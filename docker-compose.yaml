@@ -18,14 +18,11 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: botuser
-      POSTGRES_PASSWORD: botpass
-      POSTGRES_DB: botdb
+    env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U botuser -d botdb"]
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
       interval: 5s
       timeout: 3s
       retries: 5

@@ -1,12 +1,12 @@
 """Webhooks для интеграции с Maer API."""
 
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from core.config import Config
 from core.logger import get_logger
 from api.schemas import MessageModeratedRequest, MessageShownOnFacadeRequest
+from api.auth import verify_api_token
 from api.utils import notify_user_moderation_result
 from db.models import Message, MessageStatus
 from db.session import async_session
@@ -14,27 +14,18 @@ from db.session import async_session
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/maer")
+router = APIRouter(prefix="/maer", dependencies=[verify_api_token])
 
 
 @router.post("/moderated")
-async def message_moderated(
-    request: MessageModeratedRequest,
-    x_token: str = Header(..., alias="x-token")
-):
+async def message_moderated(request: MessageModeratedRequest):
     """
     Webhook от Maer API с результатом модерации.
 
     Вызывается Maer после завершения модерации.
-    Требует заголовок x-token для авторизации.
 
     status: 0 - на модерации, 1 - успешно, 2 - отклонён
     """
-    # Проверка токена
-    if Config.MAER_API_TOKEN and x_token != Config.MAER_API_TOKEN:
-        logger.warning(f"Неверный токен в webhook от Maer для сообщения {request.id}")
-        raise HTTPException(status_code=401, detail="Неверный токен авторизации")
-
     try:
         async with async_session() as session:
             result = await session.execute(
@@ -92,23 +83,14 @@ async def message_moderated(
 
 
 @router.post("/shown")
-async def message_shown(
-    request: MessageShownOnFacadeRequest,
-    x_token: str = Header(..., alias="x-token")
-):
+async def message_shown(request: MessageShownOnFacadeRequest):
     """
     Webhook от Maer API о показе сообщения на фасаде.
 
     Вызывается когда сообщение показано на креативе.
-    Требует заголовок x-token для авторизации.
 
     type: 1 - shown (показано)
     """
-    # Проверка токена
-    if Config.MAER_API_TOKEN and x_token != Config.MAER_API_TOKEN:
-        logger.warning(f"Неверный токен в webhook показа от Maer для сообщения {request.id}")
-        raise HTTPException(status_code=401, detail="Неверный токен авторизации")
-
     # Проверяем тип события
     if request.type != 1:
         logger.error(f"Неизвестный тип события {request.type} от Maer для сообщения {request.id}")

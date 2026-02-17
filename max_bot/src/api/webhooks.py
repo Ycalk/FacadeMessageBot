@@ -4,6 +4,7 @@ from sqlalchemy import select
 
 from core.logger import get_logger
 from api.schemas import MessageShownRequest, MessageResponse
+from api.auth import verify_api_token
 from api.utils import send_facade_image
 from db.models import Message, MessageStatus
 from db.session import async_session
@@ -11,7 +12,7 @@ from db.session import async_session
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/message")
+router = APIRouter(prefix="/message", dependencies=[verify_api_token])
 
 
 @router.post("/shown")

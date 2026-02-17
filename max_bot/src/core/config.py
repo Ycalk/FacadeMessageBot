@@ -77,6 +77,9 @@ class Settings(BaseSettings):
     ADMIN_INTERNAL_PASSWORD: str = "admin"
     ADMIN_VK_PASSWORD: str = "vkadmin"
 
+    # Токен для авторизации входящих запросов к API
+    API_TOKEN: str = ""
+
     # Maer API (внешняя модерация)
     MAER_API_URL: str = ""
     MAER_API_TOKEN: str = ""
