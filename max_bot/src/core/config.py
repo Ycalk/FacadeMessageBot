@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     MESSAGES_TIME_OUT_MINUTES: int = 1
     UNLIMITED_USERS: str = ""  # ID пользователей без лимитов (через запятую)
 
+    # Антиспам
+    ANTISPAM_MAX_ACTIONS: int = 5  # Макс. действий за окно
+    ANTISPAM_WINDOW_SECONDS: int = 10  # Размер окна в секундах
+    ANTISPAM_BLOCK_SECONDS: int = 30  # Блокировка при превышении лимита
+
     # Allowed characters for messages
     ALLOWED_CHARACTERS: str = (
         "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"

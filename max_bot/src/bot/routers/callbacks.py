@@ -1,5 +1,7 @@
 from maxapi import Router, F
 
+from bot.instance import antispam
+from bot.texts import Texts
 from bot.handlers.send_message import send_message_handler
 from bot.handlers.confirm_city import confirm_city
 from bot.handlers.choose_background import choose_background
@@ -10,13 +12,26 @@ from bot.handlers.back_handler import back_button
 callbacks_router = Router(router_id='callbacks')
 
 
+async def _check_spam(event) -> bool:
+    """Проверяет антиспам. Возвращает True если заблокирован."""
+    user_id = event.callback.user.user_id
+    if not await antispam.record_action(user_id):
+        await event.message.answer(text=Texts.Messages.spam_blocked)
+        return True
+    return False
+
+
 @callbacks_router.message_callback(F.callback.payload == 'send_message')
 async def _send_message(event):
+    if await _check_spam(event):
+        return
     await send_message_handler(event)
 
 
 @callbacks_router.message_callback(F.callback.payload == 'new_message')
 async def _new_message(event):
+    if await _check_spam(event):
+        return
     await send_message_handler(event)
 
 
@@ -24,25 +39,35 @@ async def _new_message(event):
     F.callback.payload.in_(['confirm_city', 'try_again_city'])
 )
 async def _confirm_city(event):
+    if await _check_spam(event):
+        return
     await confirm_city(event)
 
 
 @callbacks_router.message_callback(F.callback.payload.startswith('background_'))
 async def _choose_background(event):
+    if await _check_spam(event):
+        return
     await choose_background(event)
 
 
 @callbacks_router.message_callback(F.callback.payload == 'send_to_moderation')
 async def _send_to_moderation(event):
+    if await _check_spam(event):
+        return
     await send_to_moderation(event)
 
 
 @callbacks_router.message_callback(F.callback.payload == 'use_profile_name')
 async def _use_profile_name(event):
+    if await _check_spam(event):
+        return
     await use_profile_name(event)
 
 
 # Универсальная кнопка "Назад"
 @callbacks_router.message_callback(F.callback.payload == 'back')
 async def _back(event):
+    if await _check_spam(event):
+        return
     await back_button(event)

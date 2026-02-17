@@ -5,6 +5,7 @@ from core.config import Config
 from services.name_validator import NameValidator
 from services.cities_client import CitiesClient
 from services.redis_context import RedisContext
+from services.antispam import AntiSpam
 
 bot = Bot(Config.BOT_TOKEN)
 dispatcher = Dispatcher()
@@ -17,6 +18,7 @@ redis = Redis(
 
 name_validator = NameValidator(Config.NAMES_FILE_PATH)
 cities_client = CitiesClient(Config.CITIES_SERVICE_URL)
+antispam = AntiSpam(redis)
 
 
 def get_context(user_id: int) -> RedisContext:
