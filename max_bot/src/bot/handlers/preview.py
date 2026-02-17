@@ -74,7 +74,6 @@ async def send_to_moderation(callback: MessageCallback) -> None:
                     time_diff = datetime.now() - last_message.created_at
                     if time_diff < timedelta(minutes=Config.MESSAGES_TIME_OUT_MINUTES):
                         await callback.message.answer(text=Texts.Messages.messages_time_out)
-                        await ctx.clear()
                         return
 
     # Создаем сообщение в БД

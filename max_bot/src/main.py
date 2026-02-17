@@ -1,5 +1,4 @@
 import asyncio
-import uvicorn
 
 from bot.instance import bot, dispatcher
 from bot.routers import (
@@ -9,7 +8,7 @@ from bot.routers import (
 )
 from db.models import Base
 from db.session import engine
-from api.app import create_webhook_app
+from api.app import create_app
 from core.config import Config
 from core.logger import get_logger
 from services.auto_moderator import recover_stuck_messages
@@ -23,22 +22,19 @@ async def init_db() -> None:
     logger.info("Таблицы БД созданы")
 
 
-async def run_webhook_server(app) -> None:
-    """Запускает FastAPI сервер для приёма webhooks от Moder Service."""
-    config = uvicorn.Config(
-        app,
-        host=Config.WEBHOOK_HOST,
-        port=Config.WEBHOOK_PORT,
-        log_level="info"
+async def setup_webhook() -> None:
+    """Подписывает бота на вебхук."""
+    await bot.delete_webhook()
+    result = await bot.subscribe_webhook(
+        url=Config.BOT_WEBHOOK_URL,
+        secret=Config.BOT_WEBHOOK_SECRET or None,
     )
-    server = uvicorn.Server(config)
-    await server.serve()
+    logger.info(f"Вебхук установлен: {Config.BOT_WEBHOOK_URL} → {result}")
 
 
 async def main() -> None:
     await init_db()
 
-    # Восстанавливаем зависшие сообщения после перезагрузки
     logger.info("Проверка зависших сообщений...")
     await recover_stuck_messages()
 
@@ -48,15 +44,17 @@ async def main() -> None:
         text_router,
     )
 
-    # Запускаем webhook сервер в фоне
-    webhook_app = create_webhook_app()
-    webhook_task = asyncio.create_task(run_webhook_server(webhook_app))
+    # Подписываем бота на вебхук (Max API будет слать POST на BOT_WEBHOOK_URL)
+    await setup_webhook()
 
-    logger.info("Запуск Max бота в режиме polling...")
-    try:
-        await dispatcher.start_polling(bot)
-    finally:
-        webhook_task.cancel()
+    dispatcher.webhook_app = create_app()
+
+    logger.info(f"Запуск сервера на {Config.WEBHOOK_HOST}:{Config.WEBHOOK_PORT}")
+    await dispatcher.handle_webhook(
+        bot=bot,
+        host=Config.WEBHOOK_HOST,
+        port=Config.WEBHOOK_PORT,
+    )
 
 
 def run() -> None:

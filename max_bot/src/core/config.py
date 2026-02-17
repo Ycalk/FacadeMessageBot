@@ -13,6 +13,8 @@ class Settings(BaseSettings):
 
     # Max Bot
     BOT_TOKEN: str = ""
+    BOT_WEBHOOK_URL: str = "https://maxbot.bnw-tech.ru"  # Базовый URL для вебхука бота
+    BOT_WEBHOOK_SECRET: str = ""
 
     # Redis
     REDIS_HOST: str = "localhost"

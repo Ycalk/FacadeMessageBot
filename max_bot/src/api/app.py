@@ -7,8 +7,8 @@ from api.webhooks import router as webhooks_router
 from api.maer_webhooks import router as maer_router
 
 
-def create_webhook_app() -> FastAPI:
-    """Создаёт FastAPI приложение для приёма webhooks."""
+def create_app() -> FastAPI:
+    """Создаёт FastAPI приложение."""
     app = FastAPI(title="Max Bot Webhooks")
 
     # Подключаем роутеры
