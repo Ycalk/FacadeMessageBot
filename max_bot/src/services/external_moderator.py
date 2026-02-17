@@ -50,7 +50,6 @@ async def external_moderate_message(message_id: int) -> bool:
                         external_url,
                         json={
                             "message_id": message_id,
-                            "image_url": message.image_url,
                             "text": message.text,
                             "frame_id": message.frame_id,
                             "display_name": message.name,

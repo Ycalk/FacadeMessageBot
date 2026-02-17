@@ -18,7 +18,7 @@ router = APIRouter(prefix="/message")
 async def message_shown(request: MessageShownRequest):
     """
     Webhook когда сообщение показано на экране.
-    frame_url - публичный URL на фото из MinIO.
+    frame_url - публичный URL на фото фасада.
     Скачивает фото и отправляет пользователю.
     """
     try:

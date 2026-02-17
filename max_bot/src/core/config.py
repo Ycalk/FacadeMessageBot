@@ -67,17 +67,6 @@ class Settings(BaseSettings):
     MISTRAL_API_KEY: str = ""  # Ключ Mistral AI для автомодерации
     MISTRAL_MODEL: str = "mistral-small-latest"  # Модель Mistral для модерации
 
-    # MinIO
-    # Для подключения клиента (внутренний адрес Docker сети)
-    MINIO_ENDPOINT: str = "minio:9000"
-    # Для генерации публичных URL (доступен извне)
-    MINIO_PUBLIC_URL: str = "localhost:9000"  # В проде будет IP сервера
-    MINIO_ACCESS_KEY: str = "minioadmin"
-    MINIO_SECRET_KEY: str = "minioadmin"
-    MINIO_BUCKET: str = "user-photos"
-    MINIO_SECURE: bool = False  # False для локальной разработки
-    MINIO_PRESIGNED_URL_EXPIRY: int = 7 * 24 * 3600  # 7 дней в секундах
-
     # Модераторы (список имён/ID для внутренней модерации)
     MODERATORS: str = "moderator_1, moderator_2"
 

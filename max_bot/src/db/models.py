@@ -43,7 +43,6 @@ class Message(Base):
     name: Mapped[str]
     city: Mapped[str]
     frame_id: Mapped[int | None]
-    image_url: Mapped[str | None]  # Presigned URL фото от пользователя в MinIO
     status: Mapped[str] = mapped_column(default=MessageStatus.CREATED)
     meta: Mapped[dict | None] = mapped_column(JSON, default=dict)  # Метаданные модерации
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())

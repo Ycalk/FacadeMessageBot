@@ -199,13 +199,6 @@ python src/main.py
 - `MAXIMUM_MESSAGES_PER_USER` - лимит сообщений на пользователя (2)
 - `MESSAGES_TIME_OUT_MINUTES` - таймаут между сообщениями (1 мин)
 
-### MinIO
-
-- `MINIO_ENDPOINT` - внутренний адрес (для клиента)
-- `MINIO_PUBLIC_URL` - публичный URL (для генерации ссылок)
-- `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` - авторизация
-- `MINIO_BUCKET` - название bucket (user-photos)
-
 ## Восстановление после сбоев
 
 ### Зависшие сообщения

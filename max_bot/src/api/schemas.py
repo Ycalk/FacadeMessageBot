@@ -14,7 +14,7 @@ class ModerateRequest(BaseModel):
 class MessageShownRequest(BaseModel):
     """Webhook когда сообщение показано на экране."""
     message_id: int
-    frame_url: str  # URL на MinIO
+    frame_url: str  # URL на фото фасада
 
 
 class MessageModeratedRequest(BaseModel):
@@ -50,7 +50,6 @@ class MessageResponse(BaseModel):
     name: str
     city: str
     frame_id: int | None
-    image_url: str | None
     status: str
     created_at: datetime
 
