@@ -57,7 +57,7 @@ async def send_message_handler(callback: MessageCallback) -> None:
         # Очищаем предыдущее состояние если пользователь хочет начать заново
         await ctx.clear()
 
-    if await _messages_limit_reached(user_id):
+    if user_id not in Config.unlimited_users_list and await _messages_limit_reached(user_id):
         await callback.message.answer(text=Texts.Messages.messages_limit)
         return
 

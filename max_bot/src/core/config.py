@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     MAX_NAME_LENGTH: int = 15
     MAXIMUM_MESSAGES_PER_USER: int = 2
     MESSAGES_TIME_OUT_MINUTES: int = 1
+    UNLIMITED_USERS: str = ""  # ID пользователей без лимитов (через запятую)
 
     # Allowed characters for messages
     ALLOWED_CHARACTERS: str = (
@@ -85,6 +86,11 @@ class Settings(BaseSettings):
     # Maer API (внешняя модерация)
     MAER_API_URL: str = ""
     MAER_API_TOKEN: str = ""
+
+    @property
+    def unlimited_users_list(self) -> list[int]:
+        """Возвращает список ID пользователей без лимитов."""
+        return [int(u.strip()) for u in self.UNLIMITED_USERS.split(",") if u.strip()]
 
     @property
     def moderators_list(self) -> list[str]:

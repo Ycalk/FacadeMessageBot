@@ -55,8 +55,8 @@ async def send_to_moderation(callback: MessageCallback) -> None:
         await ctx.clear()
         return
 
-    # Проверяем таймаут между сообщениями
-    if Config.MESSAGES_TIME_OUT_MINUTES > 0:
+    # Проверяем таймаут между сообщениями (пропускаем для пользователей без лимитов)
+    if Config.MESSAGES_TIME_OUT_MINUTES > 0 and user_id not in Config.unlimited_users_list:
         async with async_session() as session:
             result = await session.execute(
                 select(User).where(User.max_id == user_id)
