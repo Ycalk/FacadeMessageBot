@@ -96,6 +96,9 @@ class Settings(BaseSettings):
     # Ссылка на условия пользования (отображается на стартовом экране)
     TERMS_OF_USE_URL: str = ""
 
+    # Абсолютный путь к папке data с фонами и генерируемыми превью
+    DATA_DIR: str = "/home/app/data"
+
     # Maer API (внешняя модерация)
     MAER_API_URL: str = ""
     MAER_API_TOKEN: str = ""

@@ -52,6 +52,7 @@ class MessageResponse(BaseModel):
     frame_id: int | None
     status: str
     want_photo: bool | None
+    preview_url: str | None
     created_at: datetime
 
     class Config:

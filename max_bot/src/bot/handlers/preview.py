@@ -40,6 +40,7 @@ async def send_to_moderation(callback: MessageCallback) -> None:
     name = data.get("name")
     city = data.get("city")
     frame_id_raw = data.get("frame_id")
+    preview_url: str | None = data.get("preview_url")
 
     if not all([message_text, name, city, frame_id_raw]):
         await callback.message.answer(text=Texts.Messages.missing_fields)
@@ -97,6 +98,7 @@ async def send_to_moderation(callback: MessageCallback) -> None:
                 name=name,
                 city=city,
                 frame_id=frame_id,
+                preview_url=preview_url,
                 status=MessageStatus.AUTO_MODERATION,
             )
             session.add(message)

@@ -18,6 +18,7 @@ class MessageRead(BaseModel):
     text: str
     name: str
     city: str
+    preview_url: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

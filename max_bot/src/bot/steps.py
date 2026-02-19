@@ -7,12 +7,29 @@
 
 from maxapi.enums.parse_mode import ParseMode
 from maxapi.types import CallbackButton, LinkButton
+from maxapi.types.input_media import InputMediaBuffer
 from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 
-from bot.instance import send_message
+from bot.instance import send_message, send_photo_message
 from bot.texts import Texts
 from core.config import Config
-from services.backgrounds import get_available_backgrounds
+from core.logger import get_logger
+from services.backgrounds import BACKGROUND_IDS, get_backgrounds_preview_path
+
+logger = get_logger(__name__)
+
+# Кэш байтов backgrounds.png — читаем с диска один раз
+_backgrounds_preview_cache: bytes | None = None
+
+
+def _get_backgrounds_preview_bytes() -> bytes | None:
+    global _backgrounds_preview_cache
+    if _backgrounds_preview_cache is None:
+        path = get_backgrounds_preview_path()
+        if path is not None:
+            _backgrounds_preview_cache = path.read_bytes()
+            logger.info("backgrounds.png закэширован в памяти")
+    return _backgrounds_preview_cache
 
 
 async def show_start(user_id: int) -> None:
@@ -99,23 +116,26 @@ async def show_confirm_city(user_id: int, city: str) -> None:
 
 
 async def show_choose_background(user_id: int) -> None:
-    """Шаг выбора шаблона/фона."""
-    backgrounds = await get_available_backgrounds()
+    """Шаг выбора фона: одно общее превью + три кнопки."""
+    preview_bytes = _get_backgrounds_preview_bytes()
+    if preview_bytes is not None:
+        await send_photo_message(
+            user_id=user_id,
+            attachments=[
+                InputMediaBuffer(buffer=preview_bytes, filename="backgrounds.png")
+            ],
+        )
+    else:
+        logger.warning("Превью фонов (backgrounds.png) не найдено, отправляем только кнопки")
+
     keyboard = InlineKeyboardBuilder()
-    for i in range(0, len(backgrounds) - 1, 3):
-        row_buttons = []
-        for j in range(3):
-            if i + j < len(backgrounds):
-                bg = backgrounds[i + j]
-                row_buttons.append(
-                    CallbackButton(text=str(bg.id), payload=f"background_{bg.id}")
-                )
-        keyboard.row(*row_buttons)
-    last_bg = backgrounds[-1]
     keyboard.row(
-        CallbackButton(text=str(last_bg.id), payload=f"background_{last_bg.id}"),
-        CallbackButton(text=Texts.Buttons.back, payload="back"),
+        *[
+            CallbackButton(text=f"Фон {bg_id}", payload=f"background_{bg_id}")
+            for bg_id in BACKGROUND_IDS
+        ]
     )
+    keyboard.row(CallbackButton(text=Texts.Buttons.back, payload="back"))
     await send_message(
         user_id=user_id,
         text=Texts.Messages.choose_background_prompt,

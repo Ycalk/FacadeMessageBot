@@ -45,6 +45,7 @@ class Message(Base):
     frame_id: Mapped[int | None]
     status: Mapped[str] = mapped_column(default=MessageStatus.CREATED)
     want_photo: Mapped[bool | None]               # Хочет ли получить фото фасада (None = не ответил)
+    preview_url: Mapped[str | None]               # URL сгенерированного превью на фоне
     meta: Mapped[dict | None] = mapped_column(JSON, default=dict)  # Метаданные модерации
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
