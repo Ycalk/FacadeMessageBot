@@ -20,8 +20,18 @@ def _hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+# Статусы, которые могут быть достигнуты только через VK модерацию
+_VK_VISIBLE_STATUSES = {
+    MessageStatus.VK_MODERATION,
+    MessageStatus.MAER_MODERATION,
+    MessageStatus.APPROVED,
+    MessageStatus.SHOWN_ON_FACADE,
+    MessageStatus.PHOTO_SENT,
+}
+
+
 async def load_vk_messages():
-    """Загружает все сообщения из БД."""
+    """Загружает сообщения, которые прошли (или проходят) VK модерацию."""
     async with async_session() as session:
         result = await session.execute(
             select(Message)
@@ -31,10 +41,15 @@ async def load_vk_messages():
 
         messages = []
         for msg in rows:
+            meta = msg.meta or {}
+            # Показываем: статусы ≥ VK или REJECTED с флагом vk_entered
+            if msg.status not in _VK_VISIBLE_STATUSES:
+                if not (msg.status == MessageStatus.REJECTED and meta.get("vk_entered")):
+                    continue
             messages.append({
                 'message': msg,
-                'vk_approvals': msg.meta.get('vk_approvals', []) if msg.meta else [],
-                'vk_rejections': msg.meta.get('vk_rejections', []) if msg.meta else [],
+                'vk_approvals': meta.get('vk_approvals', []),
+                'vk_rejections': meta.get('vk_rejections', []),
             })
         return messages
 

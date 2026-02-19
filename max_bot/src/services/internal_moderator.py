@@ -72,6 +72,8 @@ async def moderate_by_moderator(message_id: int, moderator_id: str, approve: boo
 
         if required_moderators.issubset(approved_moderators):
             # Все одобрили — переходим к VK модерации
+            message.meta["vk_entered"] = True
+            flag_modified(message, "meta")
             message.status = MessageStatus.VK_MODERATION
             await session.commit()
             logger.info(
