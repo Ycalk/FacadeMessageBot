@@ -4,6 +4,8 @@ import textwrap
 import uuid
 from pathlib import Path
 
+from PIL import Image, ImageDraw, ImageFont
+
 from core.config import Config
 from core.logger import get_logger
 
@@ -43,12 +45,6 @@ def generate_text_preview(
     Накладывает текст поздравления на выбранный фон и сохраняет результат
     в data/generated/. Возвращает путь к сгенерированному файлу или None при ошибке.
     """
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-    except ImportError:
-        logger.error("Библиотека Pillow не установлена — превью недоступно")
-        return None
-
     bg_path = get_background_path(background_id)
     if bg_path is None:
         return None
@@ -60,41 +56,75 @@ def generate_text_preview(
     draw = ImageDraw.Draw(img)
     W, H = img.size
 
+    # Рабочая область с отступами
+    margin_x = int(W * 0.08)
+    margin_y = int(H * 0.10)
+    usable_w = W - 2 * margin_x
+    usable_h = H - 2 * margin_y
+
     # Загрузка шрифта Montserrat (с фоллбэком на DejaVu)
     font_path = get_data_dir() / "Montserrat-Bold.ttf"
-    font_large: ImageFont.ImageFont | ImageFont.FreeTypeFont = ImageFont.load_default()
-    font_small: ImageFont.ImageFont | ImageFont.FreeTypeFont = ImageFont.load_default()
-  
-    size_large = max(int(H * 0.06), 24)
-    size_small = max(int(H * 0.04), 18)
-    font_large = ImageFont.truetype(str(font_path), size_large)
-    font_small = ImageFont.truetype(str(font_path), size_small)
-    logger.info(f"Шрифт загружен: {font_path}")
+    if not font_path.is_file():
+        for fallback in [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/local/share/fonts/Montserrat-Bold.ttf",
+        ]:
+            if Path(fallback).is_file():
+                font_path = Path(fallback)
+                break
 
-    # Перенос длинного текста поздравления
-    max_chars = max(int(W / (H * 0.035)), 20)
-    wrapped_lines = textwrap.wrap(f"«{message}»", width=max_chars)
+    size_large = max(int(H * 0.06), 24)
+    size_small = max(int(size_large * 0.70), 16)
+
+    def _load_fonts(sz_l: int, sz_s: int) -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
+        return (
+            ImageFont.truetype(str(font_path), sz_l),
+            ImageFont.truetype(str(font_path), sz_s),
+        )
+
+    def _max_chars(font: ImageFont.FreeTypeFont) -> int:
+        """Количество символов, помещающихся в usable_w, по реальной ширине глифов."""
+        sample = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя "
+        avg_w = font.getlength(sample) / len(sample)
+        return max(int(usable_w / avg_w), 10)
+
+    def _block_h(n_lines: int, sz_l: int, sz_s: int) -> int:
+        return n_lines * int(sz_l * 1.35) + int(sz_l * 0.8) + sz_s
+
+    font_large, font_small = _load_fonts(size_large, size_small)
+    wrapped_lines = textwrap.wrap(f"«{message}»", width=_max_chars(font_large))
     signature = f"{name}, {city}"
+
+    # Уменьшаем шрифт пока блок не помещается по высоте
+    while _block_h(len(wrapped_lines), size_large, size_small) > usable_h and size_large > 14:
+        size_large = max(size_large - 2, 14)
+        size_small = max(int(size_large * 0.70), 12)
+        font_large, font_small = _load_fonts(size_large, size_small)
+        wrapped_lines = textwrap.wrap(f"«{message}»", width=_max_chars(font_large))
+
+    logger.info(f"Шрифт: {font_path}, size={size_large}, строк={len(wrapped_lines)}")
 
     def _draw_with_shadow(
         d: ImageDraw.ImageDraw,
         pos: tuple[float, float],
         text: str,
-        font: ImageFont.ImageFont | ImageFont.FreeTypeFont,
+        font: ImageFont.FreeTypeFont,
     ) -> None:
         x, y = pos
         for dx, dy in [(-2, -2), (2, -2), (-2, 2), (2, 2)]:
             d.text((x + dx, y + dy), text, font=font, fill="black", anchor="mm")
         d.text((x, y), text, font=font, fill="white", anchor="mm")
 
-    line_height = int(H * 0.08)
+    line_h = int(size_large * 1.35)
+    sig_gap = int(size_large * 0.8)
     total_lines = len(wrapped_lines)
-    start_y = H // 2 - (total_lines * line_height) // 2
+    block_h = _block_h(total_lines, size_large, size_small)
+    start_y = H // 2 - block_h // 2 + line_h // 2
 
     for i, line in enumerate(wrapped_lines):
-        _draw_with_shadow(draw, (W // 2, start_y + i * line_height), line, font_large)
+        _draw_with_shadow(draw, (W // 2, start_y + i * line_h), line, font_large)
 
-    signature_y = start_y + total_lines * line_height + int(H * 0.05)
+    signature_y = start_y + (total_lines - 1) * line_h + sig_gap
     _draw_with_shadow(draw, (W // 2, signature_y), signature, font_small)
 
     output_path = generated_dir / f"{uuid.uuid4().hex}.png"
