@@ -8,6 +8,7 @@ __pycache__/
 *$py.class
 secrets.env
 
+storage-user-*
 # C extensions
 *.so
 

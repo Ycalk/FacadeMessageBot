@@ -1,6 +1,5 @@
 """Утилиты для работы с сообщениями и уведомлениями пользователей."""
 
-from datetime import datetime
 from sqlalchemy import select
 from maxapi.types.input_media import InputMediaBuffer
 from maxapi.types import CallbackButton
@@ -101,9 +100,7 @@ async def notify_user_moderation_result(message_id: int, approved: bool) -> None
 
     if user:
         if approved:
-            # Формируем текст с датой и кнопками выбора фото
-            show_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")
-            text = Texts.Messages.approved.format(show_datetime=show_datetime)
+            text = Texts.Messages.approved
 
             keyboard = InlineKeyboardBuilder()
             keyboard.add(
