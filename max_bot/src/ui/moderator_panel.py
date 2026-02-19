@@ -187,6 +187,14 @@ async def moderator_page():
         <q-btn color="primary" icon="refresh" label="Обновить" @click="$parent.$emit('refresh')" />
     ''')
 
+    table.add_slot('body-cell-text', '''
+        <q-td :props="props">
+            <div style="white-space: normal; word-break: break-word; max-width: 250px; text-align: left;">
+                {{ props.row.text }}
+            </div>
+        </q-td>
+    ''')
+
     table.add_slot('body-cell-status', '''
         <q-td :props="props">
             <q-badge :color="props.row.status_color">{{ props.row.status }}</q-badge>

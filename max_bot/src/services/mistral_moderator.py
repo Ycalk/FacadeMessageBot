@@ -33,6 +33,10 @@ async def moderate_with_mistral(text: str, name: str, city: str) -> dict:
         return {"approved": True, "reason": "Mistral не настроен", "confidence": 0.0}
 
     try:
+        custom_instructions = ""
+        if Config.MODERATION_CUSTOM_PROMPT:
+            custom_instructions = f"\nДОПОЛНИТЕЛЬНО ОТ ЗАКАЗЧИКА:\n{Config.MODERATION_CUSTOM_PROMPT}\n"
+
         prompt = f"""Ты модератор поздравлений для медиафасада здания.
 Твоя задача - проверить сообщение на соответствие правилам:
 
@@ -42,7 +46,7 @@ async def moderate_with_mistral(text: str, name: str, city: str) -> dict:
 3. Запрещены: контакты (телефоны, email, ссылки)
 4. Разрешены: добрые поздравления, пожелания, признания в любви
 5. Сообщение должно быть на русском языке
-
+{custom_instructions}
 СООБЩЕНИЕ ДЛЯ ПРОВЕРКИ:
 Текст: "{text}"
 Имя: {name}
