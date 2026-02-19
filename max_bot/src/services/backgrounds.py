@@ -116,7 +116,7 @@ def generate_text_preview(
         d.text((x, y), text, font=font, fill="white", anchor="mm")
 
     line_h = int(size_large * 1.35)
-    sig_gap = int(size_large * 0.8)
+    sig_gap = int(size_large * 1.6)
     total_lines = len(wrapped_lines)
     block_h = _block_h(total_lines, size_large, size_small)
     start_y = H // 2 - block_h // 2 + line_h // 2
