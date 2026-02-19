@@ -104,6 +104,7 @@ async def vk_moderator_page():
         for item in messages:
             msg = item['message']
             status_order = 0 if msg.status == MessageStatus.VK_MODERATION else 1
+            want_photo = msg.want_photo
             rows.append({
                 'id': msg.id,
                 'status_order': status_order,
@@ -115,6 +116,8 @@ async def vk_moderator_page():
                 'created_at': msg.created_at.strftime("%Y-%m-%d %H:%M"),
                 'vk_approvals': item['vk_approvals'],
                 'is_moderation_active': msg.status == MessageStatus.VK_MODERATION,
+                'want_photo': 'Да' if want_photo is True else ('Нет' if want_photo is False else '—'),
+                'want_photo_color': 'green' if want_photo is True else ('red' if want_photo is False else 'grey'),
             })
         return rows
 
@@ -167,6 +170,7 @@ async def vk_moderator_page():
         {'name': 'name', 'label': 'Имя', 'field': 'name', 'sortable': True, 'align': 'center'},
         {'name': 'city', 'label': 'Город', 'field': 'city', 'sortable': True, 'align': 'center'},
         {'name': 'status', 'label': 'Статус', 'field': 'status', 'sortable': True, 'align': 'center'},
+        {'name': 'want_photo', 'label': 'Отправить фото', 'field': 'want_photo', 'sortable': True, 'align': 'center'},
         {'name': 'created_at', 'label': 'Создано', 'field': 'created_at', 'sortable': True, 'align': 'center'},
         {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
     ]
@@ -185,6 +189,12 @@ async def vk_moderator_page():
     table.add_slot('body-cell-status', '''
         <q-td :props="props">
             <q-badge :color="props.row.status_color">{{ props.row.status }}</q-badge>
+        </q-td>
+    ''')
+
+    table.add_slot('body-cell-want_photo', '''
+        <q-td :props="props">
+            <q-badge :color="props.row.want_photo_color">{{ props.row.want_photo }}</q-badge>
         </q-td>
     ''')
 

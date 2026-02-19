@@ -1,10 +1,10 @@
 from maxapi import Bot
-from maxapi.types import MessageCreated, CallbackButton
-from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.types import MessageCreated
 from core.logger import get_logger
 
 from bot.instance import get_context, name_validator
 from bot.states import UserStates
+from bot.steps import show_add_city
 from bot.texts import Texts
 
 logger = get_logger(__name__)
@@ -31,16 +31,5 @@ async def get_name(event: MessageCreated, bot: Bot) -> None:
     ctx = get_context(user_id)
     await ctx.update_data(name=name.strip().capitalize())
 
-    # Переходим к запросу города с кнопкой "Назад"
-    keyboard = InlineKeyboardBuilder()
-    keyboard.add(
-        CallbackButton(text=Texts.Buttons.back, payload="back")
-    )
-
-    await bot.send_message(
-        user_id=user_id,
-        text=Texts.Messages.add_city,
-        attachments=[keyboard.as_markup()],
-    )
-
+    await show_add_city(user_id)
     await ctx.set_state(UserStates.get_city)

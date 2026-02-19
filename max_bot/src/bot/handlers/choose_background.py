@@ -43,18 +43,19 @@ async def choose_background(callback: MessageCallback) -> None:
     name = data.get("name", "")
     city = data.get("city", "")
 
-    # Показываем предпросмотр
-    preview_text = (
-        f"📝 Предпросмотр:\n\n"
-        f"{message_text}\n\n"
-        f"Имя: {name}\n"
-        f"Город: {city}\n"
-        f"Фон ID: {background_id}"
+    # Показываем предпросмотр в новом формате
+    preview_text = Texts.Messages.preview_format.format(
+        message=message_text,
+        name=name,
+        city=city,
     )
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(
         CallbackButton(text=Texts.Buttons.send_to_moderation, payload="send_to_moderation")
+    )
+    keyboard.add(
+        CallbackButton(text=Texts.Buttons.edit_fields, payload="edit_greeting")
     )
     keyboard.add(
         CallbackButton(text=Texts.Buttons.back, payload="back")

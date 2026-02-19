@@ -7,7 +7,7 @@ system_router = Router(router_id='system')
 
 @system_router.message_created(F.message.body.text == '/start')
 async def _start_command(event):
-    await start_handler(event, event.bot)
+    await start_handler(event)
 
 
 @system_router.message_created(F.message.body.text == '/me')
@@ -18,4 +18,4 @@ async def _me_command(event):
 
 @system_router.bot_started()
 async def _bot_started(event):
-    await start_handler(event, event.bot)
+    await start_handler(event)

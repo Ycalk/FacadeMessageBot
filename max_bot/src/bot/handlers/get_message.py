@@ -1,10 +1,10 @@
 from maxapi import Bot
-from maxapi.types import MessageCreated, CallbackButton
-from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.types import MessageCreated
 from core.logger import get_logger
 
 from bot.instance import get_context
 from bot.states import UserStates
+from bot.steps import show_get_name
 from bot.texts import Texts
 from core.config import Config
 
@@ -32,34 +32,6 @@ async def get_message(event: MessageCreated, bot: Bot) -> None:
     ctx = get_context(user_id)
     await ctx.update_data(message=text)
 
-    # Переходим к запросу имени
-    # Проверяем, есть ли first_name в профиле пользователя
     first_name = getattr(event.message.sender, "first_name", None)
-
-    keyboard = InlineKeyboardBuilder()
-
-    if first_name:
-        # Если есть имя в профиле - предлагаем использовать его
-        keyboard.add(
-            CallbackButton(text=first_name, payload="use_profile_name")
-        )
-        keyboard.add(
-            CallbackButton(text=Texts.Buttons.back, payload="back")
-        )
-        await bot.send_message(
-            user_id=user_id,
-            text=Texts.Messages.get_name_with_name_from_profile,
-            attachments=[keyboard.as_markup()],
-        )
-    else:
-        # Если имени нет - просто запрашиваем
-        keyboard.add(
-            CallbackButton(text=Texts.Buttons.back, payload="back")
-        )
-        await bot.send_message(
-            user_id=user_id,
-            text=Texts.Messages.get_name,
-            attachments=[keyboard.as_markup()],
-        )
-
+    await show_get_name(user_id, first_name)
     await ctx.set_state(UserStates.get_name)

@@ -3,11 +3,14 @@ from maxapi import Router, F
 from bot.instance import antispam
 from bot.texts import Texts
 from bot.handlers.send_message import send_message_handler
+from bot.handlers.write_greeting import write_greeting_handler
 from bot.handlers.confirm_city import confirm_city
 from bot.handlers.choose_background import choose_background
 from bot.handlers.preview import send_to_moderation
 from bot.handlers.use_profile_name import use_profile_name
 from bot.handlers.back_handler import back_button
+from bot.handlers.want_photo import want_photo_yes_handler, want_photo_no_handler
+from bot.handlers.edit_greeting import edit_greeting_handler
 
 callbacks_router = Router(router_id='callbacks')
 
@@ -33,6 +36,13 @@ async def _new_message(event):
     if await _check_spam(event):
         return
     await send_message_handler(event)
+
+
+@callbacks_router.message_callback(F.callback.payload == 'write_greeting')
+async def _write_greeting(event):
+    if await _check_spam(event):
+        return
+    await write_greeting_handler(event)
 
 
 @callbacks_router.message_callback(
@@ -63,6 +73,27 @@ async def _use_profile_name(event):
     if await _check_spam(event):
         return
     await use_profile_name(event)
+
+
+@callbacks_router.message_callback(F.callback.payload == 'edit_greeting')
+async def _edit_greeting(event):
+    if await _check_spam(event):
+        return
+    await edit_greeting_handler(event)
+
+
+@callbacks_router.message_callback(F.callback.payload.startswith('want_photo_yes_'))
+async def _want_photo_yes(event):
+    if await _check_spam(event):
+        return
+    await want_photo_yes_handler(event)
+
+
+@callbacks_router.message_callback(F.callback.payload.startswith('want_photo_no_'))
+async def _want_photo_no(event):
+    if await _check_spam(event):
+        return
+    await want_photo_no_handler(event)
 
 
 # Универсальная кнопка "Назад"

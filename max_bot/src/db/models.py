@@ -44,6 +44,7 @@ class Message(Base):
     city: Mapped[str]
     frame_id: Mapped[int | None]
     status: Mapped[str] = mapped_column(default=MessageStatus.CREATED)
+    want_photo: Mapped[bool | None]               # Хочет ли получить фото фасада (None = не ответил)
     meta: Mapped[dict | None] = mapped_column(JSON, default=dict)  # Метаданные модерации
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 

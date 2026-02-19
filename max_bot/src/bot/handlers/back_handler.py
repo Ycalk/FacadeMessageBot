@@ -1,126 +1,74 @@
-"""Универсальный обработчик кнопки 'Назад' для навигации между шагами."""
+"""Универсальный обработчик кнопки 'Назад' — маппинг состояний на шаги флоу."""
 
-from maxapi.types import MessageCallback, CallbackButton
-from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 from core.logger import get_logger
+from maxapi.types import MessageCallback
 
 from bot.instance import get_context
 from bot.states import UserStates
-from bot.texts import Texts
-from services.backgrounds import get_available_backgrounds
+from bot.steps import (
+    show_start,
+    show_get_message,
+    show_get_name,
+    show_add_city,
+    show_confirm_city,
+    show_choose_background,
+)
 
 logger = get_logger(__name__)
 
+# Маппинг: текущее состояние → предыдущее состояние
+# None означает возврат на стартовый экран (вне FSM)
+BACK_STATE_MAP: dict[str, UserStates | None] = {
+    str(UserStates.get_message):       None,
+    str(UserStates.get_name):          UserStates.get_message,
+    str(UserStates.get_city):          UserStates.get_name,
+    str(UserStates.confirm_city):      UserStates.get_city,
+    str(UserStates.choose_background): UserStates.confirm_city,
+    str(UserStates.preview):           UserStates.choose_background,
+}
+
 
 async def back_button(callback: MessageCallback) -> None:
-    """
-    Универсальная кнопка 'Назад' - возвращает на предыдущий шаг
-    в зависимости от текущего состояния пользователя.
-    """
     user_id = callback.callback.user.user_id
     ctx = get_context(user_id)
     current_state = await ctx.get_state()
 
-    if not current_state:
-        # Если нет состояния - возвращаем к началу
+    # Нет состояния или неизвестное → стартовый экран
+    if not current_state or current_state not in BACK_STATE_MAP:
+        if current_state:
+            logger.warning(
+                f"Неизвестное состояние {current_state} для пользователя {user_id}"
+            )
         await ctx.clear()
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(CallbackButton(text=Texts.Buttons.send_message, payload="send_message"))
-        await callback.message.answer(
-            text=Texts.Messages.start,
-            attachments=[keyboard.as_markup()],
-        )
+        await show_start(user_id)
         return
 
-    # В зависимости от текущего состояния возвращаемся на предыдущий шаг
-    if current_state == str(UserStates.get_message):
-        # С ввода текста → к началу
-        await ctx.clear()
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(CallbackButton(text=Texts.Buttons.send_message, payload="send_message"))
-        await callback.message.answer(
-            text=Texts.Messages.start,
-            attachments=[keyboard.as_markup()],
-        )
+    prev_state = BACK_STATE_MAP[current_state]
+    data = await ctx.get_data()
 
-    elif current_state == str(UserStates.get_name):
-        # С имени → к вводу текста
-        await callback.message.answer(text=Texts.Messages.get_message)
+    if prev_state is None:
+        # Возврат на стартовый экран
+        await ctx.clear()
+        await show_start(user_id)
+
+    elif prev_state == UserStates.get_message:
+        await show_get_message(user_id)
         await ctx.set_state(UserStates.get_message)
 
-    elif current_state == str(UserStates.get_city):
-        # С города → к имени (с предложением имени из профиля)
+    elif prev_state == UserStates.get_name:
         first_name = getattr(callback.callback.user, "first_name", None)
-        keyboard = InlineKeyboardBuilder()
-
-        if first_name:
-            keyboard.add(CallbackButton(text=first_name, payload="use_profile_name"))
-            keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
-            await callback.message.answer(
-                text=Texts.Messages.get_name_with_name_from_profile,
-                attachments=[keyboard.as_markup()],
-            )
-        else:
-            keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
-            await callback.message.answer(
-                text=Texts.Messages.get_name,
-                attachments=[keyboard.as_markup()],
-            )
-
+        await show_get_name(user_id, first_name)
         await ctx.set_state(UserStates.get_name)
 
-    elif current_state == str(UserStates.confirm_city):
-        # С подтверждения города → к вводу города
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
-        await callback.message.answer(
-            text=Texts.Messages.add_city,
-            attachments=[keyboard.as_markup()],
-        )
+    elif prev_state == UserStates.get_city:
+        await show_add_city(user_id)
         await ctx.set_state(UserStates.get_city)
 
-    elif current_state == str(UserStates.choose_background):
-        # С выбора фона → к подтверждению города
-        data = await ctx.get_data()
+    elif prev_state == UserStates.confirm_city:
         city = data.get("city", "")
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(CallbackButton(text="Подтвердить", payload="confirm_city"))
-        keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
-        await callback.message.answer(
-            text=Texts.Messages.confirm_city.format(city=city),
-            attachments=[keyboard.as_markup()],
-        )
+        await show_confirm_city(user_id, city)
         await ctx.set_state(UserStates.confirm_city)
 
-    elif current_state == str(UserStates.preview):
-        # С предпросмотра → к выбору фона
-        backgrounds = await get_available_backgrounds()
-
-        keyboard = InlineKeyboardBuilder()
-        # Добавляем фоны по 3 кнопки в ряд
-        for i in range(0, len(backgrounds) - 1, 3):
-            row_buttons = []
-            for j in range(3):
-                if i + j < len(backgrounds):
-                    bg = backgrounds[i + j]
-                    row_buttons.append(
-                        CallbackButton(text=str(bg.id), payload=f'background_{bg.id}')
-                    )
-            keyboard.row(*row_buttons)
-
-        # Последний фон и кнопка назад в отдельном ряду
-        last_bg = backgrounds[-1]
-        keyboard.row(
-            CallbackButton(text=str(last_bg.id), payload=f'background_{last_bg.id}'),
-            CallbackButton(text=Texts.Buttons.back, payload="back")
-        )
-        await callback.message.answer(
-            text='🎨 Выберите фон для вашего послания:',
-            attachments=[keyboard.as_markup()],
-        )
+    elif prev_state == UserStates.choose_background:
+        await show_choose_background(user_id)
         await ctx.set_state(UserStates.choose_background)
-
-    else:
-        # Неизвестное состояние
-        logger.warning(f"Неизвестное состояние {current_state} для пользователя {user_id}")
-        await callback.message.answer(text=Texts.Messages.wrong_step)

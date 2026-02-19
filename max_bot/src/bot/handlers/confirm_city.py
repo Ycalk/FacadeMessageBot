@@ -1,12 +1,10 @@
-from maxapi.types import MessageCallback, CallbackButton
-from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.types import MessageCallback
 from core.logger import get_logger
 
 from bot.instance import get_context
 from bot.states import UserStates
-from bot.texts import Texts
+from bot.steps import show_choose_background
 from bot.handlers.wrong_step import reply_wrong_step_for_callback
-from services.backgrounds import get_available_backgrounds
 
 logger = get_logger(__name__)
 
@@ -24,31 +22,5 @@ async def confirm_city(callback: MessageCallback) -> None:
     if payload != 'confirm_city':
         return
 
-    # Переходим к выбору фона
-    backgrounds = await get_available_backgrounds()
-
-    keyboard = InlineKeyboardBuilder()
-    # Добавляем фоны по 3 кнопки в ряд
-    for i in range(0, len(backgrounds) - 1, 3):
-        row_buttons = []
-        for j in range(3):
-            if i + j < len(backgrounds):
-                bg = backgrounds[i + j]
-                row_buttons.append(
-                    CallbackButton(text=str(bg.id), payload=f'background_{bg.id}')
-                )
-        keyboard.row(*row_buttons)
-
-    # Последний фон и кнопка назад в отдельном ряду
-    last_bg = backgrounds[-1]
-    keyboard.row(
-        CallbackButton(text=str(last_bg.id), payload=f'background_{last_bg.id}'),
-        CallbackButton(text=Texts.Buttons.back, payload="back")
-    )
-
-    await callback.message.answer(
-        text='🎨 Выберите фон для вашего послания:',
-        attachments=[keyboard.as_markup()],
-    )
-
+    await show_choose_background(user_id)
     await ctx.set_state(UserStates.choose_background)

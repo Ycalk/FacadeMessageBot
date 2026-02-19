@@ -51,6 +51,7 @@ class MessageResponse(BaseModel):
     city: str
     frame_id: int | None
     status: str
+    want_photo: bool | None
     created_at: datetime
 
     class Config:

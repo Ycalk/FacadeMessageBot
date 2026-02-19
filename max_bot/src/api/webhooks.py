@@ -47,7 +47,7 @@ async def message_shown(request: MessageShownRequest):
 @router.get("/approved", response_model=list[MessageResponse])
 async def get_approved_messages():
     """
-    Возвращает все сообщения в статусах APPROVED и SHOWN_ON_FACADE.
+    Возвращает одобренные сообщения, исключая тех, кто отказался от фото (want_photo=False).
     """
     try:
         async with async_session() as session:
@@ -56,14 +56,15 @@ async def get_approved_messages():
                 .where(
                     Message.status.in_([
                         MessageStatus.APPROVED,
-                        MessageStatus.SHOWN_ON_FACADE
-                    ])
+                        MessageStatus.SHOWN_ON_FACADE,
+                    ]),
+                    Message.want_photo.is_not(False),
                 )
                 .order_by(Message.created_at.desc())
             )
             messages = result.scalars().all()
 
-            logger.info(f"Получено {len(messages)} одобренных/показанных сообщений")
+            logger.info(f"Получено {len(messages)} одобренных сообщений")
             return messages
     except Exception as e:
         logger.error(f"Ошибка при получении одобренных сообщений: {e}")

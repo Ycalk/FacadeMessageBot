@@ -1,12 +1,15 @@
 """Утилиты для работы с сообщениями и уведомлениями пользователей."""
 
+from datetime import datetime
 from sqlalchemy import select
 from maxapi.types.input_media import InputMediaBuffer
+from maxapi.types import CallbackButton
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 
 from core.logger import get_logger
 from db.models import Message, MessageStatus, User
 from db.session import async_session
-from bot.instance import bot
+from bot.instance import send_message, send_photo_message
 from bot.texts import Texts
 
 logger = get_logger(__name__)
@@ -14,7 +17,7 @@ logger = get_logger(__name__)
 
 async def send_facade_image(message_id: int, image_bytes: bytes) -> None:
     """
-    Отправляет фото фасада пользователю.
+    Отправляет фото фасада пользователю, если он дал согласие на получение фото.
 
     Args:
         message_id: ID сообщения в БД
@@ -37,11 +40,16 @@ async def send_facade_image(message_id: int, image_bytes: bytes) -> None:
 
         message, user = row
 
+    # Проверяем, хочет ли пользователь получить фото (False = явный отказ)
+    if message.want_photo is False:
+        logger.info(f"Пользователь отказался от фото для сообщения {message_id}, фото не отправляем")
+        return
+
     # Создаём InputMediaBuffer для отправки фото
     image_media = InputMediaBuffer(buffer=image_bytes, filename="facade.jpg")
 
-    # Отправляем фото пользователю
-    await bot.send_message(
+    # Отправляем фото пользователю (строгий лимит для тяжёлых вложений)
+    await send_photo_message(
         user_id=user.max_id,
         text=Texts.Messages.photo_sent_caption,
         attachments=[image_media],
@@ -93,14 +101,41 @@ async def notify_user_moderation_result(message_id: int, approved: bool) -> None
 
     if user:
         if approved:
-            await bot.send_message(
+            # Формируем текст с датой и кнопками выбора фото
+            show_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")
+            text = Texts.Messages.approved.format(show_datetime=show_datetime)
+
+            keyboard = InlineKeyboardBuilder()
+            keyboard.add(
+                CallbackButton(
+                    text=Texts.Buttons.yes_photo,
+                    payload=f"want_photo_yes_{message_id}",
+                )
+            )
+            keyboard.add(
+                CallbackButton(
+                    text=Texts.Buttons.no_photo,
+                    payload=f"want_photo_no_{message_id}",
+                )
+            )
+
+            await send_message(
                 user_id=user.max_id,
-                text=Texts.Messages.approved,
+                text=text,
+                attachments=[keyboard.as_markup()],
             )
         else:
-            await bot.send_message(
+            keyboard = InlineKeyboardBuilder()
+            keyboard.add(
+                CallbackButton(
+                    text=Texts.Buttons.send_message,
+                    payload="send_message",
+                )
+            )
+            await send_message(
                 user_id=user.max_id,
                 text=Texts.Messages.rejected,
+                attachments=[keyboard.as_markup()],
             )
 
     logger.info(f"Модерация сообщения {message_id}: {message.status}")
@@ -128,9 +163,17 @@ async def send_rejection_notification(message_id: int) -> None:
 
             message, user = row
 
-        await bot.send_message(
+        keyboard = InlineKeyboardBuilder()
+        keyboard.add(
+            CallbackButton(
+                text=Texts.Buttons.send_message,
+                payload="send_message",
+            )
+        )
+        await send_message(
             user_id=user.max_id,
             text=Texts.Messages.rejected,
+            attachments=[keyboard.as_markup()],
         )
         logger.info(f"Уведомление об отклонении отправлено пользователю {user.max_id} для сообщения {message_id}")
     except Exception as e:

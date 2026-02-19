@@ -88,6 +88,14 @@ class Settings(BaseSettings):
     # Токен для авторизации входящих запросов к API
     API_TOKEN: str = ""
 
+    # Лимит параллельных отправок фото через бот API (тяжёлые вложения)
+    BOT_PHOTO_CONCURRENCY: int = 5
+    # Лимит параллельных обычных отправок через бот API
+    BOT_MESSAGE_CONCURRENCY: int = 50
+
+    # Ссылка на условия пользования (отображается на стартовом экране)
+    TERMS_OF_USE_URL: str = ""
+
     # Maer API (внешняя модерация)
     MAER_API_URL: str = ""
     MAER_API_TOKEN: str = ""
