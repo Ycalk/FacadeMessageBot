@@ -89,10 +89,10 @@ def generate_text_preview(
         return max(int(usable_w / avg_w), 10)
 
     def _block_h(n_lines: int, sz_l: int, sz_s: int) -> int:
-        return n_lines * int(sz_l * 1.35) + int(sz_l * 0.8) + sz_s
+        return n_lines * int(sz_l * 1.35) + int(sz_l * 1.6) + sz_s
 
     font_large, font_small = _load_fonts(size_large, size_small)
-    wrapped_lines = textwrap.wrap(f"«{message}»", width=_max_chars(font_large))
+    wrapped_lines = textwrap.wrap(message, width=_max_chars(font_large))
     signature = f"{name}, {city}"
 
     # Уменьшаем шрифт пока блок не помещается по высоте
@@ -100,7 +100,7 @@ def generate_text_preview(
         size_large = max(size_large - 2, 14)
         size_small = max(int(size_large * 0.70), 12)
         font_large, font_small = _load_fonts(size_large, size_small)
-        wrapped_lines = textwrap.wrap(f"«{message}»", width=_max_chars(font_large))
+        wrapped_lines = textwrap.wrap(message, width=_max_chars(font_large))
 
     logger.info(f"Шрифт: {font_path}, size={size_large}, строк={len(wrapped_lines)}")
 
