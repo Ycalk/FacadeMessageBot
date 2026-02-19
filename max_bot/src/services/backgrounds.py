@@ -1,5 +1,6 @@
 """Сервис для работы с фонами."""
 
+import io
 import textwrap
 import uuid
 from pathlib import Path
@@ -38,19 +39,13 @@ def get_background_path(background_id: int) -> Path | None:
     return path
 
 
-def generate_text_preview(
+def _render_preview(
     background_id: int, message: str, name: str, city: str
-) -> Path | None:
-    """
-    Накладывает текст поздравления на выбранный фон и сохраняет результат
-    в data/generated/. Возвращает путь к сгенерированному файлу или None при ошибке.
-    """
+) -> Image.Image | None:
+    """Рендерит изображение превью без сохранения на диск. Возвращает Image или None."""
     bg_path = get_background_path(background_id)
     if bg_path is None:
         return None
-
-    generated_dir = get_data_dir() / "generated"
-    generated_dir.mkdir(parents=True, exist_ok=True)
 
     img = Image.open(bg_path).convert("RGBA")
     draw = ImageDraw.Draw(img)
@@ -127,8 +122,40 @@ def generate_text_preview(
     signature_y = start_y + (total_lines - 1) * line_h + sig_gap
     _draw_with_shadow(draw, (W // 2, signature_y), signature, font_small)
 
+    return img.convert("RGB")
+
+
+def generate_text_preview_bytes(
+    background_id: int, message: str, name: str, city: str
+) -> bytes | None:
+    """
+    Рендерит превью и возвращает PNG-байты без сохранения на диск.
+    Используется при показе превью пользователю (до отправки на модерацию).
+    """
+    img = _render_preview(background_id, message, name, city)
+    if img is None:
+        return None
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def generate_text_preview(
+    background_id: int, message: str, name: str, city: str
+) -> Path | None:
+    """
+    Рендерит превью и сохраняет в data/generated/. Возвращает путь к файлу.
+    Используется при отправке сообщения на модерацию.
+    """
+    img = _render_preview(background_id, message, name, city)
+    if img is None:
+        return None
+
+    generated_dir = get_data_dir() / "generated"
+    generated_dir.mkdir(parents=True, exist_ok=True)
+
     output_path = generated_dir / f"{uuid.uuid4().hex}.png"
-    img.convert("RGB").save(output_path, "PNG")
+    img.save(output_path, "PNG")
     logger.info(f"Сгенерировано превью фона {background_id}: {output_path}")
     return output_path
 

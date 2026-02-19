@@ -2,6 +2,7 @@
 
 import asyncio
 from datetime import datetime, timedelta
+from functools import partial
 
 from maxapi.types import MessageCallback, CallbackButton
 from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
@@ -16,6 +17,7 @@ from core.config import Config
 from db.models import Message, User, MessageStatus
 from db.session import async_session
 from services.auto_moderator import auto_moderate_message
+from services.backgrounds import build_preview_url, generate_text_preview
 
 logger = get_logger(__name__)
 
@@ -40,7 +42,6 @@ async def send_to_moderation(callback: MessageCallback) -> None:
     name = data.get("name")
     city = data.get("city")
     frame_id_raw = data.get("frame_id")
-    preview_url: str | None = data.get("preview_url")
 
     if not all([message_text, name, city, frame_id_raw]):
         await callback.message.answer(text=Texts.Messages.missing_fields)
@@ -76,6 +77,19 @@ async def send_to_moderation(callback: MessageCallback) -> None:
                     if time_diff < timedelta(minutes=Config.MESSAGES_TIME_OUT_MINUTES):
                         await callback.message.answer(text=Texts.Messages.messages_time_out)
                         return
+
+    # Генерируем и сохраняем превью на диск только при отправке на модерацию
+    loop = asyncio.get_event_loop()
+    preview_path = await loop.run_in_executor(
+        None,
+        partial(generate_text_preview, frame_id, message_text, name, city),
+    )
+    preview_url: str | None = None
+    if preview_path is not None:
+        preview_url = build_preview_url(preview_path.name)
+        logger.info(f"Превью сохранено для модерации: {preview_url}")
+    else:
+        logger.warning(f"Не удалось сгенерировать превью при отправке на модерацию (frame_id={frame_id})")
 
     # Создаем сообщение в БД
     try:
