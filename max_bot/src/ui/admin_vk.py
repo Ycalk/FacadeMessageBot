@@ -118,6 +118,7 @@ async def vk_moderator_page():
                 'is_moderation_active': msg.status == MessageStatus.VK_MODERATION,
                 'want_photo': 'Да' if want_photo is True else ('Нет' if want_photo is False else '—'),
                 'want_photo_color': 'green' if want_photo is True else ('red' if want_photo is False else 'grey'),
+                'preview_url': msg.preview_url or '',
             })
         return rows
 
@@ -170,6 +171,7 @@ async def vk_moderator_page():
         {'name': 'name', 'label': 'Имя', 'field': 'name', 'sortable': True, 'align': 'center'},
         {'name': 'city', 'label': 'Город', 'field': 'city', 'sortable': True, 'align': 'center'},
         {'name': 'status', 'label': 'Статус', 'field': 'status', 'sortable': True, 'align': 'center'},
+        {'name': 'preview_url', 'label': 'Превью', 'field': 'preview_url', 'sortable': False, 'align': 'center'},
         {'name': 'want_photo', 'label': 'Отправить фото', 'field': 'want_photo', 'sortable': True, 'align': 'center'},
         {'name': 'created_at', 'label': 'Создано', 'field': 'created_at', 'sortable': True, 'align': 'center'},
         {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
@@ -189,6 +191,24 @@ async def vk_moderator_page():
     table.add_slot('body-cell-status', '''
         <q-td :props="props">
             <q-badge :color="props.row.status_color">{{ props.row.status }}</q-badge>
+        </q-td>
+    ''')
+
+    table.add_slot('body-cell-preview_url', '''
+        <q-td :props="props">
+            <q-btn
+                v-if="props.row.preview_url"
+                icon="image"
+                color="primary"
+                size="xs"
+                flat
+                :href="props.row.preview_url"
+                target="_blank"
+                type="a"
+            >
+                <q-tooltip>Открыть превью</q-tooltip>
+            </q-btn>
+            <span v-else class="text-grey">—</span>
         </q-td>
     ''')
 
