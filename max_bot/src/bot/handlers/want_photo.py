@@ -26,10 +26,14 @@ async def want_photo_yes_handler(callback: MessageCallback) -> None:
             select(Message).where(Message.id == message_id)
         )
         message = result.scalar_one_or_none()
-        if message:
-            message.want_photo = True
-            await session.commit()
-            logger.info(f"Пользователь согласился на фото для сообщения {message_id}")
+        if not message:
+            return
+        if message.want_photo is not None:
+            logger.info(f"Повторное нажатие want_photo_yes для сообщения {message_id}, игнорируем")
+            return
+        message.want_photo = True
+        await session.commit()
+        logger.info(f"Пользователь согласился на фото для сообщения {message_id}")
 
     await callback.message.answer(text=Texts.Messages.photo_yes_response)
 
@@ -48,9 +52,13 @@ async def want_photo_no_handler(callback: MessageCallback) -> None:
             select(Message).where(Message.id == message_id)
         )
         message = result.scalar_one_or_none()
-        if message:
-            message.want_photo = False
-            await session.commit()
-            logger.info(f"Пользователь отказался от фото для сообщения {message_id}")
+        if not message:
+            return
+        if message.want_photo is not None:
+            logger.info(f"Повторное нажатие want_photo_no для сообщения {message_id}, игнорируем")
+            return
+        message.want_photo = False
+        await session.commit()
+        logger.info(f"Пользователь отказался от фото для сообщения {message_id}")
 
     await callback.message.answer(text=Texts.Messages.photo_no_response)
