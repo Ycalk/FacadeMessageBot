@@ -6,11 +6,14 @@
 """
 
 from maxapi.enums.parse_mode import ParseMode
+from maxapi.enums.upload_type import UploadType
 from maxapi.types import CallbackButton, LinkButton
+from maxapi.types.attachments.upload import AttachmentPayload, AttachmentUpload
 from maxapi.types.input_media import InputMediaBuffer
 from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.utils.message import process_input_media
 
-from bot.instance import send_message, send_photo_message
+from bot.instance import bot, send_message, send_photo_message
 from bot.texts import Texts
 from core.config import Config
 from core.logger import get_logger
@@ -20,6 +23,8 @@ logger = get_logger(__name__)
 
 # Кэш байтов backgrounds.png — читаем с диска один раз
 _backgrounds_preview_cache: bytes | None = None
+# Кэш токена загруженного изображения — загружаем в MAX один раз
+_backgrounds_token_cache: str | None = None
 
 
 def _get_backgrounds_preview_bytes() -> bytes | None:
@@ -30,6 +35,27 @@ def _get_backgrounds_preview_bytes() -> bytes | None:
             _backgrounds_preview_cache = path.read_bytes()
             logger.info("backgrounds.png закэширован в памяти")
     return _backgrounds_preview_cache
+
+
+async def _get_or_upload_backgrounds_token() -> str | None:
+    """Загружает backgrounds.png в MAX один раз и кэширует токен для повторного использования."""
+    global _backgrounds_token_cache
+    if _backgrounds_token_cache is not None:
+        return _backgrounds_token_cache
+
+    preview_bytes = _get_backgrounds_preview_bytes()
+    if preview_bytes is None:
+        return None
+
+    try:
+        att = InputMediaBuffer(buffer=preview_bytes, filename="backgrounds.png")
+        upload = await process_input_media(base_connection=bot, bot=bot, att=att)
+        _backgrounds_token_cache = upload.payload.token
+        logger.info("backgrounds.png загружен в MAX, токен закэширован")
+        return _backgrounds_token_cache
+    except Exception as e:
+        logger.error(f"Ошибка при загрузке backgrounds.png в MAX: {e}")
+        return None
 
 
 async def show_start(user_id: int) -> None:
@@ -117,12 +143,15 @@ async def show_confirm_city(user_id: int, city: str) -> None:
 
 async def show_choose_background(user_id: int) -> None:
     """Шаг выбора фона: одно общее превью + три кнопки."""
-    preview_bytes = _get_backgrounds_preview_bytes()
-    if preview_bytes is not None:
+    token = await _get_or_upload_backgrounds_token()
+    if token is not None:
         await send_photo_message(
             user_id=user_id,
             attachments=[
-                InputMediaBuffer(buffer=preview_bytes, filename="backgrounds.png")
+                AttachmentUpload(
+                    type=UploadType.IMAGE,
+                    payload=AttachmentPayload(token=token),
+                )
             ],
         )
     else:
