@@ -1,6 +1,7 @@
 from importlib import import_module
 
 from fastapi import FastAPI
+from fastapi.responses import Response
 from nicegui import ui
 
 from api.webhooks import router as webhooks_router
@@ -9,7 +10,16 @@ from api.maer_webhooks import router as maer_router
 
 def create_app() -> FastAPI:
     """Создаёт FastAPI приложение."""
-    app = FastAPI(title="Max Bot Webhooks")
+    app = FastAPI(
+        title="Max Bot Webhooks",
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+    )
+
+    @app.get("/")
+    async def root() -> Response:
+        return Response(status_code=404)
 
     # Подключаем роутеры
     app.include_router(webhooks_router)  # /message/*

@@ -7,6 +7,7 @@ from bot.states import UserStates
 from bot.steps import show_get_name
 from bot.texts import Texts
 from core.config import Config
+from services.mistral_moderator import moderate_with_mistral
 
 logger = get_logger(__name__)
 
@@ -27,6 +28,13 @@ async def get_message(event: MessageCreated, bot: Bot) -> None:
             user_id=user_id,
             text=Texts.Messages.invalid_message_alphabet,
         )
+        return
+
+    # Предварительная автомодерация текста через Mistral
+    moderation_result = await moderate_with_mistral(text=text, name="", city="")
+    if not moderation_result.get("approved", True):
+        logger.info(f"Текст отклонён Mistral на этапе ввода: {moderation_result.get('reason', '')}")
+        await bot.send_message(user_id=user_id, text=Texts.Messages.message_rejected_by_ai)
         return
 
     ctx = get_context(user_id)
