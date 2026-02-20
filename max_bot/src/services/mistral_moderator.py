@@ -3,6 +3,7 @@
 from openai import AsyncOpenAI
 from core.config import Config
 from core.logger import get_logger
+from services.app_settings import DEFAULT_MISTRAL_PROMPT, MISTRAL_PROMPT_KEY, get_setting
 
 logger = get_logger(__name__)
 
@@ -33,38 +34,25 @@ async def moderate_with_mistral(text: str, name: str, city: str) -> dict:
         return {"approved": True, "reason": "Mistral не настроен", "confidence": 0.0}
 
     try:
-        custom_instructions = ""
-        if Config.MODERATION_CUSTOM_PROMPT:
-            custom_instructions = f"\nДОПОЛНИТЕЛЬНО ОТ ЗАКАЗЧИКА:\n{Config.MODERATION_CUSTOM_PROMPT}\n"
-
-        prompt = f"""Ты модератор поздравлений для медиафасада здания.
-Твоя задача - проверить сообщение на соответствие правилам:
-
-ПРАВИЛА:
-1. Запрещены: мат, оскорбления, политика, реклама, спам
-2. Запрещены: призывы к насилию, экстремизм, дискриминация
-3. Запрещены: контакты (телефоны, email, ссылки)
-4. Разрешены: добрые поздравления, пожелания, признания в любви
-5. Сообщение должно быть на русском языке
-{custom_instructions}
-СООБЩЕНИЕ ДЛЯ ПРОВЕРКИ:
-Текст: "{text}"
-Имя: {name}
-Город: {city}
-
-ОТВЕТЬ В ФОРМАТЕ JSON:
-{{
-    "approved": true/false,
-    "reason": "причина отклонения (если approved=false)" или "",
-    "confidence": 0.95
-}}
-
-Будь строгим, но справедливым. Если есть сомнения - лучше отклони."""
+        rules = await get_setting(MISTRAL_PROMPT_KEY, DEFAULT_MISTRAL_PROMPT)
+        prompt = (
+            f"{rules}\n\n"
+            f"СООБЩЕНИЕ ДЛЯ ПРОВЕРКИ:\n"
+            f'Текст: {text}\n'
+            f"Имя: {name}\n"
+            f"Город: {city}"
+        )
 
         response = await client.chat.completions.create(
             model=Config.MISTRAL_MODEL,
             messages=[
-                {"role": "system", "content": "Ты строгий модератор публичных сообщений."},
+                {"role": "system", "content": (
+                    "Ты модератор публичных сообщений. "
+                    "Всегда отвечай строго в формате JSON:\n"
+                    '{"approved": true/false, '
+                    '"reason": "причина отклонения или пустая строка", '
+                    '"confidence": 0.95}'
+                )},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,

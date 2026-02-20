@@ -10,6 +10,7 @@ from core.config import Config
 from core.logger import get_logger
 from db.models import Message, MessageStatus
 from db.session import async_session
+from services.app_settings import DEFAULT_MISTRAL_PROMPT, MISTRAL_PROMPT_KEY, get_setting, set_setting
 from services.blacklist import add_word, add_words_bulk, delete_word, get_all_words
 from services.internal_moderator import moderate_by_moderator
 
@@ -169,6 +170,7 @@ async def moderator_page():
     with ui.tabs().classes('w-full') as tabs:
         ui.tab('messages', label='Сообщения', icon='message')
         ui.tab('blacklist', label='Чёрный список', icon='block')
+        ui.tab('prompt', label='Промпт Mistral', icon='psychology')
 
     with ui.tab_panels(tabs, value='messages').classes('w-full'):
 
@@ -370,3 +372,27 @@ async def moderator_page():
             bl_table.on('bl_add', lambda e: on_bl_add(e.args))
             bl_table.on('bl_import', lambda e: on_bl_import(e.args))
             bl_table.on('bl_delete', lambda e: on_bl_delete(e.args))
+
+        # ── Таб: Промпт Mistral ──────────────────────────────────────────────
+        with ui.tab_panel('prompt'):
+            current_prompt = await get_setting(MISTRAL_PROMPT_KEY, DEFAULT_MISTRAL_PROMPT)
+
+            ui.label('Правила модерации Mistral').classes('text-subtitle1 q-mb-xs')
+            ui.label('Изменения применяются сразу после сохранения.').classes('text-caption text-grey q-mb-md')
+
+            prompt_area = ui.textarea(
+                value=current_prompt,
+            ).classes('w-full').props('rows=20 outlined')
+
+            async def save_prompt():
+                await set_setting(MISTRAL_PROMPT_KEY, prompt_area.value)
+                ui.notify('Промпт сохранён', type='positive')
+
+            with ui.row().classes('q-mt-sm items-center q-gutter-sm'):
+                ui.button('Сохранить', icon='save', on_click=save_prompt, color='primary')
+                ui.button(
+                    'Сбросить к дефолту',
+                    icon='restart_alt',
+                    on_click=lambda: prompt_area.set_value(DEFAULT_MISTRAL_PROMPT),
+                    color='grey',
+                ).props('outline')

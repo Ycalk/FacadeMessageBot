@@ -58,3 +58,12 @@ class BlacklistWord(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     word: Mapped[str] = mapped_column(unique=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class AppSetting(Base):
+    """Хранилище настроек приложения (ключ-значение)."""
+    __tablename__ = "app_settings"
+
+    key: Mapped[str] = mapped_column(primary_key=True)
+    value: Mapped[str] = mapped_column(default="")
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())

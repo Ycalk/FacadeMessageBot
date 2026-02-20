@@ -74,7 +74,6 @@ class Settings(BaseSettings):
     AUTO_MODERATION_STUCK_TIMEOUT_MINUTES: int = 5  # Считать зависшим через 5 минут
     MISTRAL_API_KEY: str = ""  # Ключ Mistral AI для автомодерации
     MISTRAL_MODEL: str = "mistral-small-latest"  # Модель Mistral для модерации
-    MODERATION_CUSTOM_PROMPT: str = "надо с модеркой подумать - слишком строго. но все слова мы предусмотреть не можем"  # Дополнительные инструкции для модератора от заказчика
 
     # Модераторы (список имён/ID для внутренней модерации)
     MODERATORS: str = "moderator_1, moderator_2"
