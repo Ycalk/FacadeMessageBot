@@ -8,12 +8,14 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from core.config import Config
+from core.emoji_whitelist import EMOJI_WHITELIST
 from core.logger import get_logger
 
 logger = get_logger(__name__)
 
 # Фиксированный список фонов
-BACKGROUND_IDS = [1, 2, 3]
+BACKGROUND_IDS = [1, 2, 3, 4]
+_EMOJI_SORTED = sorted(EMOJI_WHITELIST, key=len, reverse=True)
 
 
 def get_data_dir() -> Path:
@@ -50,26 +52,21 @@ def _render_preview(
     img = Image.open(bg_path).convert("RGBA")
     draw = ImageDraw.Draw(img)
     W, H = img.size
+    text_color = "white" if background_id == 2 else "black"
 
     # Рабочая область с отступами
     margin_x = int(W * 0.08)
     margin_y = int(H * 0.10)
+    extra_side_inset = int(W * 0.10)  # Дополнительно ужимаем слева/справа на 10%
+    margin_x += extra_side_inset
     usable_w = W - 2 * margin_x
     usable_h = H - 2 * margin_y
 
     # Загрузка шрифта Montserrat (с фоллбэком на DejaVu)
-    font_path = get_data_dir() / "Montserrat-Bold.ttf"
-    if not font_path.is_file():
-        for fallback in [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-            "/usr/local/share/fonts/Montserrat-Bold.ttf",
-        ]:
-            if Path(fallback).is_file():
-                font_path = Path(fallback)
-                break
+    font_path = get_data_dir() / "Montserrat-Medium.ttf"
 
-    size_large = max(int(H * 0.06), 24)
-    size_small = max(int(size_large * 0.70), 16)
+    size_large = max(int(H * 0.06) - 4, 20)
+    size_small = max(int(size_large * 0.70) - 2, 14)
 
     def _load_fonts(sz_l: int, sz_s: int) -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
         return (
@@ -88,12 +85,13 @@ def _render_preview(
 
     font_large, font_small = _load_fonts(size_large, size_small)
     wrapped_lines = textwrap.wrap(message, width=_max_chars(font_large))
-    signature = f"{name}, {city}"
+    signature_parts = [part.strip() for part in (name, city) if part and part.strip()]
+    signature = ", ".join(signature_parts)
 
     # Уменьшаем шрифт пока блок не помещается по высоте
     while _block_h(len(wrapped_lines), size_large, size_small) > usable_h and size_large > 14:
         size_large = max(size_large - 2, 14)
-        size_small = max(int(size_large * 0.70), 12)
+        size_small = max(int(size_large * 0.70) - 2, 12)
         font_large, font_small = _load_fonts(size_large, size_small)
         wrapped_lines = textwrap.wrap(message, width=_max_chars(font_large))
 
@@ -106,21 +104,95 @@ def _render_preview(
         font: ImageFont.FreeTypeFont,
     ) -> None:
         x, y = pos
-        for dx, dy in [(-2, -2), (2, -2), (-2, 2), (2, 2)]:
-            d.text((x + dx, y + dy), text, font=font, fill="black", anchor="mm")
-        d.text((x, y), text, font=font, fill="white", anchor="mm")
+        d.text((x, y), text, font=font, fill=text_color, anchor="lm")
+
+    emoji_dir = get_data_dir() / "emoji"
+    emoji_cache: dict[tuple[str, int], Image.Image] = {}
+
+    def _emoji_path(token: str) -> Path | None:
+        cps = [f"{ord(ch):x}" for ch in token]
+        with_vs = "-".join(cps) + ".png"
+        no_vs = "-".join(cp for cp in cps if cp != "fe0f") + ".png"
+        for candidate in (emoji_dir / with_vs, emoji_dir / no_vs):
+            if candidate.is_file():
+                return candidate
+        return None
+
+    def _emoji_image(token: str, px: int) -> Image.Image | None:
+        key = (token, px)
+        cached = emoji_cache.get(key)
+        if cached is not None:
+            return cached
+        path = _emoji_path(token)
+        if path is None:
+            return None
+        original = Image.open(path).convert("RGBA")
+        resized = original.resize((px, px), Image.Resampling.LANCZOS)
+        emoji_cache[key] = resized
+        return resized
+
+    def _tokenize_line(line: str) -> list[tuple[str, bool]]:
+        tokens: list[tuple[str, bool]] = []
+        i = 0
+        while i < len(line):
+            matched = False
+            for emoji in _EMOJI_SORTED:
+                if line.startswith(emoji, i):
+                    tokens.append((emoji, True))
+                    i += len(emoji)
+                    matched = True
+                    break
+            if not matched:
+                tokens.append((line[i], False))
+                i += 1
+        return tokens
+
+    def _draw_line_with_emoji(
+        d: ImageDraw.ImageDraw,
+        cy: float,
+        line: str,
+        font: ImageFont.FreeTypeFont,
+    ) -> None:
+        tokens = _tokenize_line(line)
+        emoji_px = max(int(font.size * 1.10), 12)
+        widths: list[float] = []
+        for token, is_emoji in tokens:
+            if is_emoji:
+                widths.append(float(emoji_px))
+            else:
+                widths.append(float(font.getlength(token)))
+        x = float(margin_x)
+
+        for (token, is_emoji), w in zip(tokens, widths):
+            if is_emoji:
+                emoji_img = _emoji_image(token, emoji_px)
+                if emoji_img is not None:
+                    y = int(cy - emoji_px / 2)
+                    img.paste(emoji_img, (int(x), y), emoji_img)
+                else:
+                    _draw_with_shadow(d, (x, cy), token, font)
+            else:
+                _draw_with_shadow(d, (x, cy), token, font)
+            x += w
 
     line_h = int(size_large * 1.35)
     sig_gap = int(size_large * 1.6)
     total_lines = len(wrapped_lines)
     block_h = _block_h(total_lines, size_large, size_small)
-    start_y = H // 2 - block_h // 2 + line_h // 2
+    y_offset = int(H * 0.10)
+    start_y = H // 2 - block_h // 2 + line_h // 2 + int(H * 0.03) + y_offset
+    min_start_y = int(H * 0.52)
+    max_start_y = int(H - margin_y - sig_gap - (total_lines - 1) * line_h - size_small * 0.6)
+    if max_start_y < min_start_y:
+        max_start_y = min_start_y
+    start_y = max(start_y, min_start_y)
+    start_y = min(start_y, max_start_y)
 
     for i, line in enumerate(wrapped_lines):
-        _draw_with_shadow(draw, (W // 2, start_y + i * line_h), line, font_large)
+        _draw_line_with_emoji(draw, start_y + i * line_h, line, font_large)
 
     signature_y = start_y + (total_lines - 1) * line_h + sig_gap
-    _draw_with_shadow(draw, (W // 2, signature_y), signature, font_small)
+    _draw_line_with_emoji(draw, signature_y, signature, font_small)
 
     return img.convert("RGB")
 

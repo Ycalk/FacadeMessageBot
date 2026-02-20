@@ -107,10 +107,6 @@ AUTO_MODERATION (Mistral AI)
    └─ Одобрено → EXTERNAL_MODERATION (Maer API)
                     ├─ Отклонено → REJECTED
                     └─ Одобрено → APPROVED
-                                    ↓
-                              SHOWN_ON_FACADE (показ на фасаде)
-                                    ↓
-                              PHOTO_SENT (фото отправлено)
 ```
 
 **Fallback статус**: `INTERNAL_MODERATION` - при любых ошибках автоматической или внешней модерации.
