@@ -7,6 +7,7 @@ from bot.states import UserStates
 from bot.steps import show_get_name
 from bot.texts import Texts
 from core.config import Config
+from services.blacklist import is_blacklisted
 from services.mistral_moderator import moderate_with_mistral
 
 logger = get_logger(__name__)
@@ -28,6 +29,12 @@ async def get_message(event: MessageCreated, bot: Bot) -> None:
             user_id=user_id,
             text=Texts.Messages.invalid_message_alphabet,
         )
+        return
+
+    # Быстрая проверка по чёрному списку (до Mistral — бесплатно и мгновенно)
+    if is_blacklisted(text):
+        logger.info(f"Текст отклонён чёрным списком: {text!r}")
+        await bot.send_message(user_id=user_id, text=Texts.Messages.message_rejected_by_ai)
         return
 
     # Предварительная автомодерация текста через Mistral

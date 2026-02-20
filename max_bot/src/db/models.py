@@ -50,3 +50,11 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="messages")
+
+
+class BlacklistWord(Base):
+    __tablename__ = "blacklist_words"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    word: Mapped[str] = mapped_column(unique=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())

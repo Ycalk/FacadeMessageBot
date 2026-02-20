@@ -12,6 +12,7 @@ from api.app import create_app
 from core.config import Config
 from core.logger import get_logger
 from services.auto_moderator import recover_stuck_messages
+from services.blacklist import load_blacklist
 
 logger = get_logger(__name__)
 
@@ -34,6 +35,9 @@ async def setup_webhook() -> None:
 
 async def main() -> None:
     await init_db()
+
+    logger.info("Загрузка чёрного списка слов...")
+    await load_blacklist()
 
     logger.info("Проверка зависших сообщений...")
     await recover_stuck_messages()
