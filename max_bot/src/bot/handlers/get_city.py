@@ -1,6 +1,5 @@
 from maxapi import Bot
-from maxapi.types import MessageCreated, CallbackButton
-from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
+from maxapi.types import MessageCreated
 from core.logger import get_logger
 
 from bot.instance import get_context, cities_client
@@ -16,12 +15,9 @@ async def get_city(event: MessageCreated, bot: Bot) -> None:
     text = event.message.body.text
 
     if not text or len(text.strip()) < 1:
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
         await bot.send_message(
             user_id=user_id,
             text="Пожалуйста, введите название города.",
-            attachments=[keyboard.as_markup()],
         )
         return
 
@@ -31,12 +27,9 @@ async def get_city(event: MessageCreated, bot: Bot) -> None:
     search_result = await cities_client.search_cities(city_input, limit=1)
     if not search_result or not search_result.cities:
         # Город не найден - просим ввести заново
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
         await bot.send_message(
             user_id=user_id,
             text=f"Город '{city_input}' не найден. Пожалуйста, введите корректное название города.",
-            attachments=[keyboard.as_markup()],
         )
         return
 

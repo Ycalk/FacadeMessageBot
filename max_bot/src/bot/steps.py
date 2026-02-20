@@ -91,12 +91,9 @@ async def show_moderation_warning(user_id: int) -> None:
 
 async def show_get_message(user_id: int) -> None:
     """Шаг ввода текста поздравления."""
-    keyboard = InlineKeyboardBuilder()
-    keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
     await send_message(
         user_id=user_id,
         text=Texts.Messages.get_message,
-        attachments=[keyboard.as_markup()],
     )
 
 
@@ -105,27 +102,20 @@ async def show_get_name(user_id: int, first_name: str | None = None) -> None:
     keyboard = InlineKeyboardBuilder()
     if first_name:
         keyboard.add(CallbackButton(text=first_name, payload="use_profile_name"))
-    keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
     text = (
         Texts.Messages.get_name_with_name_from_profile
         if first_name
         else Texts.Messages.get_name
     )
-    await send_message(
-        user_id=user_id,
-        text=text,
-        attachments=[keyboard.as_markup()],
-    )
+    attachments = [keyboard.as_markup()] if first_name else None
+    await send_message(user_id=user_id, text=text, attachments=attachments)
 
 
 async def show_add_city(user_id: int) -> None:
     """Шаг ввода города."""
-    keyboard = InlineKeyboardBuilder()
-    keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
     await send_message(
         user_id=user_id,
         text=Texts.Messages.add_city,
-        attachments=[keyboard.as_markup()],
     )
 
 
@@ -133,7 +123,6 @@ async def show_confirm_city(user_id: int, city: str) -> None:
     """Шаг подтверждения найденного города."""
     keyboard = InlineKeyboardBuilder()
     keyboard.add(CallbackButton(text="Подтвердить", payload="confirm_city"))
-    keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
     await send_message(
         user_id=user_id,
         text=Texts.Messages.confirm_city.format(city=city),
@@ -164,7 +153,6 @@ async def show_choose_background(user_id: int) -> None:
             for bg_id in BACKGROUND_IDS
         ]
     )
-    keyboard.row(CallbackButton(text=Texts.Buttons.back, payload="back"))
     await send_message(
         user_id=user_id,
         text=Texts.Messages.choose_background_prompt,

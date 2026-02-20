@@ -59,7 +59,6 @@ async def choose_background(callback: MessageCallback) -> None:
     keyboard = InlineKeyboardBuilder()
     keyboard.row(CallbackButton(text=Texts.Buttons.send_to_moderation, payload="send_to_moderation"))
     keyboard.row(CallbackButton(text=Texts.Buttons.edit_fields, payload="edit_greeting"))
-    keyboard.row(CallbackButton(text=Texts.Buttons.back, payload="back"))
 
     preview_text = Texts.Messages.preview_format.format(
         message=message_text,

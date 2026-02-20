@@ -2,14 +2,22 @@
 
 from core.logger import get_logger
 
-from maxapi.types import MessageCallback
+from maxapi.types import MessageCallback, CallbackButton
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 
 from bot.texts import Texts
 from db.models import Message
 from db.session import async_session
+from services.message_limits import can_send_more_messages
 
 logger = get_logger(__name__)
+
+
+def _one_more_message_keyboard() -> InlineKeyboardBuilder:
+    keyboard = InlineKeyboardBuilder()
+    keyboard.add(CallbackButton(text=Texts.Buttons.send_one_more_message, payload="send_message"))
+    return keyboard
 
 
 async def want_photo_yes_handler(callback: MessageCallback) -> None:
@@ -35,7 +43,13 @@ async def want_photo_yes_handler(callback: MessageCallback) -> None:
         await session.commit()
         logger.info(f"Пользователь согласился на фото для сообщения {message_id}")
 
-    await callback.message.answer(text=Texts.Messages.photo_yes_response)
+    if await can_send_more_messages(callback.callback.user.user_id):
+        await callback.message.answer(
+            text=Texts.Messages.photo_yes_response,
+            attachments=[_one_more_message_keyboard().as_markup()],
+        )
+    else:
+        await callback.message.answer(text=Texts.Messages.photo_yes_response)
 
 
 async def want_photo_no_handler(callback: MessageCallback) -> None:
@@ -61,4 +75,10 @@ async def want_photo_no_handler(callback: MessageCallback) -> None:
         await session.commit()
         logger.info(f"Пользователь отказался от фото для сообщения {message_id}")
 
-    await callback.message.answer(text=Texts.Messages.photo_no_response)
+    if await can_send_more_messages(callback.callback.user.user_id):
+        await callback.message.answer(
+            text=Texts.Messages.photo_no_response,
+            attachments=[_one_more_message_keyboard().as_markup()],
+        )
+    else:
+        await callback.message.answer(text=Texts.Messages.photo_no_response)

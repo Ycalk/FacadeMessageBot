@@ -6,7 +6,7 @@ from functools import partial
 
 from maxapi.types import MessageCallback, CallbackButton
 from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
-from sqlalchemy import select, func
+from sqlalchemy import select
 from core.logger import get_logger
 
 from bot.instance import get_context
@@ -18,6 +18,7 @@ from db.models import Message, User, MessageStatus
 from db.session import async_session
 from services.auto_moderator import auto_moderate_message
 from services.backgrounds import build_preview_url, generate_text_preview
+from services.message_limits import can_send_more_messages
 
 logger = get_logger(__name__)
 
@@ -93,6 +94,7 @@ async def send_to_moderation(callback: MessageCallback) -> None:
 
     # Создаем сообщение в БД
     try:
+        can_send_one_more = False
         async with async_session() as session:
             # Получаем пользователя
             result = await session.execute(
@@ -104,6 +106,8 @@ async def send_to_moderation(callback: MessageCallback) -> None:
                 await callback.message.answer(text=Texts.Messages.something_went_wrong)
                 await ctx.clear()
                 return
+
+            can_send_one_more = await can_send_more_messages(user_id, additional_messages=1)
 
             # Создаем сообщение со статусом AUTO_MODERATION
             message = Message(
@@ -123,14 +127,16 @@ async def send_to_moderation(callback: MessageCallback) -> None:
         # Отправляем на автомодерацию в фоне (не блокируем ответ пользователю)
         asyncio.create_task(auto_moderate_message(message_id))
 
-        # Уведомляем пользователя с кнопкой для отправки еще одного сообщения
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(CallbackButton(text=Texts.Buttons.send_one_more_message, payload="send_message"))
-
-        await callback.message.answer(
-            text=Texts.Messages.start_moderation,
-            attachments=[keyboard.as_markup()],
-        )
+        # Уведомляем пользователя: кнопку добавляем только если можно отправить ещё
+        if can_send_one_more:
+            keyboard = InlineKeyboardBuilder()
+            keyboard.add(CallbackButton(text=Texts.Buttons.send_one_more_message, payload="send_message"))
+            await callback.message.answer(
+                text=Texts.Messages.start_moderation,
+                attachments=[keyboard.as_markup()],
+            )
+        else:
+            await callback.message.answer(text=Texts.Messages.start_moderation)
         await ctx.clear()
 
     except Exception as e:
