@@ -6,20 +6,17 @@ from nicegui import ui
 
 from api.webhooks import router as webhooks_router
 from api.maer_webhooks import router as maer_router
+from core.config import Config
 
 
 def create_app() -> FastAPI:
     """Создаёт FastAPI приложение."""
     app = FastAPI(
         title="Max Bot Webhooks",
-        docs_url=None,
-        redoc_url=None,
-        openapi_url=None,
+        docs_url="/docs" if Config.DEVELOP else None,
+        redoc_url="/redoc" if Config.DEVELOP else None,
+        openapi_url="/openapi.json" if Config.DEVELOP else None,
     )
-
-    @app.get("/")
-    async def root() -> Response:
-        return Response(status_code=404)
 
     # Подключаем роутеры
     app.include_router(webhooks_router)  # /message/*

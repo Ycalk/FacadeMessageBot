@@ -37,6 +37,13 @@ async def message_moderated(request: MessageModeratedRequest):
                 logger.error(f"Сообщение {request.id} не найдено для обработки webhook")
                 raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
+            if request.status in {1, 2} and message.status != MessageStatus.MAER_MODERATION:
+                logger.warning(
+                    f"Игнорируем /maer/moderated для сообщения {request.id}: "
+                    f"ожидали статус {MessageStatus.MAER_MODERATION}, текущий {message.status}"
+                )
+                return {"status": "ignored", "reason": "message_not_in_maer_moderation"}
+
             # Обработка статуса от Maer
             if request.status == 0:
                 # На модерации - не обновляем статус
@@ -107,27 +114,28 @@ async def message_shown(request: MessageShownOnFacadeRequest):
                 logger.error(f"Сообщение {request.id} не найдено для обработки webhook показа")
                 raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
-            # Обновляем статус только если ещё не отправлено фото
-            if message.status != MessageStatus.PHOTO_SENT:
-                old_status = message.status
-                message.status = MessageStatus.SHOWN_ON_FACADE
-
-                # Сохраняем время показа в мета
-                if not message.meta:
-                    message.meta = {}
-                message.meta["shown_at"] = datetime.now().isoformat()
-
-                await session.commit()
-
-                logger.info(
-                    f"Сообщение {request.id} показано на фасаде: "
-                    f"{old_status} → SHOWN_ON_FACADE"
+            # Обрабатываем событие показа только для сообщений,
+            # которые уже прошли модерацию.
+            if message.status != MessageStatus.APPROVED:
+                logger.warning(
+                    f"Игнорируем /maer/shown для сообщения {request.id}: "
+                    f"статус {message.status} не прошёл модерацию"
                 )
-            else:
-                logger.info(
-                    f"Сообщение {request.id} уже в статусе PHOTO_SENT, "
-                    f"не меняем на SHOWN_ON_FACADE"
-                )
+                return {"status": "ignored", "reason": "message_not_moderated"}
+
+            message.shown_on_facade = True
+
+            # Сохраняем время показа в мета
+            if not message.meta:
+                message.meta = {}
+            message.meta["shown_at"] = datetime.now().isoformat()
+
+            await session.commit()
+
+            logger.info(
+                f"Сообщение {request.id} показано на фасаде: "
+                "shown_on_facade=True"
+            )
 
         return {"status": "ok"}
 

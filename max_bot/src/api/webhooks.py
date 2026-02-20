@@ -54,10 +54,7 @@ async def get_approved_messages():
             result = await session.execute(
                 select(Message)
                 .where(
-                    Message.status.in_([
-                        MessageStatus.APPROVED,
-                        MessageStatus.SHOWN_ON_FACADE,
-                    ]),
+                    Message.status == MessageStatus.APPROVED,
                     Message.want_photo.is_not(False),
                 )
                 .order_by(Message.created_at.desc())

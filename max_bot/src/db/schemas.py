@@ -19,6 +19,8 @@ class MessageRead(BaseModel):
     name: str
     city: str
     preview_url: str | None
+    shown_on_facade: bool
+    photo_sent: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}

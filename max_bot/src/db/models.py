@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import ForeignKey, func, JSON
+from sqlalchemy import ForeignKey, func, JSON, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -14,8 +14,6 @@ class MessageStatus(StrEnum):
     MAER_MODERATION = "maer_moderation"            # На модерации Maer
     APPROVED = "approved"                          # Одобрено модератором
     REJECTED = "rejected"                          # Отклонено модератором
-    SHOWN_ON_FACADE = "shown_on_facade"            # Показано на фасаде
-    PHOTO_SENT = "photo_sent"                      # Фото фасада отправлено пользователю
 
 
 class Base(DeclarativeBase):
@@ -44,6 +42,8 @@ class Message(Base):
     city: Mapped[str]
     frame_id: Mapped[int | None]
     status: Mapped[str] = mapped_column(default=MessageStatus.CREATED)
+    shown_on_facade: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Был показ на фасаде
+    photo_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Фото отправлено пользователю
     want_photo: Mapped[bool | None]               # Хочет ли получить фото фасада (None = не ответил)
     preview_url: Mapped[str | None]               # URL сгенерированного превью на фоне
     meta: Mapped[dict | None] = mapped_column(JSON, default=dict)  # Метаданные модерации

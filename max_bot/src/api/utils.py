@@ -39,9 +39,27 @@ async def send_facade_image(message_id: int, image_bytes: bytes) -> None:
 
         message, user = row
 
+    if message.status != MessageStatus.APPROVED:
+        logger.warning(
+            f"Игнорируем отправку фото для сообщения {message_id}: "
+            f"статус {message.status} не прошёл модерацию"
+        )
+        return
+
+    # Факт показа фиксируем независимо от желания получить фото.
+    async with async_session() as session:
+        result = await session.execute(select(Message).where(Message.id == message_id))
+        msg = result.scalar_one_or_none()
+        if msg and not msg.shown_on_facade:
+            msg.shown_on_facade = True
+            await session.commit()
+
     # Проверяем, хочет ли пользователь получить фото (False = явный отказ)
     if message.want_photo is False:
-        logger.info(f"Пользователь отказался от фото для сообщения {message_id}, фото не отправляем")
+        logger.info(
+            f"Пользователь отказался от фото для сообщения {message_id}, "
+            "фиксируем только shown_on_facade"
+        )
         return
 
     # Создаём InputMediaBuffer для отправки фото
@@ -54,14 +72,14 @@ async def send_facade_image(message_id: int, image_bytes: bytes) -> None:
         attachments=[image_media],
     )
 
-    # Обновляем статус после успешной отправки фото
+    # Обновляем факт отправки фото после успешной отправки
     async with async_session() as session:
         result = await session.execute(
             select(Message).where(Message.id == message_id)
         )
         msg = result.scalar_one_or_none()
         if msg:
-            msg.status = MessageStatus.PHOTO_SENT
+            msg.photo_sent = True
             await session.commit()
 
     logger.info(f"Фото фасада отправлено пользователю {user.max_id} для сообщения {message_id}")

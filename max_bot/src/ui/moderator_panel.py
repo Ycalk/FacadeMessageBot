@@ -96,7 +96,6 @@ async def moderator_page():
         MessageStatus.MAER_MODERATION: 'amber',
         MessageStatus.APPROVED: 'green',
         MessageStatus.REJECTED: 'red',
-        MessageStatus.PHOTO_SENT: 'purple',
     }
 
     def prepare_table_rows():
@@ -106,6 +105,8 @@ async def moderator_page():
             msg = item['message']
             status_order = 0 if msg.status == MessageStatus.INTERNAL_MODERATION else 1
             want_photo = msg.want_photo
+            shown_on_facade = msg.shown_on_facade
+            photo_sent = msg.photo_sent
             rows.append({
                 'id': msg.id,
                 'status_order': status_order,
@@ -119,6 +120,10 @@ async def moderator_page():
                 'is_moderation_active': msg.status == MessageStatus.INTERNAL_MODERATION,
                 'want_photo': 'Да' if want_photo is True else ('Нет' if want_photo is False else '—'),
                 'want_photo_color': 'green' if want_photo is True else ('red' if want_photo is False else 'grey'),
+                'shown_on_facade': 'Да' if shown_on_facade else 'Нет',
+                'shown_on_facade_color': 'deep-purple' if shown_on_facade else 'grey',
+                'photo_sent': 'Да' if photo_sent else 'Нет',
+                'photo_sent_color': 'green' if photo_sent else 'grey',
                 'preview_url': msg.preview_url or '',
             })
         return rows
@@ -184,6 +189,8 @@ async def moderator_page():
                 {'name': 'status', 'label': 'Статус', 'field': 'status', 'sortable': True, 'align': 'center'},
                 {'name': 'preview_url', 'label': 'Превью', 'field': 'preview_url', 'sortable': False, 'align': 'center'},
                 {'name': 'want_photo', 'label': 'Отправить фото', 'field': 'want_photo', 'sortable': True, 'align': 'center'},
+                {'name': 'shown_on_facade', 'label': 'Показано на фасаде', 'field': 'shown_on_facade', 'sortable': True, 'align': 'center'},
+                {'name': 'photo_sent', 'label': 'Фото отправлено', 'field': 'photo_sent', 'sortable': True, 'align': 'center'},
                 {'name': 'created_at', 'label': 'Создано', 'field': 'created_at', 'sortable': True, 'align': 'center'},
                 {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
             ]
@@ -234,6 +241,18 @@ async def moderator_page():
             table.add_slot('body-cell-want_photo', '''
                 <q-td :props="props">
                     <q-badge :color="props.row.want_photo_color">{{ props.row.want_photo }}</q-badge>
+                </q-td>
+            ''')
+
+            table.add_slot('body-cell-shown_on_facade', '''
+                <q-td :props="props">
+                    <q-badge :color="props.row.shown_on_facade_color">{{ props.row.shown_on_facade }}</q-badge>
+                </q-td>
+            ''')
+
+            table.add_slot('body-cell-photo_sent', '''
+                <q-td :props="props">
+                    <q-badge :color="props.row.photo_sent_color">{{ props.row.photo_sent }}</q-badge>
                 </q-td>
             ''')
 
