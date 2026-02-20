@@ -9,6 +9,7 @@ from bot.texts import Texts
 from core.config import Config
 from services.blacklist import is_blacklisted
 from services.mistral_moderator import moderate_with_mistral
+from services.text_validator import is_text_allowed
 
 logger = get_logger(__name__)
 
@@ -24,7 +25,7 @@ async def get_message(event: MessageCreated, bot: Bot) -> None:
         )
         return
 
-    if any(char not in Config.ALLOWED_CHARACTERS for char in text):
+    if not is_text_allowed(text):
         await bot.send_message(
             user_id=user_id,
             text=Texts.Messages.invalid_message_alphabet,

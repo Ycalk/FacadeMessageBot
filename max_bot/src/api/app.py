@@ -1,7 +1,6 @@
 from importlib import import_module
 
 from fastapi import FastAPI
-from fastapi.responses import Response
 from nicegui import ui
 
 from api.webhooks import router as webhooks_router
