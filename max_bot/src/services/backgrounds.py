@@ -65,7 +65,7 @@ def _render_preview(
     # Загрузка шрифта Montserrat (с фоллбэком на DejaVu)
     font_path = get_data_dir() / "Montserrat-Medium.ttf"
 
-    size_large = max(int(H * 0.06) - 4, 20)
+    size_large = max(int(H * 0.06) - 5, 20)
     size_small = max(int(size_large * 0.70) - 2, 14)
 
     def _load_fonts(sz_l: int, sz_s: int) -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
@@ -81,7 +81,7 @@ def _render_preview(
         return max(int(usable_w / avg_w), 10)
 
     def _block_h(n_lines: int, sz_l: int, sz_s: int) -> int:
-        return n_lines * int(sz_l * 1.35) + int(sz_l * 1.6) + sz_s
+        return n_lines * int(sz_l * 1.10) + int(sz_l * 1.6) + sz_s
 
     font_large, font_small = _load_fonts(size_large, size_small)
     wrapped_lines = textwrap.wrap(message, width=_max_chars(font_large))
@@ -175,13 +175,13 @@ def _render_preview(
                 _draw_with_shadow(d, (x, cy), token, font)
             x += w
 
-    line_h = int(size_large * 1.35)
+    line_h = int(size_large * 1.10)
     sig_gap = int(size_large * 1.6)
     total_lines = len(wrapped_lines)
     block_h = _block_h(total_lines, size_large, size_small)
-    y_offset = int(H * 0.10)
+    y_offset = int(H * 0.08)
     start_y = H // 2 - block_h // 2 + line_h // 2 + int(H * 0.03) + y_offset
-    min_start_y = int(H * 0.52)
+    min_start_y = int(H * 0.50)
     max_start_y = int(H - margin_y - sig_gap - (total_lines - 1) * line_h - size_small * 0.6)
     if max_start_y < min_start_y:
         max_start_y = min_start_y
