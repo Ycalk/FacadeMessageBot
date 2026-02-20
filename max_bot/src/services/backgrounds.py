@@ -55,11 +55,10 @@ def _render_preview(
     text_color = "white" if background_id == 2 else "black"
 
     # Рабочая область с отступами
-    margin_x = int(W * 0.08)
-    margin_y = int(H * 0.10)
-    extra_side_inset = int(W * 0.10)  # Дополнительно ужимаем слева/справа на 10%
-    margin_x += extra_side_inset
-    usable_w = W - 2 * margin_x
+    margin_y = int(H * 0.08)
+    margin_left = int(W * 0.19)
+    margin_right = int(W * 0.19)
+    usable_w = W - margin_left - margin_right
     usable_h = H - 2 * margin_y
 
     # Загрузка шрифта Montserrat (с фоллбэком на DejaVu)
@@ -161,7 +160,7 @@ def _render_preview(
                 widths.append(float(emoji_px))
             else:
                 widths.append(float(font.getlength(token)))
-        x = float(margin_x)
+        x = float(margin_left)
 
         for (token, is_emoji), w in zip(tokens, widths):
             if is_emoji:
@@ -178,15 +177,10 @@ def _render_preview(
     line_h = int(size_large * 1.10)
     sig_gap = int(size_large * 1.6)
     total_lines = len(wrapped_lines)
-    block_h = _block_h(total_lines, size_large, size_small)
-    y_offset = int(H * 0.08)
-    start_y = H // 2 - block_h // 2 + line_h // 2 + int(H * 0.03) + y_offset
-    min_start_y = int(H * 0.50)
+    start_y = int(H * 0.52)
     max_start_y = int(H - margin_y - sig_gap - (total_lines - 1) * line_h - size_small * 0.6)
-    if max_start_y < min_start_y:
-        max_start_y = min_start_y
-    start_y = max(start_y, min_start_y)
-    start_y = min(start_y, max_start_y)
+    if start_y > max_start_y:
+        start_y = max_start_y
 
     for i, line in enumerate(wrapped_lines):
         _draw_line_with_emoji(draw, start_y + i * line_h, line, font_large)
