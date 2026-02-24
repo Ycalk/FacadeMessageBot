@@ -61,8 +61,8 @@ def _render_preview(
     usable_w = W - margin_left - margin_right
     usable_h = H - 2 * margin_y
 
-    # Загрузка шрифта Montserrat (с фоллбэком на DejaVu)
-    font_path = get_data_dir() / "Montserrat-Medium.ttf"
+    # Загрузка шрифта Max Sans Medium
+    font_path = get_data_dir() / "Max Sans Medium.ttf"
 
     size_large = max(int(H * 0.06) - 5, 20)
     size_small = max(int(size_large * 0.70) - 2, 14)
