@@ -1,7 +1,6 @@
 """Сервис для работы с фонами."""
 
 import io
-import textwrap
 import uuid
 from pathlib import Path
 
@@ -73,17 +72,58 @@ def _render_preview(
             ImageFont.truetype(str(font_path), sz_s),
         )
 
-    def _max_chars(font: ImageFont.FreeTypeFont) -> int:
-        """Количество символов, помещающихся в usable_w, по реальной ширине глифов."""
-        sample = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя "
-        avg_w = font.getlength(sample) / len(sample)
-        return max(int(usable_w / avg_w), 10)
+    def _token_width(token: str, is_emoji: bool, font: ImageFont.FreeTypeFont) -> float:
+        """Реальная ширина токена в пикселях."""
+        if is_emoji:
+            return float(max(int(font.size * 1.10), 12))
+        return float(font.getlength(token))
+
+    def _wrap_pixels(text: str, font: ImageFont.FreeTypeFont) -> list[str]:
+        """Переносит текст по реальной пиксельной ширине с учётом emoji."""
+        words = text.split(" ")
+        lines: list[str] = []
+        current = ""
+        current_w = 0.0
+
+        for word in words:
+            tokens = _tokenize_word(word, font)
+            word_w = sum(_token_width(t, ie, font) for t, ie in tokens)
+            space_w = font.getlength(" ") if current else 0.0
+
+            if current and current_w + space_w + word_w > usable_w:
+                lines.append(current)
+                current = word
+                current_w = word_w
+            else:
+                current = (current + " " + word) if current else word
+                current_w = current_w + space_w + word_w
+
+        if current:
+            lines.append(current)
+        return lines or [""]
+
+    def _tokenize_word(text: str, font: ImageFont.FreeTypeFont) -> list[tuple[str, bool]]:
+        """Токенизирует слово на текст/emoji (аналог _tokenize_line, но без зависимости от порядка объявления)."""
+        tokens: list[tuple[str, bool]] = []
+        i = 0
+        while i < len(text):
+            matched = False
+            for emoji in _EMOJI_SORTED:
+                if text.startswith(emoji, i):
+                    tokens.append((emoji, True))
+                    i += len(emoji)
+                    matched = True
+                    break
+            if not matched:
+                tokens.append((text[i], False))
+                i += 1
+        return tokens
 
     def _block_h(n_lines: int, sz_l: int, sz_s: int) -> int:
         return n_lines * int(sz_l * 1.10) + int(sz_l * 1.6) + sz_s
 
     font_large, font_small = _load_fonts(size_large, size_small)
-    wrapped_lines = textwrap.wrap(message, width=_max_chars(font_large))
+    wrapped_lines = _wrap_pixels(message, font_large)
     signature_parts = [part.strip() for part in (name, city) if part and part.strip()]
     signature = ", ".join(signature_parts)
 
@@ -92,7 +132,7 @@ def _render_preview(
         size_large = max(size_large - 2, 14)
         size_small = max(int(size_large * 0.70) - 2, 12)
         font_large, font_small = _load_fonts(size_large, size_small)
-        wrapped_lines = textwrap.wrap(message, width=_max_chars(font_large))
+        wrapped_lines = _wrap_pixels(message, font_large)
 
     logger.info(f"Шрифт: {font_path}, size={size_large}, строк={len(wrapped_lines)}")
 
