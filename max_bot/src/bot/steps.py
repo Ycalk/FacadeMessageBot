@@ -123,6 +123,7 @@ async def show_confirm_city(user_id: int, city: str) -> None:
     """Шаг подтверждения найденного города."""
     keyboard = InlineKeyboardBuilder()
     keyboard.add(CallbackButton(text="Подтвердить", payload="confirm_city"))
+    keyboard.add(CallbackButton(text=Texts.Buttons.back, payload="back"))
     await send_message(
         user_id=user_id,
         text=Texts.Messages.confirm_city.format(city=city),
