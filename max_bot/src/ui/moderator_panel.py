@@ -1,5 +1,6 @@
 """Панель модератора для управления сообщениями."""
 
+import asyncio
 import hashlib
 import secrets
 
@@ -10,7 +11,17 @@ from core.config import Config
 from core.logger import get_logger
 from db.models import Message, MessageStatus
 from db.session import async_session
-from services.app_settings import DEFAULT_MISTRAL_PROMPT, MISTRAL_PROMPT_KEY, get_setting, set_setting
+from services.app_settings import (
+    DEFAULT_MISTRAL_PROMPT,
+    MARCH_REMINDER_SENT_KEY,
+    MISTRAL_PROMPT_KEY,
+    STREAM_URL_KEY,
+    get_auto_approve_moderators,
+    get_setting,
+    set_auto_approve_moderators,
+    set_setting,
+)
+from services.broadcast import send_march_reminder
 from services.blacklist import add_word, add_words_bulk, delete_word, get_all_words
 from services.internal_moderator import moderate_by_moderator
 
@@ -107,6 +118,7 @@ async def moderator_page():
             want_photo = msg.want_photo
             shown_on_facade = msg.shown_on_facade
             photo_sent = msg.photo_sent
+            reminder_sent = msg.reminder_sent
             rows.append({
                 'id': msg.id,
                 'status_order': status_order,
@@ -124,6 +136,8 @@ async def moderator_page():
                 'shown_on_facade_color': 'deep-purple' if shown_on_facade else 'grey',
                 'photo_sent': 'Да' if photo_sent else 'Нет',
                 'photo_sent_color': 'green' if photo_sent else 'grey',
+                'reminder_sent': 'Да' if reminder_sent else 'Нет',
+                'reminder_sent_color': 'green' if reminder_sent else 'grey',
                 'preview_url': msg.preview_url or '',
             })
         return rows
@@ -176,11 +190,35 @@ async def moderator_page():
         ui.tab('messages', label='Сообщения', icon='message')
         ui.tab('blacklist', label='Чёрный список', icon='block')
         ui.tab('prompt', label='Промпт Mistral', icon='psychology')
+        ui.tab('broadcast', label='Рассылка', icon='campaign')
 
     with ui.tab_panels(tabs, value='messages').classes('w-full'):
 
         # ── Таб: Сообщения ──────────────────────────────────────────────────
         with ui.tab_panel('messages'):
+            # Панель автоодобрения
+            auto_approve_mods = await get_auto_approve_moderators()
+
+            with ui.card().classes('w-full q-mb-md').props('flat bordered'):
+                with ui.row().classes('items-center q-gutter-md'):
+                    ui.label('Автоодобрение:').classes('text-caption text-grey')
+                    for mod in moderators:
+                        switch = ui.switch(mod, value=mod in auto_approve_mods)
+
+                        async def on_toggle(val: bool, moderator_id: str = mod):
+                            mods = await get_auto_approve_moderators()
+                            if val:
+                                mods.add(moderator_id)
+                            else:
+                                mods.discard(moderator_id)
+                            await set_auto_approve_moderators(mods)
+                            ui.notify(
+                                f'Автоодобрение {"включено" if val else "выключено"}: {moderator_id}',
+                                type='positive' if val else 'warning',
+                            )
+
+                        switch.on_value_change(on_toggle)
+
             columns = [
                 {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
                 {'name': 'text', 'label': 'Текст', 'field': 'text', 'sortable': True, 'align': 'center'},
@@ -191,6 +229,7 @@ async def moderator_page():
                 {'name': 'want_photo', 'label': 'Отправить фото', 'field': 'want_photo', 'sortable': True, 'align': 'center'},
                 {'name': 'shown_on_facade', 'label': 'Показано на фасаде', 'field': 'shown_on_facade', 'sortable': True, 'align': 'center'},
                 {'name': 'photo_sent', 'label': 'Фото отправлено', 'field': 'photo_sent', 'sortable': True, 'align': 'center'},
+                {'name': 'reminder_sent', 'label': 'Напоминание', 'field': 'reminder_sent', 'sortable': True, 'align': 'center'},
                 {'name': 'created_at', 'label': 'Создано', 'field': 'created_at', 'sortable': True, 'align': 'center'},
                 {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
             ]
@@ -253,6 +292,12 @@ async def moderator_page():
             table.add_slot('body-cell-photo_sent', '''
                 <q-td :props="props">
                     <q-badge :color="props.row.photo_sent_color">{{ props.row.photo_sent }}</q-badge>
+                </q-td>
+            ''')
+
+            table.add_slot('body-cell-reminder_sent', '''
+                <q-td :props="props">
+                    <q-badge :color="props.row.reminder_sent_color">{{ props.row.reminder_sent }}</q-badge>
                 </q-td>
             ''')
 
@@ -415,3 +460,53 @@ async def moderator_page():
                     on_click=lambda: prompt_area.set_value(DEFAULT_MISTRAL_PROMPT),
                     color='grey',
                 ).props('outline')
+
+        # ── Таб: Рассылка ────────────────────────────────────────────────────
+        with ui.tab_panel('broadcast'):
+            current_stream_url = await get_setting(STREAM_URL_KEY, '')
+            last_sent = await get_setting(MARCH_REMINDER_SENT_KEY, '')
+
+            ui.label('Рассылка напоминания').classes('text-subtitle1 q-mb-xs')
+            ui.label(
+                'Сообщение будет отправлено всем пользователям с одобренными поздравлениями, '
+                'кому напоминание ещё не отправлялось.'
+            ).classes('text-caption text-grey q-mb-md')
+
+            stream_url_input = ui.input(
+                label='Ссылка на прямую трансляцию',
+                value=current_stream_url,
+                placeholder='https://...',
+            ).classes('w-full').props('outlined')
+
+            sent_label_text = f'Последняя рассылка: {last_sent}' if last_sent else 'Рассылка ещё не выполнялась'
+            sent_label = ui.label(sent_label_text).classes('text-caption text-grey q-mt-sm')
+            broadcast_btn = ui.button(
+                'Отправить напоминание',
+                icon='send',
+                color='primary',
+            ).classes('q-mt-md')
+
+            async def _broadcast_task(url: str) -> None:
+                """Фоновый таск рассылки — обновляет UI по завершению."""
+                try:
+                    count = await send_march_reminder(url)
+                    new_sent = await get_setting(MARCH_REMINDER_SENT_KEY, '')
+                    sent_label.text = f'Последняя рассылка: {new_sent} ({count} отправлено)'
+                except Exception as e:
+                    logger.error(f'Ошибка рассылки: {e}')
+                    sent_label.text = f'Ошибка рассылки: {e}'
+                finally:
+                    broadcast_btn.enable()
+
+            async def do_broadcast():
+                url = stream_url_input.value.strip()
+                if not url:
+                    ui.notify('Укажите ссылку на трансляцию', type='warning')
+                    return
+                await set_setting(STREAM_URL_KEY, url)
+                broadcast_btn.disable()
+                sent_label.text = 'Рассылка выполняется...'
+                asyncio.create_task(_broadcast_task(url))
+
+            broadcast_btn.on_click(do_broadcast)
+

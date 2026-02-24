@@ -80,6 +80,10 @@ async def auto_moderate_message(message_id: int, max_retries: int = 3) -> bool:
                 )
 
                 await session.commit()
+
+                # Применяем автоодобрение от настроенных модераторов
+                await _apply_auto_approvals(message_id)
+
                 return approved
 
         except Exception as e:
@@ -105,6 +109,22 @@ async def auto_moderate_message(message_id: int, max_retries: int = 3) -> bool:
     return False
 
 
+async def _apply_auto_approvals(message_id: int) -> None:
+    """Применяет автоодобрения от модераторов с включённым автоапрувом."""
+    from services.app_settings import get_auto_approve_moderators
+    from services.internal_moderator import moderate_by_moderator
+
+    auto_mods = await get_auto_approve_moderators()
+    if not auto_mods:
+        return
+
+    for mod_id in auto_mods:
+        if mod_id in Config.moderators_list:
+            result = await moderate_by_moderator(message_id, mod_id, True)
+            if result.get("success"):
+                logger.info(f"Автоодобрение сообщения {message_id} модератором {mod_id!r}")
+
+
 async def _set_fallback_status(message_id: int) -> None:
     """
     Устанавливает fallback статус при ошибках автомодерации.
@@ -124,6 +144,7 @@ async def _set_fallback_status(message_id: int) -> None:
                     f"(fallback после ошибки автомодерации)"
                 )
                 await session.commit()
+                await _apply_auto_approvals(message_id)
     except Exception as e:
         logger.critical(
             f"Критическая ошибка при установке fallback статуса для сообщения {message_id}: {e}"

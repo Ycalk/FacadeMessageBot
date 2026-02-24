@@ -44,6 +44,7 @@ class Message(Base):
     status: Mapped[str] = mapped_column(default=MessageStatus.CREATED)
     shown_on_facade: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Был показ на фасаде
     photo_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Фото отправлено пользователю
+    reminder_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Напоминание о показе отправлено
     want_photo: Mapped[bool | None]               # Хочет ли получить фото фасада (None = не ответил)
     preview_url: Mapped[str | None]               # URL сгенерированного превью на фоне
     meta: Mapped[dict | None] = mapped_column(JSON, default=dict)  # Метаданные модерации

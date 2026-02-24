@@ -1,5 +1,6 @@
 """Утилиты для работы с сообщениями и уведомлениями пользователей."""
 
+import httpx
 from sqlalchemy import select
 from maxapi.types.input_media import InputMediaBuffer
 from maxapi.types import CallbackButton
@@ -134,11 +135,33 @@ async def notify_user_moderation_result(message_id: int, approved: bool) -> None
                 )
             )
 
-            await send_message(
-                user_id=user.max_id,
-                text=text,
-                attachments=[keyboard.as_markup()],
-            )
+            # Пробуем приложить превью сообщения на фоне
+            preview_image: InputMediaBuffer | None = None
+            if message.preview_url:
+                try:
+                    async with httpx.AsyncClient(timeout=10) as client:
+                        resp = await client.get(message.preview_url)
+                        resp.raise_for_status()
+                        preview_image = InputMediaBuffer(
+                            buffer=resp.content, filename="preview.jpg"
+                        )
+                except Exception as e:
+                    logger.warning(
+                        f"Не удалось загрузить превью для сообщения {message_id}: {e}"
+                    )
+
+            if preview_image:
+                await send_photo_message(
+                    user_id=user.max_id,
+                    text=text,
+                    attachments=[preview_image, keyboard.as_markup()],
+                )
+            else:
+                await send_message(
+                    user_id=user.max_id,
+                    text=text,
+                    attachments=[keyboard.as_markup()],
+                )
         else:
             keyboard = InlineKeyboardBuilder()
             keyboard.add(

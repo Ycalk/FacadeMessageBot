@@ -11,6 +11,9 @@ logger = get_logger(__name__)
 
 # Ключи настроек
 MISTRAL_PROMPT_KEY = "mistral_custom_prompt"
+AUTO_APPROVE_KEY = "auto_approve_moderators"  # comma-separated список модераторов с автоодобрением
+MARCH_REMINDER_SENT_KEY = "march_reminder_sent_at"  # ISO-время последней рассылки напоминания
+STREAM_URL_KEY = "stream_url"  # URL прямой трансляции
 DEFAULT_MISTRAL_PROMPT = """\
 Ты модератор поздравлений для медиафасада здания.
 Твоя задача - проверить сообщение на соответствие правилам:
@@ -58,6 +61,17 @@ async def set_setting(key: str, value: str) -> None:
 
     _cache[key] = value
     logger.info(f"Настройка сохранена: {key!r} = {value[:80]!r}{'...' if len(value) > 80 else ''}")
+
+
+async def get_auto_approve_moderators() -> set[str]:
+    """Возвращает набор ID модераторов с включённым автоодобрением."""
+    value = await get_setting(AUTO_APPROVE_KEY, "")
+    return {m.strip() for m in value.split(",") if m.strip()}
+
+
+async def set_auto_approve_moderators(moderator_ids: set[str]) -> None:
+    """Сохраняет список модераторов с автоодобрением."""
+    await set_setting(AUTO_APPROVE_KEY, ",".join(sorted(moderator_ids)))
 
 
 async def init_default_settings() -> None:
