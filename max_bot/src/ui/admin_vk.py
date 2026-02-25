@@ -10,6 +10,7 @@ from core.config import Config
 from core.logger import get_logger
 from db.models import Message, MessageStatus
 from db.session import async_session
+from services.stats import load_stats
 from services.vk_moderator import moderate_by_vk_moderator
 
 logger = get_logger(__name__)
@@ -98,6 +99,7 @@ async def vk_moderator_page():
 
     messages = await load_vk_messages()
     moderators = Config.vk_moderators_list
+    stats = await load_stats()
 
     status_colors = {
         MessageStatus.CREATED: 'blue',
@@ -107,6 +109,16 @@ async def vk_moderator_page():
         MessageStatus.MAER_MODERATION: 'amber',
         MessageStatus.APPROVED: 'green',
         MessageStatus.REJECTED: 'red',
+    }
+
+    status_labels = {
+        MessageStatus.CREATED: 'Создано',
+        MessageStatus.AUTO_MODERATION: 'Авто',
+        MessageStatus.INTERNAL_MODERATION: 'Внутренняя',
+        MessageStatus.VK_MODERATION: 'VK',
+        MessageStatus.MAER_MODERATION: 'Maer',
+        MessageStatus.APPROVED: 'Одобрено',
+        MessageStatus.REJECTED: 'Отклонено',
     }
 
     def prepare_table_rows():
@@ -140,11 +152,13 @@ async def vk_moderator_page():
         return rows
 
     async def refresh_table():
-        """Обновляет данные таблицы."""
-        nonlocal messages
+        """Обновляет данные таблицы и статистику."""
+        nonlocal messages, stats
         messages = await load_vk_messages()
+        stats = await load_stats()
         table.rows = prepare_table_rows()
         table.update()
+        stats_block.refresh()
         ui.notify('Данные обновлены', type='positive')
 
     async def handle_vk_moderator_approve(message_id: int, moderator_id: str):
@@ -181,6 +195,37 @@ async def vk_moderator_page():
     with ui.row().classes('w-full items-center justify-between mb-4'):
         ui.label('Панель VK модерации').classes('text-h4')
         ui.button('Выйти', on_click=logout, color='negative').props('outline size=sm')
+
+    # Блок статистики
+    @ui.refreshable
+    def stats_block():
+        with ui.card().classes('w-full q-mb-md').props('flat bordered'):
+            with ui.row().classes('items-center q-gutter-xl flex-wrap'):
+                with ui.column().classes('items-center'):
+                    ui.label(str(stats['total_messages'])).classes('text-h5 text-blue text-bold')
+                    ui.label('Всего сообщений').classes('text-caption text-grey')
+                with ui.column().classes('items-center'):
+                    ui.label(str(stats['total_users'])).classes('text-h5 text-teal text-bold')
+                    ui.label('Пользователей').classes('text-caption text-grey')
+                with ui.column().classes('items-center'):
+                    ui.label(str(stats['waiting_for_photo'])).classes('text-h5 text-deep-orange text-bold')
+                    ui.label('Ждут фото с фасада').classes('text-caption text-grey')
+                with ui.column().classes('items-center'):
+                    ui.label(str(stats['photo_sent_count'])).classes('text-h5 text-green text-bold')
+                    ui.label('Фото отправлено').classes('text-caption text-grey')
+                ui.separator().props('vertical inset').classes('self-stretch')
+                with ui.column().classes('q-gutter-xs'):
+                    ui.label('По статусам:').classes('text-caption text-grey')
+                    with ui.row().classes('q-gutter-xs flex-wrap'):
+                        for status in MessageStatus:
+                            count = stats['by_status'].get(status, 0)
+                            color = status_colors.get(status, 'grey')
+                            ui.badge(
+                                f'{status_labels.get(status, status)}: {count}',
+                                color=color,
+                            )
+
+    stats_block()
 
     columns = [
         {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
