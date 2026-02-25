@@ -14,46 +14,30 @@ from services.app_settings import MARCH_REMINDER_SENT_KEY, set_setting
 
 logger = get_logger(__name__)
 
-# Пауза при получении 429 (умножается на номер попытки)
-_RATE_LIMIT_BASE_PAUSE = 5.0
 # Максимум параллельных отправок при рассылке
 _BROADCAST_CONCURRENCY = 30
 _broadcast_semaphore = asyncio.Semaphore(_BROADCAST_CONCURRENCY)
 
 
-async def _send_with_retry(user_id: int, text: str, max_retries: int = 3) -> str:
+async def _send_one_safe(user_id: int, text: str) -> str:
     """
-    Отправляет сообщение с retry при 429.
+    Отправляет сообщение одному пользователю. Retry при 429 встроен в send_message.
 
     Returns:
         'sent'    — успешно отправлено
         'skipped' — чат не найден (пользователь не запускал бота / заблокировал)
-        'error'   — другая ошибка, все попытки исчерпаны
+        'error'   — другая ошибка
     """
-    for attempt in range(max_retries):
-        try:
-            await send_message(user_id=user_id, text=text)
-            return 'sent'
-        except Exception as e:
-            err = str(e).lower()
-            if '404' in err or 'chat.not.found' in err or 'not.found' in err:
-                logger.warning(
-                    f"Пользователь {user_id} недоступен (чат не найден), пропускаем"
-                )
-                return 'skipped'
-            if '429' in err or 'too.many.requests' in err or 'too_many' in err:
-                wait = _RATE_LIMIT_BASE_PAUSE * (attempt + 1)
-                logger.warning(
-                    f"Rate limit при отправке пользователю {user_id}, "
-                    f"ждём {wait:.0f}с (попытка {attempt + 1}/{max_retries})"
-                )
-                await asyncio.sleep(wait)
-                continue
-            logger.error(f"Ошибка отправки напоминания пользователю {user_id}: {e}")
-            return 'error'
-
-    logger.error(f"Все попытки отправки пользователю {user_id} исчерпаны")
-    return 'error'
+    try:
+        await send_message(user_id=user_id, text=text)
+        return 'sent'
+    except Exception as e:
+        err = str(e).lower()
+        if '404' in err or 'chat.not.found' in err or 'not.found' in err:
+            logger.warning(f"Пользователь {user_id} недоступен (чат не найден), пропускаем")
+            return 'skipped'
+        logger.error(f"Ошибка отправки напоминания пользователю {user_id}: {e}")
+        return 'error'
 
 
 async def send_march_reminder(stream_url: str) -> int:
@@ -93,7 +77,7 @@ async def send_march_reminder(stream_url: str) -> int:
 
     async def _send_one(user: User) -> None:
         async with _broadcast_semaphore:
-            results[user.id] = await _send_with_retry(user.max_id, text)
+            results[user.id] = await _send_one_safe(user.max_id, text)
 
     await asyncio.gather(*[_send_one(u) for u in seen_users.values()])
 
@@ -101,7 +85,6 @@ async def send_march_reminder(stream_url: str) -> int:
     sent = sum(1 for o in results.values() if o == 'sent')
     skipped = sum(1 for o in results.values() if o == 'skipped')
     errors = sum(1 for o in results.values() if o == 'error')
-
 
     # Помечаем reminder_sent=True у всех, кому отправили или кто недоступен
     if done_user_ids:
