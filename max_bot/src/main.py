@@ -12,7 +12,6 @@ from api.app import create_app
 from core.config import Config
 from core.logger import get_logger
 from services.app_settings import init_default_settings
-from services.auto_moderator import recover_stuck_messages
 from services.blacklist import load_blacklist
 
 logger = get_logger(__name__)
@@ -42,9 +41,6 @@ async def main() -> None:
 
     logger.info("Загрузка чёрного списка слов...")
     await load_blacklist()
-
-    logger.info("Проверка зависших сообщений...")
-    await recover_stuck_messages()
 
     dispatcher.include_routers(
         system_router,

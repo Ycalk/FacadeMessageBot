@@ -16,7 +16,7 @@ from bot.handlers.wrong_step import reply_wrong_step_for_callback
 from core.config import Config
 from db.models import Message, User, MessageStatus
 from db.session import async_session
-from services.auto_moderator import auto_moderate_message
+from services.auto_moderator import apply_auto_approvals
 from services.backgrounds import build_preview_url, generate_text_preview
 from services.message_limits import can_send_more_messages
 
@@ -93,10 +93,11 @@ async def send_to_moderation(callback: MessageCallback) -> None:
         logger.warning(f"Не удалось сгенерировать превью при отправке на модерацию (frame_id={frame_id})")
 
     # Создаем сообщение в БД
+    # message_id инициализируем заранее, чтобы в except знать: уже в БД или нет
+    message_id: int | None = None
+    can_send_one_more = False
     try:
-        can_send_one_more = False
         async with async_session() as session:
-            # Получаем пользователя
             result = await session.execute(
                 select(User).where(User.max_id == user_id)
             )
@@ -109,7 +110,7 @@ async def send_to_moderation(callback: MessageCallback) -> None:
 
             can_send_one_more = await can_send_more_messages(user_id, additional_messages=1)
 
-            # Создаем сообщение со статусом AUTO_MODERATION
+            # Создаем сообщение сразу на внутренней модерации
             message = Message(
                 user_id=user.id,
                 text=message_text,
@@ -117,15 +118,21 @@ async def send_to_moderation(callback: MessageCallback) -> None:
                 city=city,
                 frame_id=frame_id,
                 preview_url=preview_url,
-                status=MessageStatus.AUTO_MODERATION,
+                status=MessageStatus.INTERNAL_MODERATION,
             )
             session.add(message)
             await session.commit()
             await session.refresh(message)
-            message_id = message.id
+            message_id = message.id  # с этого момента сообщение уже в БД
 
-        # Отправляем на автомодерацию в фоне (не блокируем ответ пользователю)
-        asyncio.create_task(auto_moderate_message(message_id))
+        # Применяем автоодобрения от настроенных модераторов в фоне
+        async def _run_auto_approvals() -> None:
+            try:
+                await apply_auto_approvals(message_id)
+            except Exception as exc:
+                logger.error(f"Ошибка автоодобрения для сообщения {message_id}: {exc}")
+
+        asyncio.create_task(_run_auto_approvals())
 
         # Уведомляем пользователя: кнопку добавляем только если можно отправить ещё
         if can_send_one_more:
@@ -140,6 +147,18 @@ async def send_to_moderation(callback: MessageCallback) -> None:
         await ctx.clear()
 
     except Exception as e:
-        logger.error(f"Ошибка при создании сообщения: {e}")
-        await callback.message.answer(text=Texts.Messages.something_went_wrong)
+        logger.error(f"Ошибка при создании/отправке уведомления: {e}")
+        if message_id is not None:
+            # Сообщение уже сохранено в БД — сообщаем правильно, не пугаем пользователя
+            logger.warning(f"Сообщение {message_id} уже в модерации, уведомление не доставлено")
+            try:
+                await callback.message.answer(text=Texts.Messages.start_moderation)
+            except Exception:
+                pass
+        else:
+            # Сообщение не создано — сообщаем об ошибке
+            try:
+                await callback.message.answer(text=Texts.Messages.something_went_wrong)
+            except Exception:
+                pass
         await ctx.clear()

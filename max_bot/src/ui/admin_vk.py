@@ -102,8 +102,6 @@ async def vk_moderator_page():
     stats = await load_stats()
 
     status_colors = {
-        MessageStatus.CREATED: 'blue',
-        MessageStatus.AUTO_MODERATION: 'cyan',
         MessageStatus.INTERNAL_MODERATION: 'orange',
         MessageStatus.VK_MODERATION: 'teal',
         MessageStatus.MAER_MODERATION: 'amber',
@@ -112,8 +110,6 @@ async def vk_moderator_page():
     }
 
     status_labels = {
-        MessageStatus.CREATED: 'Создано',
-        MessageStatus.AUTO_MODERATION: 'Авто',
         MessageStatus.INTERNAL_MODERATION: 'Внутренняя',
         MessageStatus.VK_MODERATION: 'VK',
         MessageStatus.MAER_MODERATION: 'Maer',

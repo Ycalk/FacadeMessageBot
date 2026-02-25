@@ -7,8 +7,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class MessageStatus(StrEnum):
     """Статусы обработки сообщения."""
-    CREATED = "created"                            # Создано
-    AUTO_MODERATION = "auto_moderation"            # Автоматическая модерация
     INTERNAL_MODERATION = "internal_moderation"    # На внутренней модерации
     VK_MODERATION = "vk_moderation"                # На VK модерации
     MAER_MODERATION = "maer_moderation"            # На модерации Maer
@@ -41,7 +39,7 @@ class Message(Base):
     name: Mapped[str]
     city: Mapped[str]
     frame_id: Mapped[int | None]
-    status: Mapped[str] = mapped_column(default=MessageStatus.CREATED)
+    status: Mapped[str] = mapped_column(default=MessageStatus.INTERNAL_MODERATION)
     shown_on_facade: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Был показ на фасаде
     photo_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Фото отправлено пользователю
     reminder_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Напоминание о показе отправлено

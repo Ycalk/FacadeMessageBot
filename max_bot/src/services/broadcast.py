@@ -16,6 +16,9 @@ logger = get_logger(__name__)
 
 # Пауза при получении 429 (умножается на номер попытки)
 _RATE_LIMIT_BASE_PAUSE = 5.0
+# Максимум параллельных отправок при рассылке
+_BROADCAST_CONCURRENCY = 30
+_broadcast_semaphore = asyncio.Semaphore(_BROADCAST_CONCURRENCY)
 
 
 async def _send_with_retry(user_id: int, text: str, max_retries: int = 3) -> str:
@@ -58,7 +61,7 @@ async def send_march_reminder(stream_url: str) -> int:
     Рассылает напоминание о показе всем пользователям с одобренными сообщениями.
     Дедуплицирует по пользователю — один пользователь получает одно сообщение.
     Пропускает пользователей, которым уже отправлено (reminder_sent=True).
-    Скорость — не более 5 сообщений в секунду.
+    Параллельность — до 30 одновременных отправок.
 
     Returns:
         Количество успешно отправленных сообщений (без учёта skipped)
@@ -86,22 +89,18 @@ async def send_march_reminder(stream_url: str) -> int:
 
     text = Texts.Messages.march_reminder.format(stream_url=stream_url)
 
-    # user_id (internal DB id) для обновления reminder_sent
-    done_user_ids: list[int] = []  # sent + skipped (оба не требуют повтора)
-    sent = 0
-    skipped = 0
-    errors = 0
+    results: dict[int, str] = {}  # user.id → outcome
 
-    for user in seen_users.values():
-        outcome = await _send_with_retry(user.max_id, text)
-        if outcome == 'sent':
-            done_user_ids.append(user.id)
-            sent += 1
-        elif outcome == 'skipped':
-            done_user_ids.append(user.id)
-            skipped += 1
-        else:
-            errors += 1
+    async def _send_one(user: User) -> None:
+        async with _broadcast_semaphore:
+            results[user.id] = await _send_with_retry(user.max_id, text)
+
+    await asyncio.gather(*[_send_one(u) for u in seen_users.values()])
+
+    done_user_ids = [uid for uid, outcome in results.items() if outcome in ('sent', 'skipped')]
+    sent = sum(1 for o in results.values() if o == 'sent')
+    skipped = sum(1 for o in results.values() if o == 'skipped')
+    errors = sum(1 for o in results.values() if o == 'error')
 
 
     # Помечаем reminder_sent=True у всех, кому отправили или кто недоступен
