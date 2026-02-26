@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import ForeignKey, func, JSON, text
+from sqlalchemy import ForeignKey, Text, func, JSON, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -28,6 +28,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     messages: Mapped[list["Message"]] = relationship(back_populates="user")
+    message_input_logs: Mapped[list["MessageInputLog"]] = relationship(back_populates="user")
 
 
 class Message(Base):
@@ -49,6 +50,18 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="messages")
+
+
+class MessageInputLog(Base):
+    """Лог пользовательских сообщений на шаге ввода поздравления."""
+    __tablename__ = "message_input_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    raw_text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="message_input_logs")
 
 
 class BlacklistWord(Base):

@@ -8,6 +8,7 @@ from bot.handlers.get_message import get_message
 from bot.handlers.get_name import get_name
 from bot.handlers.get_city import get_city
 from bot.handlers.wrong_step import reply_wrong_step_for_message
+from services.message_input_logs import log_get_message_input
 
 logger = get_logger(__name__)
 
@@ -22,13 +23,18 @@ async def _handle_text(event):
         return
     user_id = event.message.sender.user_id
 
-    # Антиспам-проверка
-    if not await antispam.record_action(user_id):
-        await event.message.answer(text=Texts.Messages.spam_blocked)
-        return
-
     ctx = get_context(user_id)
     current_state = await ctx.get_state()
+
+    # Антиспам-проверка
+    if not await antispam.record_action(user_id):
+        if current_state == str(UserStates.get_message):
+            await log_get_message_input(
+                user_max_id=user_id,
+                text=event.message.body.text or "",
+            )
+        await event.message.answer(text=Texts.Messages.spam_blocked)
+        return
 
     if current_state == str(UserStates.get_message):
         await get_message(event, event.bot)

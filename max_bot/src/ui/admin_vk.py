@@ -201,6 +201,9 @@ async def vk_moderator_page():
                     ui.label(str(stats['total_messages'])).classes('text-h5 text-blue text-bold')
                     ui.label('Всего сообщений').classes('text-caption text-grey')
                 with ui.column().classes('items-center'):
+                    ui.label(str(stats['message_input_attempts'])).classes('text-h5 text-indigo text-bold')
+                    ui.label('Попыток ввода').classes('text-caption text-grey')
+                with ui.column().classes('items-center'):
                     ui.label(str(stats['total_users'])).classes('text-h5 text-teal text-bold')
                     ui.label('Пользователей').classes('text-caption text-grey')
                 with ui.column().classes('items-center'):

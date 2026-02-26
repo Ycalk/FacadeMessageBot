@@ -2,7 +2,7 @@
 
 from sqlalchemy import func, select
 
-from db.models import Message, MessageStatus, User
+from db.models import Message, MessageInputLog, MessageStatus, User
 from db.session import async_session
 
 
@@ -18,6 +18,7 @@ async def load_stats() -> dict:
     async with async_session() as session:
         total_messages = await session.scalar(select(func.count(Message.id)))
         total_users = await session.scalar(select(func.count(User.id)))
+        message_input_attempts = await session.scalar(select(func.count(MessageInputLog.id)))
 
         current_status_result = await session.execute(
             select(Message.status, func.count(Message.id)).group_by(Message.status)
@@ -66,6 +67,7 @@ async def load_stats() -> dict:
         return {
             'total_messages': total_messages or 0,
             'total_users': total_users or 0,
+            'message_input_attempts': message_input_attempts or 0,
             'by_status': by_status,  # Текущее распределение
             'passed_by_status': passed_by_status,  # Сколько сообщений достигло этапа
             'waiting_for_photo': waiting_for_photo or 0,
