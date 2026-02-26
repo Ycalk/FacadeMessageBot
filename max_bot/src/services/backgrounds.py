@@ -51,25 +51,66 @@ def _render_preview(
     img = Image.open(bg_path).convert("RGBA")
     draw = ImageDraw.Draw(img)
     W, H = img.size
-    text_color = "white" if background_id == 2 else "black"
+    text_color = "white"
+    city_color = "#CD3782"
 
-    # Рабочая область с отступами
-    margin_y = int(H * 0.08)
-    margin_left = int(W * 0.19)
-    margin_right = int(W * 0.19)
-    usable_w = W - margin_left - margin_right
-    usable_h = H - 2 * margin_y
+    # Текстовая зона привязана к блоку в макете:
+    # x=42, y=433, w=636, h=240, padding=(26,39,26,39) для базового фона 720x760.
+    sx = W / 720
+    sy = H / 760
+    block_left = int(round(42 * sx))
+    block_top = int(round(433 * sy))
+    block_w = int(round(636 * sx))
+    block_h = int(round(240 * sy))
+    pad_top = int(round(26 * sy))
+    pad_right = int(round(39 * sx))
+    pad_bottom = int(round(26 * sy))
+    pad_left = int(round(39 * sx))
 
-    # Загрузка шрифта Max Sans Medium
-    font_path = get_data_dir() / "Max Sans Medium.ttf"
+    margin_left = block_left + pad_left
+    usable_w = max(block_w - pad_left - pad_right, 1)
+    content_top = block_top + pad_top
+    usable_h = max(block_h - pad_top - pad_bottom, 1)
 
-    size_large = max(int(H * 0.06) - 5, 20)
-    size_small = max(int(size_large * 0.70) - 2, 14)
+    # Текстовый блок имени/города в верхней плашке:
+    # top=340, left=181, right=172, gap=14 (в макете 720x760).
+    header_top = int(round(340 * sy))
+    header_left = int(round(181 * sx))
+    header_right = int(round(172 * sx))
+    header_w = max(W - header_left - header_right, 1)
+
+    # Загрузка шрифтов.
+    font_path = get_data_dir() / "Max Sans DemiBold.ttf"
+    font_light_path = get_data_dir() / "Max Sans Light.ttf"
+
+    # Визуальная компенсация: на рендере 43px выглядит немного меньше макета.
+    message_font_scale = 1.08
+    # Дизайн: font-size 43px, line-height 115%
+    size_large = max(int(round(43 * sy * message_font_scale)), 14)
+    size_small = max(int(round(30 * sy)), 12)
+    line_height_mult = 1.15
+    name_size = max(int(round(32 * sy)), 12)
+    city_size = max(int(round(27 * sy)), 10)
+    name_city_gap = int(round(14 * sy))
+
+    def _fit_line(text: str, font: ImageFont.FreeTypeFont, max_w: int) -> str:
+        """Обрезает строку в одну линию с троеточием по ширине."""
+        value = (text or "").strip()
+        if not value:
+            return ""
+        if int(font.getlength(value)) <= max_w:
+            return value
+        ellipsis = "..."
+        out = value
+        while out and int(font.getlength(out + ellipsis)) > max_w:
+            out = out[:-1]
+        return (out + ellipsis) if out else ellipsis
 
     def _load_fonts(sz_l: int, sz_s: int) -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
+        base_path = font_path if font_path.is_file() else font_light_path
         return (
-            ImageFont.truetype(str(font_path), sz_l),
-            ImageFont.truetype(str(font_path), sz_s),
+            ImageFont.truetype(str(base_path), sz_l),
+            ImageFont.truetype(str(base_path), sz_s),
         )
 
     def _token_width(token: str, is_emoji: bool, font: ImageFont.FreeTypeFont) -> float:
@@ -119,22 +160,43 @@ def _render_preview(
                 i += 1
         return tokens
 
-    def _block_h(n_lines: int, sz_l: int, sz_s: int) -> int:
-        return n_lines * int(sz_l * 1.10) + int(sz_l * 1.6) + sz_s
+    def _line_h(sz_l: int) -> int:
+        return max(int(round(sz_l * line_height_mult)), 1)
+
+    def _sig_gap(sz_l: int) -> int:
+        return max(int(round(sz_l * 0.9)), 10)
+
+    def _block_h(n_lines: int, sz_l: int, sz_s: int, has_signature: bool) -> int:
+        h = n_lines * _line_h(sz_l)
+        if has_signature:
+            h += _sig_gap(sz_l) + sz_s
+        return h
 
     font_large, font_small = _load_fonts(size_large, size_small)
     wrapped_lines = _wrap_pixels(message, font_large)
-    signature_parts = [part.strip() for part in (name, city) if part and part.strip()]
-    signature = ", ".join(signature_parts)
+    has_signature = False
 
     # Уменьшаем шрифт пока блок не помещается по высоте
-    while _block_h(len(wrapped_lines), size_large, size_small) > usable_h and size_large > 14:
+    while _block_h(len(wrapped_lines), size_large, size_small, has_signature) > usable_h and size_large > 18:
         size_large = max(size_large - 2, 14)
-        size_small = max(int(size_large * 0.70) - 2, 12)
+        size_small = max(int(size_large * 0.70), 14)
         font_large, font_small = _load_fonts(size_large, size_small)
         wrapped_lines = _wrap_pixels(message, font_large)
 
     logger.info(f"Шрифт: {font_path}, size={size_large}, строк={len(wrapped_lines)}")
+
+    # Имя/город в верхней зоне.
+    name_font_path = font_path if font_path.is_file() else font_light_path
+    city_font_path = font_light_path if font_light_path.is_file() else name_font_path
+    name_font = ImageFont.truetype(str(name_font_path), name_size)
+    city_font = ImageFont.truetype(str(city_font_path), city_size)
+    safe_name = _fit_line(name, name_font, header_w)
+    safe_city = _fit_line(city, city_font, header_w)
+    if safe_name:
+        draw.text((header_left, header_top), safe_name, font=name_font, fill=text_color, anchor="la")
+    if safe_city:
+        city_top = header_top + name_size + name_city_gap
+        draw.text((header_left, city_top), safe_city, font=city_font, fill=city_color, anchor="la")
 
     def _draw_with_shadow(
         d: ImageDraw.ImageDraw,
@@ -143,6 +205,7 @@ def _render_preview(
         font: ImageFont.FreeTypeFont,
     ) -> None:
         x, y = pos
+        d.text((x + 1, y + 1), text, font=font, fill=(0, 0, 0, 140), anchor="lm")
         d.text((x, y), text, font=font, fill=text_color, anchor="lm")
 
     emoji_dir = get_data_dir() / "emoji"
@@ -214,19 +277,14 @@ def _render_preview(
                 _draw_with_shadow(d, (x, cy), token, font)
             x += w
 
-    line_h = int(size_large * 1.10)
-    sig_gap = int(size_large * 1.6)
+    line_h = _line_h(size_large)
     total_lines = len(wrapped_lines)
-    start_y = int(H * 0.52)
-    max_start_y = int(H - margin_y - sig_gap - (total_lines - 1) * line_h - size_small * 0.6)
-    if start_y > max_start_y:
-        start_y = max_start_y
+    text_block_h = total_lines * line_h
+    top_offset = max((usable_h - text_block_h) // 2, 0)
+    start_y = content_top + top_offset + line_h // 2
 
     for i, line in enumerate(wrapped_lines):
         _draw_line_with_emoji(draw, start_y + i * line_h, line, font_large)
-
-    signature_y = start_y + (total_lines - 1) * line_h + sig_gap
-    _draw_line_with_emoji(draw, signature_y, signature, font_small)
 
     return img.convert("RGB")
 
