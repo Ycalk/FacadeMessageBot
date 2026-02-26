@@ -214,10 +214,10 @@ async def moderator_page():
                     ui.label('Фото отправлено').classes('text-caption text-grey')
                 ui.separator().props('vertical inset').classes('self-stretch')
                 with ui.column().classes('q-gutter-xs'):
-                    ui.label('По статусам:').classes('text-caption text-grey')
+                    ui.label('Прошли этапы:').classes('text-caption text-grey')
                     with ui.row().classes('q-gutter-xs flex-wrap'):
                         for status in MessageStatus:
-                            count = stats['by_status'].get(status, 0)
+                            count = stats['passed_by_status'].get(status, 0)
                             color = status_colors.get(status, 'grey')
                             ui.badge(
                                 f'{status_labels.get(status, status)}: {count}',
