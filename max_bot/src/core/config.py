@@ -87,6 +87,11 @@ class Settings(BaseSettings):
     # Пароли для админ-панелей
     ADMIN_INTERNAL_PASSWORD: str = "admin"
     ADMIN_VK_PASSWORD: str = "vkadmin"
+    ADMIN_INTERNAL_USERNAME: str = "admin"
+    ADMIN_VK_USERNAME: str = "vkadmin"
+    # Формат: user1:pass1,user2:pass2 (также поддерживаются ; и переносы строк)
+    ADMIN_INTERNAL_CREDENTIALS: str = ""
+    ADMIN_VK_CREDENTIALS: str = ""
 
     # Токен для авторизации входящих запросов к API
     API_TOKEN: str = ""
@@ -115,6 +120,40 @@ class Settings(BaseSettings):
     def vk_moderators_list(self) -> list[str]:
         """Возвращает список VK модераторов."""
         return [m.strip() for m in self.VK_MODERATORS.split(",") if m.strip()]
+
+    @staticmethod
+    def _parse_credentials(raw: str) -> dict[str, str]:
+        creds: dict[str, str] = {}
+        if not raw:
+            return creds
+
+        normalized = raw.replace(";", ",").replace("\n", ",")
+        for item in normalized.split(","):
+            pair = item.strip()
+            if not pair or ":" not in pair:
+                continue
+            username, password = pair.split(":", 1)
+            username = username.strip()
+            password = password.strip()
+            if username and password:
+                creds[username] = password
+        return creds
+
+    @property
+    def admin_internal_credentials(self) -> dict[str, str]:
+        """Возвращает словарь username->password для внутренней админки."""
+        creds = self._parse_credentials(self.ADMIN_INTERNAL_CREDENTIALS)
+        if not creds and self.ADMIN_INTERNAL_PASSWORD:
+            creds[self.ADMIN_INTERNAL_USERNAME] = self.ADMIN_INTERNAL_PASSWORD
+        return creds
+
+    @property
+    def admin_vk_credentials(self) -> dict[str, str]:
+        """Возвращает словарь username->password для VK-админки."""
+        creds = self._parse_credentials(self.ADMIN_VK_CREDENTIALS)
+        if not creds and self.ADMIN_VK_PASSWORD:
+            creds[self.ADMIN_VK_USERNAME] = self.ADMIN_VK_PASSWORD
+        return creds
 
 
 Config = Settings()

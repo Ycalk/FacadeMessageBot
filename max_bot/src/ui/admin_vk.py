@@ -1,6 +1,5 @@
 """Панель VK модерации для управления сообщениями."""
 
-import hashlib
 import secrets
 
 from nicegui import app, ui
@@ -14,12 +13,6 @@ from services.stats import load_stats
 from services.vk_moderator import moderate_by_vk_moderator
 
 logger = get_logger(__name__)
-
-
-def _hash_password(password: str) -> str:
-    """Хеширует пароль для сравнения."""
-    return hashlib.sha256(password.encode()).hexdigest()
-
 
 # Статусы, которые могут быть достигнуты только через VK модерацию
 _VK_VISIBLE_STATUSES = {
@@ -73,25 +66,31 @@ async def vk_moderator_page():
         # Показываем форму входа
         with ui.card().classes('absolute-center'):
             ui.label('Вход в панель VK модерации').classes('text-h5 q-mb-md')
+            username_input = ui.input('Логин').classes('w-64')
             password_input = ui.input(
                 'Пароль', password=True, password_toggle_button=True
             ).classes('w-64')
             error_label = ui.label('').classes('text-negative')
 
             async def try_login():
-                if not Config.ADMIN_VK_PASSWORD:
-                    error_label.text = 'Пароль не настроен в конфигурации'
+                username = (username_input.value or '').strip()
+                password = password_input.value or ''
+                credentials = Config.admin_vk_credentials
+
+                if not credentials:
+                    error_label.text = 'Учётные записи не настроены в конфигурации'
                     return
-                if secrets.compare_digest(
-                    _hash_password(password_input.value),
-                    _hash_password(Config.ADMIN_VK_PASSWORD)
-                ):
+
+                expected_password = credentials.get(username)
+                if expected_password and secrets.compare_digest(password, expected_password):
                     app.storage.user['auth_vk'] = True
+                    app.storage.user['auth_vk_user'] = username
                     ui.navigate.to('/admin_vk')
                 else:
-                    error_label.text = 'Неверный пароль'
+                    error_label.text = 'Неверный логин или пароль'
 
             ui.button('Войти', on_click=try_login).classes('w-64')
+            username_input.on('keydown.enter', try_login)
             password_input.on('keydown.enter', try_login)
         return
 
@@ -185,6 +184,7 @@ async def vk_moderator_page():
     async def logout():
         """Выход из панели."""
         app.storage.user['auth_vk'] = False
+        app.storage.user['auth_vk_user'] = None
         ui.navigate.to('/admin_vk')
 
     # Заголовок с кнопкой выхода
