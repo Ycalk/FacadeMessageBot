@@ -84,11 +84,7 @@ class Settings(BaseSettings):
     # VK модераторы (список имён/ID для VK модерации)
     VK_MODERATORS: str = "vk_moderator_1, vk_moderator_2, vk_moderator_3"
 
-    # Пароли для админ-панелей
-    ADMIN_INTERNAL_PASSWORD: str = "admin"
-    ADMIN_VK_PASSWORD: str = "vkadmin"
-    ADMIN_INTERNAL_USERNAME: str = "admin"
-    ADMIN_VK_USERNAME: str = "vkadmin"
+    # Учетки для админ-панелей.
     # Формат: user1:pass1,user2:pass2 (также поддерживаются ; и переносы строк)
     ADMIN_INTERNAL_CREDENTIALS: str = ""
     ADMIN_VK_CREDENTIALS: str = ""
@@ -142,18 +138,12 @@ class Settings(BaseSettings):
     @property
     def admin_internal_credentials(self) -> dict[str, str]:
         """Возвращает словарь username->password для внутренней админки."""
-        creds = self._parse_credentials(self.ADMIN_INTERNAL_CREDENTIALS)
-        if not creds and self.ADMIN_INTERNAL_PASSWORD:
-            creds[self.ADMIN_INTERNAL_USERNAME] = self.ADMIN_INTERNAL_PASSWORD
-        return creds
+        return self._parse_credentials(self.ADMIN_INTERNAL_CREDENTIALS)
 
     @property
     def admin_vk_credentials(self) -> dict[str, str]:
         """Возвращает словарь username->password для VK-админки."""
-        creds = self._parse_credentials(self.ADMIN_VK_CREDENTIALS)
-        if not creds and self.ADMIN_VK_PASSWORD:
-            creds[self.ADMIN_VK_USERNAME] = self.ADMIN_VK_PASSWORD
-        return creds
+        return self._parse_credentials(self.ADMIN_VK_CREDENTIALS)
 
 
 Config = Settings()
