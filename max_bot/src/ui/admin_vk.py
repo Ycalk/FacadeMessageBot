@@ -117,6 +117,22 @@ async def vk_moderator_page():
                 }
                 return token || '';
             };
+
+            window.__resetSmartCaptcha = window.__resetSmartCaptcha || function(containerId) {
+                const container = document.getElementById(containerId);
+                if (!container) return false;
+                window.__smartCaptchaTokens[containerId] = '';
+                const widgetId = Number(container.dataset.widgetId || 'NaN');
+                if (window.smartCaptcha && Number.isFinite(widgetId)) {
+                    try {
+                        window.smartCaptcha.reset(widgetId);
+                    } catch (e) {
+                        console.error('SmartCaptcha reset error', e);
+                        return false;
+                    }
+                }
+                return true;
+            };
         </script>
         '''
     )
@@ -126,54 +142,57 @@ async def vk_moderator_page():
         # Показываем форму входа
         with ui.card().classes('absolute-center'):
             ui.label('Вход в панель VK модерации').classes('text-h5 q-mb-md')
-            username_input = ui.input('Логин').classes('w-64')
-            password_input = ui.input(
-                'Пароль', password=True, password_toggle_button=True
-            ).classes('w-64')
-            if Config.SMARTCAPTCHA_CLIENT_KEY:
-                ui.html(
-                    f'<div id="captcha-container-vk" class="smart-captcha" '
-                    f'data-sitekey="{Config.SMARTCAPTCHA_CLIENT_KEY}"></div>'
-                ).classes('w-64').style('min-height: 100px;')
-                await ui.run_javascript(
-                    f"return window.__initSmartCaptchaWidget('captcha-container-vk', {json.dumps(Config.SMARTCAPTCHA_CLIENT_KEY)});"
-                )
-            else:
-                ui.label('SMARTCAPTCHA_CLIENT_KEY не задан').classes('text-negative text-caption w-64')
-            error_label = ui.label('').classes('text-negative')
-
-            async def try_login():
-                username = (username_input.value or '').strip()
-                password = password_input.value or ''
-                credentials = Config.admin_vk_credentials
-
-                if not Config.SMARTCAPTCHA_CLIENT_KEY:
-                    error_label.text = 'Капча не настроена в конфигурации'
-                    return
-
-                captcha_token = await ui.run_javascript(
-                    "return window.__getSmartCaptchaToken('captcha-container-vk');"
-                )
-                captcha_ok, captcha_error = await validate_smartcaptcha_token(captcha_token)
-                if not captcha_ok:
-                    error_label.text = captcha_error
-                    return
-
-                if not credentials:
-                    error_label.text = 'Учётные записи не настроены в конфигурации'
-                    return
-
-                expected_password = credentials.get(username)
-                if expected_password and secrets.compare_digest(password, expected_password):
-                    app.storage.user['auth_vk'] = True
-                    app.storage.user['auth_vk_user'] = username
-                    ui.navigate.to('/admin_vk')
+            with ui.column().classes('w-[400px] max-w-full'):
+                username_input = ui.input('Логин').classes('w-full')
+                password_input = ui.input(
+                    'Пароль', password=True, password_toggle_button=True
+                ).classes('w-full')
+                if Config.SMARTCAPTCHA_CLIENT_KEY:
+                    ui.html(
+                        f'<div id="captcha-container-vk" class="smart-captcha" '
+                        f'data-sitekey="{Config.SMARTCAPTCHA_CLIENT_KEY}"></div>'
+                    ).classes('w-full').style('min-height: 100px;')
+                    await ui.run_javascript(
+                        f"return window.__initSmartCaptchaWidget('captcha-container-vk', {json.dumps(Config.SMARTCAPTCHA_CLIENT_KEY)});"
+                    )
                 else:
-                    error_label.text = 'Неверный логин или пароль'
+                    ui.label('SMARTCAPTCHA_CLIENT_KEY не задан').classes('text-negative text-caption w-full')
+                error_label = ui.label('').classes('text-negative w-full')
 
-            ui.button('Войти', on_click=try_login).classes('w-64')
-            username_input.on('keydown.enter', try_login)
-            password_input.on('keydown.enter', try_login)
+                async def try_login():
+                    username = (username_input.value or '').strip()
+                    password = password_input.value or ''
+                    credentials = Config.admin_vk_credentials
+
+                    if not Config.SMARTCAPTCHA_CLIENT_KEY:
+                        error_label.text = 'Капча не настроена в конфигурации'
+                        return
+
+                    captcha_token = await ui.run_javascript(
+                        "return window.__getSmartCaptchaToken('captcha-container-vk');"
+                    )
+                    captcha_ok, captcha_error = await validate_smartcaptcha_token(captcha_token)
+                    if not captcha_ok:
+                        error_label.text = captcha_error
+                        await ui.run_javascript("return window.__resetSmartCaptcha('captcha-container-vk');")
+                        return
+
+                    if not credentials:
+                        error_label.text = 'Учётные записи не настроены в конфигурации'
+                        return
+
+                    expected_password = credentials.get(username)
+                    if expected_password and secrets.compare_digest(password, expected_password):
+                        app.storage.user['auth_vk'] = True
+                        app.storage.user['auth_vk_user'] = username
+                        ui.navigate.to('/admin_vk')
+                    else:
+                        error_label.text = 'Неверный логин или пароль'
+                        await ui.run_javascript("return window.__resetSmartCaptcha('captcha-container-vk');")
+
+                ui.button('Войти', on_click=try_login).classes('w-full')
+                username_input.on('keydown.enter', try_login)
+                password_input.on('keydown.enter', try_login)
         return
 
     # === Авторизованная часть ===
