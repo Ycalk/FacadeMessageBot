@@ -92,6 +92,10 @@ class Settings(BaseSettings):
     # Токен для авторизации входящих запросов к API
     API_TOKEN: str = ""
 
+    # Yandex SmartCaptcha для админ-панелей
+    SMARTCAPTCHA_CLIENT_KEY: str = ""
+    SMARTCAPTCHA_SERVER_KEY: str = ""
+
     # Ссылка на условия пользования (отображается на стартовом экране)
     TERMS_OF_USE_URL: str = ""
 

@@ -1,5 +1,6 @@
 """Панель VK модерации для управления сообщениями."""
 
+import json
 import secrets
 
 from nicegui import app, ui
@@ -11,6 +12,7 @@ from db.models import Message, MessageStatus
 from db.session import async_session
 from services.stats import load_stats
 from services.vk_moderator import moderate_by_vk_moderator
+from services.smartcaptcha import validate_smartcaptcha_token
 
 logger = get_logger(__name__)
 
@@ -61,6 +63,64 @@ async def moderate_message_by_vk_moderator_ui(message_id: int, moderator_id: str
 async def vk_moderator_page():
     """Страница панели VK модерации с авторизацией."""
 
+    ui.add_head_html(
+        '''
+        <script src="https://smartcaptcha.cloud.yandex.ru/captcha.js" defer></script>
+        <script>
+            window.__smartCaptchaTokens = window.__smartCaptchaTokens || {};
+            window.__initSmartCaptchaWidget = window.__initSmartCaptchaWidget || async function(containerId, sitekey) {
+                const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+                for (let i = 0; i < 30; i++) {
+                    if (!window.smartCaptcha) {
+                        await delay(150);
+                        continue;
+                    }
+                    const container = document.getElementById(containerId);
+                    if (!container) return false;
+                    if (container.dataset.widgetId) return true;
+                    try {
+                        const widgetId = window.smartCaptcha.render(container, {
+                            sitekey: sitekey,
+                            hl: 'ru',
+                            callback: function(token) {
+                                window.__smartCaptchaTokens[containerId] = token;
+                            }
+                        });
+                        container.dataset.widgetId = String(widgetId);
+                        return true;
+                    } catch (e) {
+                        console.error('SmartCaptcha render error', e);
+                        return false;
+                    }
+                }
+                return false;
+            };
+
+            window.__getSmartCaptchaToken = window.__getSmartCaptchaToken || async function(containerId) {
+                const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+                const container = document.getElementById(containerId);
+                if (!container) return '';
+
+                let token = window.__smartCaptchaTokens[containerId] || '';
+                const widgetId = Number(container.dataset.widgetId || 'NaN');
+                if (!token && window.smartCaptcha && Number.isFinite(widgetId)) {
+                    try {
+                        await window.smartCaptcha.execute(widgetId);
+                        for (let i = 0; i < 40; i++) {
+                            token = window.__smartCaptchaTokens[containerId] || '';
+                            if (token) break;
+                            await delay(100);
+                        }
+                    } catch (e) {
+                        console.error('SmartCaptcha execute error', e);
+                    }
+                }
+                return token || '';
+            };
+        </script>
+        '''
+    )
+
     # Проверяем авторизацию
     if not app.storage.user.get('auth_vk'):
         # Показываем форму входа
@@ -70,12 +130,34 @@ async def vk_moderator_page():
             password_input = ui.input(
                 'Пароль', password=True, password_toggle_button=True
             ).classes('w-64')
+            if Config.SMARTCAPTCHA_CLIENT_KEY:
+                ui.html(
+                    f'<div id="captcha-container-vk" class="smart-captcha" '
+                    f'data-sitekey="{Config.SMARTCAPTCHA_CLIENT_KEY}"></div>'
+                ).classes('w-64').style('min-height: 100px;')
+                await ui.run_javascript(
+                    f"return window.__initSmartCaptchaWidget('captcha-container-vk', {json.dumps(Config.SMARTCAPTCHA_CLIENT_KEY)});"
+                )
+            else:
+                ui.label('SMARTCAPTCHA_CLIENT_KEY не задан').classes('text-negative text-caption w-64')
             error_label = ui.label('').classes('text-negative')
 
             async def try_login():
                 username = (username_input.value or '').strip()
                 password = password_input.value or ''
                 credentials = Config.admin_vk_credentials
+
+                if not Config.SMARTCAPTCHA_CLIENT_KEY:
+                    error_label.text = 'Капча не настроена в конфигурации'
+                    return
+
+                captcha_token = await ui.run_javascript(
+                    "return window.__getSmartCaptchaToken('captcha-container-vk');"
+                )
+                captcha_ok, captcha_error = await validate_smartcaptcha_token(captcha_token)
+                if not captcha_ok:
+                    error_label.text = captcha_error
+                    return
 
                 if not credentials:
                     error_label.text = 'Учётные записи не настроены в конфигурации'
