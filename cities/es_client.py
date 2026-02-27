@@ -8,6 +8,11 @@ def get_elasticsearch_client():
     """Создаем и возвращаем клиент Elasticsearch"""
     from elasticsearch import Elasticsearch
     from config import settings
+    if settings.elasticsearch_password:
+        return Elasticsearch(
+            settings.elasticsearch_url,
+            basic_auth=(settings.elasticsearch_username, settings.elasticsearch_password),
+        )
     return Elasticsearch(settings.elasticsearch_url)
 
 # Настройки индекса с русским анализатором

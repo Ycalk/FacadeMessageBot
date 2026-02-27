@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     
     # Elasticsearch settings
     elasticsearch_url: str = "http://elasticsearch:9200"
+    elasticsearch_username: str = "elastic"
+    elasticsearch_password: str = ""
+    cities_api_token: str = ""
 
     # Cities data file path
     cities_file_path: str = "/home/cities/app/data/cities.csv"

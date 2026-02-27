@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
+    REDIS_PASSWORD: str = ""
 
     # Moder Service
     MODER_SERVICE_URL: str = "http://localhost:8001"
@@ -29,6 +30,7 @@ class Settings(BaseSettings):
 
     # Cities service
     CITIES_SERVICE_URL: str = "http://cities:8080"
+    CITIES_API_TOKEN: str = ""
 
     # Webhook server для приёма хуков от Moder Service
     WEBHOOK_HOST: str = "0.0.0.0"
@@ -59,9 +61,8 @@ class Settings(BaseSettings):
         "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
         "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
         "0123456789"
-        " "
         "\n"
-        "-—!@#$&()-=_;:'\",.?|\\`№"
+        " -—!();:,.?"
     )
 
     # Database

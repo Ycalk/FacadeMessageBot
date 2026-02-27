@@ -7,8 +7,9 @@ import os
 from schemas import City, CitySearchResponse, SearchQuery
 from es_client import get_elasticsearch_client, INDEX_NAME
 from utils import parse_csv_cities
+from auth import verify_api_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[verify_api_token])
 
 
 @router.post("/search", response_model=CitySearchResponse, tags=["cities"],
@@ -72,61 +73,61 @@ async def search_cities(query: SearchQuery):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post(
-    "/upload", 
-    tags=["cities"],
-    summary="Загрузить CSV файл с городами",
-    description="""
-        Загружает новые города из CSV файла в базу данных.
+# @router.post(
+#     "/upload", 
+#     tags=["cities"],
+#     summary="Загрузить CSV файл с городами",
+#     description="""
+#         Загружает новые города из CSV файла в базу данных.
         
-        **Формат CSV файла (разделитель: ';' или ','):**
-        ```
-        city_name
-        Москва
-        Санкт-Петербург
-        Казань
-        ```
+#         **Формат CSV файла (разделитель: ';' или ','):**
+#         ```
+#         city_name
+#         Москва
+#         Санкт-Петербург
+#         Казань
+#         ```
         
-        **Поля:**
-        - `city_name` - **Название города** (обязательное, первый столбец)
+#         **Поля:**
+#         - `city_name` - **Название города** (обязательное, первый столбец)
         
-        Просто список городов, по одному на строку.
+#         Просто список городов, по одному на строку.
         
-        Файл должен содержать заголовок в первой строке.
-    """
-)
-async def upload_cities_csv(file: UploadFile = File(...)):
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be a CSV file")
+#         Файл должен содержать заголовок в первой строке.
+#     """
+# )
+# async def upload_cities_csv(file: UploadFile = File(...)):
+#     if not file.filename.endswith('.csv'):
+#         raise HTTPException(status_code=400, detail="File must be a CSV file")
     
-    # Сохраняем временный файл
-    temp_path = f"/tmp/{file.filename}"
-    try:
-        with open(temp_path, "wb") as temp_file:
-            content = await file.read()
-            temp_file.write(content)
+#     # Сохраняем временный файл
+#     temp_path = f"/tmp/{file.filename}"
+#     try:
+#         with open(temp_path, "wb") as temp_file:
+#             content = await file.read()
+#             temp_file.write(content)
         
-        # Парсим и загружаем
-        es = get_elasticsearch_client()
-        result = parse_csv_cities(temp_path, es, INDEX_NAME)
+#         # Парсим и загружаем
+#         es = get_elasticsearch_client()
+#         result = parse_csv_cities(temp_path, es, INDEX_NAME)
         
-        # Удаляем временный файл
-        os.remove(temp_path)
+#         # Удаляем временный файл
+#         os.remove(temp_path)
         
-        if result["success"]:
-            return {
-                "message": "Cities uploaded successfully",
-                "total_lines_processed": result["total_lines_processed"],
-                "cities_loaded": result["cities_loaded"]
-            }
-        else:
-            raise HTTPException(status_code=500, detail=result["error"])
+#         if result["success"]:
+#             return {
+#                 "message": "Cities uploaded successfully",
+#                 "total_lines_processed": result["total_lines_processed"],
+#                 "cities_loaded": result["cities_loaded"]
+#             }
+#         else:
+#             raise HTTPException(status_code=500, detail=result["error"])
             
-    except Exception as e:
-        # Очищаем временный файл в случае ошибки
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-        raise HTTPException(status_code=500, detail=str(e))
+#     except Exception as e:
+#         # Очищаем временный файл в случае ошибки
+#         if os.path.exists(temp_path):
+#             os.remove(temp_path)
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get(

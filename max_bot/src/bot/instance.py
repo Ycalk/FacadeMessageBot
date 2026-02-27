@@ -45,10 +45,11 @@ redis = Redis(
     host=Config.REDIS_HOST,
     port=Config.REDIS_PORT,
     db=Config.REDIS_DB,
+    password=Config.REDIS_PASSWORD or None,
 )
 
 name_validator = NameValidator(Config.NAMES_FILE_PATH)
-cities_client = CitiesClient(Config.CITIES_SERVICE_URL)
+cities_client = CitiesClient(Config.CITIES_SERVICE_URL, Config.CITIES_API_TOKEN)
 antispam = AntiSpam(redis)
 
 

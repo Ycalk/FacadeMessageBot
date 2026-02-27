@@ -16,9 +16,12 @@ class CitySearchResponse:
 
 
 class CitiesClient:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, api_token: str = ""):
         self.base_url = base_url.rstrip('/')
-        self.client = httpx.AsyncClient()
+        headers = {}
+        if api_token:
+            headers["Authorization"] = f"Bearer {api_token}"
+        self.client = httpx.AsyncClient(headers=headers)
 
     async def search_cities(
         self, query: str, limit: int = 5
