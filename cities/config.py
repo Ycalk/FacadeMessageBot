@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     elasticsearch_url: str = "http://elasticsearch:9200"
     elasticsearch_username: str = "elastic"
     elasticsearch_password: str = ""
+    elasticsearch_verify_certs: bool = False
+    elasticsearch_ca_cert: str = "/certs/ca/ca.crt"
     cities_api_token: str = ""
 
     # Cities data file path

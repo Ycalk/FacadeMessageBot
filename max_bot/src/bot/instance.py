@@ -46,10 +46,17 @@ redis = Redis(
     port=Config.REDIS_PORT,
     db=Config.REDIS_DB,
     password=Config.REDIS_PASSWORD or None,
+    ssl=Config.REDIS_SSL,
+    ssl_ca_certs=Config.REDIS_CA_CERT if Config.REDIS_SSL else None,
 )
 
 name_validator = NameValidator(Config.NAMES_FILE_PATH)
-cities_client = CitiesClient(Config.CITIES_SERVICE_URL, Config.CITIES_API_TOKEN)
+cities_client = CitiesClient(
+    Config.CITIES_SERVICE_URL,
+    Config.CITIES_API_TOKEN,
+    verify_tls=Config.CITIES_VERIFY_TLS,
+    ca_cert_path=Config.CITIES_CA_CERT,
+)
 antispam = AntiSpam(redis)
 
 

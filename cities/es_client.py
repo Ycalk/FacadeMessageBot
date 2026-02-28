@@ -8,12 +8,18 @@ def get_elasticsearch_client():
     """Создаем и возвращаем клиент Elasticsearch"""
     from elasticsearch import Elasticsearch
     from config import settings
+    kwargs = {
+        "verify_certs": settings.elasticsearch_verify_certs,
+    }
+    if settings.elasticsearch_verify_certs and settings.elasticsearch_ca_cert:
+        kwargs["ca_certs"] = settings.elasticsearch_ca_cert
     if settings.elasticsearch_password:
         return Elasticsearch(
             settings.elasticsearch_url,
             basic_auth=(settings.elasticsearch_username, settings.elasticsearch_password),
+            **kwargs,
         )
-    return Elasticsearch(settings.elasticsearch_url)
+    return Elasticsearch(settings.elasticsearch_url, **kwargs)
 
 # Настройки индекса с русским анализатором
 INDEX_MAPPING = {

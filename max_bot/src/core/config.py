@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
     REDIS_PASSWORD: str = ""
+    REDIS_SSL: bool = False
+    REDIS_CA_CERT: str = "/certs/ca/ca.crt"
 
     # Moder Service
     MODER_SERVICE_URL: str = "http://localhost:8001"
@@ -31,6 +33,8 @@ class Settings(BaseSettings):
     # Cities service
     CITIES_SERVICE_URL: str = "http://cities:8080"
     CITIES_API_TOKEN: str = ""
+    CITIES_VERIFY_TLS: bool = False
+    CITIES_CA_CERT: str = "/certs/ca/ca.crt"
 
     # Webhook server для приёма хуков от Moder Service
     WEBHOOK_HOST: str = "0.0.0.0"
@@ -69,6 +73,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         "postgresql+asyncpg://botuser:botpass@localhost:5432/botdb"
     )
+    POSTGRES_SSL: bool = False
+    POSTGRES_CA_CERT: str = "/certs/ca/ca.crt"
 
     # Redis context TTL (7 дней в секундах)
     REDIS_CONTEXT_TTL: int = 7 * 24 * 3600  # 604800 секунд

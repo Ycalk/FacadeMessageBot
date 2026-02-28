@@ -43,6 +43,9 @@ created
 ## Запуск
 
 ```bash
+# Сгенерировать внутренние TLS-сертификаты
+./certs/generate.sh --force
+
 # Все сервисы
 docker-compose up --build
 
@@ -65,7 +68,19 @@ BOT_WEBHOOK_URL=https://...
 
 # БД
 DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/botdb
+POSTGRES_SSL=true
+POSTGRES_CA_CERT=/certs/ca/ca.crt
 REDIS_HOST=localhost
+REDIS_PASSWORD=...
+REDIS_SSL=true
+REDIS_CA_CERT=/certs/ca/ca.crt
+
+# Elasticsearch (cities service)
+ELASTIC_PASSWORD=...
+CITIES_API_TOKEN=...
+CITIES_SERVICE_URL=https://cities:8080
+CITIES_VERIFY_TLS=true
+CITIES_CA_CERT=/certs/ca/ca.crt
 
 # Модерация
 MISTRAL_API_KEY=...
@@ -81,9 +96,11 @@ MAX_MESSAGE_LENGTH=80
 MAX_NAME_LENGTH=15
 MAXIMUM_MESSAGES_PER_USER=2
 
-# Пароли admin-панелей
-ADMIN_INTERNAL_PASSWORD=...
-ADMIN_VK_PASSWORD=...
+# Учетки admin-панелей (формат: user1:pass1,user2:pass2)
+ADMIN_INTERNAL_CREDENTIALS=admin:...
+ADMIN_VK_CREDENTIALS=vkadmin:...
+SMARTCAPTCHA_CLIENT_KEY=ysc1_...
+SMARTCAPTCHA_SERVER_KEY=ysc2_...
 
 # Режим разработки (отключает запросы к Maer)
 DEVELOP=false
@@ -91,7 +108,7 @@ DEVELOP=false
 
 ## Admin-панели
 
-Доступны по адресу сервера после авторизации по паролю.
+Доступны по адресу сервера после авторизации по логину и паролю.
 
 ### `/admin_internal` — Внутренняя модерация
 - Таблица всех сообщений со статусами
