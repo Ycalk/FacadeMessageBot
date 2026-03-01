@@ -24,4 +24,10 @@ RUN poetry install
 
 EXPOSE 8080
 
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+CMD [
+  "poetry", "run", "uvicorn", "main:app",
+  "--host", "0.0.0.0",
+  "--port", "8080",
+  "--ssl-certfile", "/certs/cities/cities.crt",
+  "--ssl-keyfile", "/certs/cities/cities.key"
+]

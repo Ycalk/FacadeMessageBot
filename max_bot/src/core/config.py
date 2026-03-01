@@ -24,9 +24,6 @@ class Settings(BaseSettings):
     REDIS_SSL: bool = False
     REDIS_CA_CERT: str = "/certs/ca/ca.crt"
 
-    # Moder Service
-    MODER_SERVICE_URL: str = "http://localhost:8001"
-
     # External moderator service (внешняя модерация)
     EXTERNAL_MODERATOR_URL: str = ""
 
