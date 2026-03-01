@@ -25,11 +25,14 @@ def create_app() -> FastAPI:
     import_module("ui.moderator_panel")  # /admin_internal
     import_module("ui.admin_vk")         # /admin_vk
 
+    if not Config.UI_STORAGE_SECRET:
+        raise RuntimeError("UI_STORAGE_SECRET не задан")
+
     # Подключаем NiceGUI для админ-панелей
     ui.run_with(
         app,
         mount_path='/ui',
-        storage_secret='secret_key_for_ui',
+        storage_secret=Config.UI_STORAGE_SECRET,
     )
 
     return app
