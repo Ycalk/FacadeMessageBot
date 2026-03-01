@@ -1,5 +1,7 @@
 """Авторизация для API эндпоинтов."""
 
+from hmac import compare_digest
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -16,10 +18,13 @@ async def _check_token(
 ) -> str:
     """Проверяет Bearer токен из заголовка Authorization."""
     if not Config.API_TOKEN:
-        logger.warning("API_TOKEN не настроен, авторизация отключена")
-        return credentials.credentials
+        logger.error("API_TOKEN не настроен")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Сервис не настроен: API_TOKEN не задан",
+        )
 
-    if credentials.credentials != Config.API_TOKEN:
+    if not compare_digest(credentials.credentials, Config.API_TOKEN):
         logger.warning("Неверный API токен")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
