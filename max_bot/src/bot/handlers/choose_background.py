@@ -3,6 +3,7 @@
 import asyncio
 from functools import partial
 
+from maxapi.enums.parse_mode import ParseMode
 from maxapi.types import MessageCallback, CallbackButton
 from maxapi.types.input_media import InputMediaBuffer
 from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
@@ -15,6 +16,14 @@ from bot.handlers.wrong_step import reply_wrong_step_for_callback
 from services.backgrounds import BACKGROUND_IDS, generate_text_preview_bytes
 
 logger = get_logger(__name__)
+
+
+def _escape_markdown(text: str) -> str:
+    """Экранирует markdown-символы в пользовательском вводе."""
+    if not text:
+        return ""
+    escape_chars = "\\`*_[]()"
+    return "".join(f"\\{ch}" if ch in escape_chars else ch for ch in text)
 
 
 async def choose_background(callback: MessageCallback) -> None:
@@ -61,15 +70,16 @@ async def choose_background(callback: MessageCallback) -> None:
     keyboard.row(CallbackButton(text=Texts.Buttons.edit_fields, payload="edit_greeting"))
 
     preview_text = Texts.Messages.preview_format.format(
-        message=message_text,
-        name=name,
-        city=city,
+        message=_escape_markdown(message_text),
+        name=_escape_markdown(name),
+        city=_escape_markdown(city),
     )
 
     if preview_bytes is not None:
         await send_photo_message(
             user_id=user_id,
             text=preview_text,
+            parse_mode=ParseMode.MARKDOWN,
             attachments=[
                 InputMediaBuffer(
                     buffer=preview_bytes,
@@ -83,5 +93,6 @@ async def choose_background(callback: MessageCallback) -> None:
         await send_message(
             user_id=user_id,
             text=preview_text,
+            parse_mode=ParseMode.MARKDOWN,
             attachments=[keyboard.as_markup()],
         )
