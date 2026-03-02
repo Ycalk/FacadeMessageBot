@@ -223,6 +223,12 @@ async def moderator_page():
         MessageStatus.REJECTED: 'Отклонено',
     }
 
+    def format_dt_msk(value) -> str:
+        """Форматирует datetime в UTC+3 для отображения в таблице."""
+        if value is None:
+            return '—'
+        return (value + _MSK).strftime("%Y-%m-%d %H:%M")
+
     def prepare_table_rows():
         """Подготавливает данные для таблицы."""
         rows = []
@@ -242,6 +248,8 @@ async def moderator_page():
                 'status': msg.status,
                 'status_color': status_colors.get(msg.status, 'grey'),
                 'created_at': (msg.created_at + _MSK).strftime("%Y-%m-%d %H:%M"),
+                'planned_shown_at': format_dt_msk(msg.planned_show_at),
+                'shown_time': format_dt_msk(msg.shown_time),
                 'approvals': item['approvals'],
                 'is_moderation_active': msg.status == MessageStatus.INTERNAL_MODERATION,
                 'want_photo': 'Да' if want_photo is True else ('Нет' if want_photo is False else '—'),
@@ -382,6 +390,8 @@ async def moderator_page():
                 {'name': 'shown_on_facade', 'label': 'Показано на фасаде', 'field': 'shown_on_facade', 'sortable': True, 'align': 'center'},
                 {'name': 'photo_sent', 'label': 'Фото отправлено', 'field': 'photo_sent', 'sortable': True, 'align': 'center'},
                 {'name': 'reminder_sent', 'label': 'Напоминание', 'field': 'reminder_sent', 'sortable': True, 'align': 'center'},
+                {'name': 'planned_shown_at', 'label': 'Плановый показ (МСК)', 'field': 'planned_shown_at', 'sortable': True, 'align': 'center'},
+                {'name': 'shown_time', 'label': 'Факт показа (МСК)', 'field': 'shown_time', 'sortable': True, 'align': 'center'},
                 {'name': 'created_at', 'label': 'Создано', 'field': 'created_at', 'sortable': True, 'align': 'center'},
                 {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
             ]

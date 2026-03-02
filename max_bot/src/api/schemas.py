@@ -29,6 +29,7 @@ class MessageModeratedRequest(BaseModel):
     id: int  # ID сообщения
     status: int  # 0, 1, 2
     reason: str | None = None  # Причина отклонения (опционально)
+    planned_show_at: datetime | None = None  # Запланированное время показа на фасаде (UTC)
 
 
 class MessageShownOnFacadeRequest(BaseModel):

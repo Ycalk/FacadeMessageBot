@@ -42,6 +42,7 @@ class Message(Base):
     frame_id: Mapped[int | None]
     status: Mapped[str] = mapped_column(default=MessageStatus.INTERNAL_MODERATION)
     shown_on_facade: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Был показ на фасаде
+    planned_show_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # Запланированное время показа от Maer (UTC)
     shown_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # Время прихода webhook /maer/shown (UTC)
     photo_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Фото отправлено пользователю
     reminder_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Напоминание о показе отправлено

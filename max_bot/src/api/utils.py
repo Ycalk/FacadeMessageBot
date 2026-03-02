@@ -1,5 +1,7 @@
 """Утилиты для работы с сообщениями и уведомлениями пользователей."""
 
+from datetime import datetime, timedelta, timezone
+
 import httpx
 from sqlalchemy import select
 from maxapi.types.input_media import InputMediaBuffer
@@ -13,6 +15,36 @@ from bot.instance import send_message, send_photo_message
 from bot.texts import Texts
 
 logger = get_logger(__name__)
+_MSK_TZ = timezone(timedelta(hours=3))
+_MONTHS_RU = {
+    1: "января",
+    2: "февраля",
+    3: "марта",
+    4: "апреля",
+    5: "мая",
+    6: "июня",
+    7: "июля",
+    8: "августа",
+    9: "сентября",
+    10: "октября",
+    11: "ноября",
+    12: "декабря",
+}
+
+
+def format_planned_show_time(planned_show_at: datetime | None) -> str:
+    """Форматирует дату планового показа для текста пользователю."""
+    if planned_show_at is None:
+        return "8 марта 2026г"
+
+    if planned_show_at.tzinfo is None:
+        show_at_utc = planned_show_at.replace(tzinfo=timezone.utc)
+    else:
+        show_at_utc = planned_show_at.astimezone(timezone.utc)
+
+    show_at_msk = show_at_utc.astimezone(_MSK_TZ)
+    month_name = _MONTHS_RU[show_at_msk.month]
+    return f"{show_at_msk.day} {month_name} {show_at_msk.year}г"
 
 
 async def send_facade_image(message_id: int, image_bytes: bytes) -> None:
@@ -119,7 +151,9 @@ async def notify_user_moderation_result(message_id: int, approved: bool) -> None
 
     if user:
         if approved:
-            text = Texts.Messages.approved
+            text = Texts.Messages.approved.format(
+                show_time=format_planned_show_time(message.planned_show_at)
+            )
 
             keyboard = InlineKeyboardBuilder()
             keyboard.add(

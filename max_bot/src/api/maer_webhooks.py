@@ -37,6 +37,9 @@ async def message_moderated(request: MessageModeratedRequest):
     status: 0 - на модерации, 1 - успешно, 2 - отклонён
     """
     try:
+        should_notify_approved = False
+        should_notify_rejected = False
+
         async with async_session() as session:
             result = await session.execute(
                 select(Message).where(Message.id == request.id)
@@ -46,6 +49,9 @@ async def message_moderated(request: MessageModeratedRequest):
             if not message:
                 logger.error(f"Сообщение {request.id} не найдено для обработки webhook")
                 raise HTTPException(status_code=404, detail="Сообщение не найдено")
+
+            if request.planned_show_at is not None:
+                message.planned_show_at = request.planned_show_at
 
             if request.status in {1, 2} and message.status != MessageStatus.MAER_MODERATION:
                 logger.warning(
@@ -57,6 +63,7 @@ async def message_moderated(request: MessageModeratedRequest):
             # Обработка статуса от Maer
             if request.status == 0:
                 # На модерации - не обновляем статус
+                await session.commit()
                 logger.info(f"Сообщение {request.id} на модерации в Maer")
                 return {"status": "ok"}
 
@@ -64,9 +71,7 @@ async def message_moderated(request: MessageModeratedRequest):
                 # Одобрено
                 message.status = MessageStatus.APPROVED
                 logger.info(f"Сообщение {request.id} одобрено Maer → APPROVED")
-
-                # Уведомляем пользователя об одобрении
-                await notify_user_moderation_result(request.id, approved=True)
+                should_notify_approved = True
 
             elif request.status == 2:
                 # Отклонено
@@ -80,15 +85,18 @@ async def message_moderated(request: MessageModeratedRequest):
                 if not message.meta:
                     message.meta = {}
                 message.meta["maer_rejection_reason"] = reason
-
-                # Уведомляем пользователя об отклонении
-                await notify_user_moderation_result(request.id, approved=False)
+                should_notify_rejected = True
 
             else:
                 logger.error(f"Неизвестный статус {request.status} от Maer для сообщения {request.id}")
                 raise HTTPException(status_code=422, detail=f"Неизвестный статус: {request.status}")
 
             await session.commit()
+
+        if should_notify_approved:
+            await notify_user_moderation_result(request.id, approved=True)
+        elif should_notify_rejected:
+            await notify_user_moderation_result(request.id, approved=False)
 
         return {"status": "ok"}
 
