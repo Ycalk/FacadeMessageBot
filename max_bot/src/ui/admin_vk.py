@@ -2,6 +2,7 @@
 
 import json
 import secrets
+from datetime import timedelta
 
 from nicegui import app, ui
 from sqlalchemy import select
@@ -15,6 +16,8 @@ from services.vk_moderator import moderate_by_vk_moderator
 from services.smartcaptcha import validate_smartcaptcha_token
 
 logger = get_logger(__name__)
+
+_MSK = timedelta(hours=3)
 
 # Статусы, которые могут быть достигнуты только через VK модерацию
 _VK_VISIBLE_STATUSES = {
@@ -234,7 +237,7 @@ async def vk_moderator_page():
                 'city': msg.city,
                 'status': msg.status,
                 'status_color': status_colors.get(msg.status, 'grey'),
-                'created_at': msg.created_at.strftime("%Y-%m-%d %H:%M"),
+                'created_at': (msg.created_at + _MSK).strftime("%Y-%m-%d %H:%M"),
                 'vk_approvals': item['vk_approvals'],
                 'is_moderation_active': msg.status == MessageStatus.VK_MODERATION,
                 'want_photo': 'Да' if want_photo is True else ('Нет' if want_photo is False else '—'),

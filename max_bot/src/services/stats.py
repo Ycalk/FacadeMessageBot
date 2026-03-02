@@ -2,7 +2,7 @@
 
 from datetime import date, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from db.models import Message, MessageInputLog, MessageStatus, User
 from db.session import async_session
@@ -77,20 +77,24 @@ async def load_stats() -> dict:
         }
 
 
+_MSK = timedelta(hours=3)
+
+
 async def load_hourly_stats(target_date: date) -> list[dict]:
-    """Возвращает количество сообщений по часам за указанный день (все 24 часа)."""
-    start = datetime(target_date.year, target_date.month, target_date.day)
-    end = start + timedelta(days=1)
+    """Возвращает количество сообщений по часам за указанный день (UTC+3, все 24 часа)."""
+    # Границы дня в UTC: день по МСК — это [day-3h, day+21h) по UTC
+    start_utc = datetime(target_date.year, target_date.month, target_date.day) - _MSK
+    end_utc = start_utc + timedelta(days=1)
 
     async with async_session() as session:
         result = await session.execute(
             select(
-                func.date_trunc('hour', Message.created_at).label('hour'),
+                func.date_trunc('hour', Message.created_at + text("interval '3 hours'")).label('hour'),
                 func.count(Message.id).label('count'),
             )
-            .where(Message.created_at >= start, Message.created_at < end)
-            .group_by(func.date_trunc('hour', Message.created_at))
-            .order_by(func.date_trunc('hour', Message.created_at))
+            .where(Message.created_at >= start_utc, Message.created_at < end_utc)
+            .group_by(text('1'))
+            .order_by(text('1'))
         )
         rows = result.all()
 

@@ -1,12 +1,11 @@
 """Панель модератора для управления сообщениями."""
 
 import asyncio
-import base64
 import csv
 import io
 import json
 import secrets
-from datetime import date
+from datetime import date, timedelta
 
 from nicegui import app, ui
 from sqlalchemy import select
@@ -32,6 +31,9 @@ from services.internal_moderator import moderate_by_moderator
 from services.smartcaptcha import validate_smartcaptcha_token
 
 logger = get_logger(__name__)
+
+_MSK = timedelta(hours=3)
+
 
 async def load_messages():
     """Загружает все сообщения из БД."""
@@ -239,7 +241,7 @@ async def moderator_page():
                 'city': msg.city,
                 'status': msg.status,
                 'status_color': status_colors.get(msg.status, 'grey'),
-                'created_at': msg.created_at.strftime("%Y-%m-%d %H:%M"),
+                'created_at': (msg.created_at + _MSK).strftime("%Y-%m-%d %H:%M"),
                 'approvals': item['approvals'],
                 'is_moderation_active': msg.status == MessageStatus.INTERNAL_MODERATION,
                 'want_photo': 'Да' if want_photo is True else ('Нет' if want_photo is False else '—'),
@@ -490,7 +492,7 @@ async def moderator_page():
 
             def bl_rows():
                 return [
-                    {'id': w.id, 'word': w.word, 'created_at': w.created_at.strftime("%Y-%m-%d %H:%M")}
+                    {'id': w.id, 'word': w.word, 'created_at': (w.created_at + _MSK).strftime("%Y-%m-%d %H:%M")}
                     for w in bl_words
                 ]
 
@@ -691,26 +693,12 @@ async def moderator_page():
                 rows = await load_hourly_stats(target)
 
                 buf = io.StringIO()
-                writer = csv.DictWriter(buf, fieldnames=['час', 'сообщений'])
+                writer = csv.DictWriter(buf, fieldnames=['час', 'сообщений'], delimiter=';')
                 writer.writeheader()
                 writer.writerows(rows)
 
                 filename = f'messages_by_hour_{target.isoformat()}.csv'
-                b64 = base64.b64encode(buf.getvalue().encode('utf-8-sig')).decode()
-                await ui.run_javascript(f"""
-                    const bytes = atob('{b64}');
-                    const arr = new Uint8Array(bytes.length);
-                    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-                    const blob = new Blob([arr], {{type: 'text/csv;charset=utf-8;'}});
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = '{filename}';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                """)
+                ui.download.content(buf.getvalue().encode('utf-8-sig'), filename)
                 ui.notify(f'CSV готов: {filename}', type='positive')
 
             ui.button('Скачать CSV', icon='download', on_click=export_csv, color='primary').classes('q-mt-md')
