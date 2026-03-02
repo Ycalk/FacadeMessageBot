@@ -1,6 +1,7 @@
 """Панель модератора для управления сообщениями."""
 
 import asyncio
+import base64
 import csv
 import io
 import json
@@ -695,7 +696,21 @@ async def moderator_page():
                 writer.writerows(rows)
 
                 filename = f'messages_by_hour_{target.isoformat()}.csv'
-                ui.download(buf.getvalue().encode('utf-8-sig'), filename)
+                b64 = base64.b64encode(buf.getvalue().encode('utf-8-sig')).decode()
+                await ui.run_javascript(f"""
+                    const bytes = atob('{b64}');
+                    const arr = new Uint8Array(bytes.length);
+                    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+                    const blob = new Blob([arr], {{type: 'text/csv;charset=utf-8;'}});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '{filename}';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                """)
                 ui.notify(f'CSV готов: {filename}', type='positive')
 
             ui.button('Скачать CSV', icon='download', on_click=export_csv, color='primary').classes('q-mt-md')
