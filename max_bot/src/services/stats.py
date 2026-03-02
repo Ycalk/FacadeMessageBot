@@ -1,5 +1,7 @@
 """Сервис для получения статистики."""
 
+from datetime import date, datetime, timedelta
+
 from sqlalchemy import func, select
 
 from db.models import Message, MessageInputLog, MessageStatus, User
@@ -73,3 +75,27 @@ async def load_stats() -> dict:
             'waiting_for_photo': waiting_for_photo or 0,
             'photo_sent_count': photo_sent_count or 0,
         }
+
+
+async def load_hourly_stats(target_date: date) -> list[dict]:
+    """Возвращает количество сообщений по часам за указанный день (все 24 часа)."""
+    start = datetime(target_date.year, target_date.month, target_date.day)
+    end = start + timedelta(days=1)
+
+    async with async_session() as session:
+        result = await session.execute(
+            select(
+                func.date_trunc('hour', Message.created_at).label('hour'),
+                func.count(Message.id).label('count'),
+            )
+            .where(Message.created_at >= start, Message.created_at < end)
+            .group_by(func.date_trunc('hour', Message.created_at))
+            .order_by(func.date_trunc('hour', Message.created_at))
+        )
+        rows = result.all()
+
+    hourly: dict[int, int] = {h: 0 for h in range(24)}
+    for row in rows:
+        hourly[row.hour.hour] = row.count
+
+    return [{'час': f'{h:02d}:00', 'сообщений': hourly[h]} for h in range(24)]

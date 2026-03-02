@@ -1,4 +1,3 @@
-import asyncio
 from maxapi import Bot, Dispatcher
 from redis.asyncio import Redis
 
@@ -14,24 +13,16 @@ logger = get_logger(__name__)
 bot = Bot(Config.BOT_TOKEN)
 dispatcher = Dispatcher()
 
-_RATE_LIMIT_BASE_PAUSE = 5.0
-_SEND_MAX_RETRIES = 3
-
-
 async def _send_with_retry(user_id: int, **kwargs) -> None:
-    """Отправляет сообщение через бот с retry при 429."""
-    for attempt in range(_SEND_MAX_RETRIES):
-        try:
-            return await bot.send_message(user_id=user_id, **kwargs)
-        except Exception as e:
-            err = str(e).lower()
-            if '429' in err or 'too.many.requests' in err or 'too_many' in err:
-                wait = _RATE_LIMIT_BASE_PAUSE * (attempt + 1)
-                logger.warning(f"Rate limit для {user_id}, ждём {wait:.0f}с (попытка {attempt + 1}/{_SEND_MAX_RETRIES})")
-                await asyncio.sleep(wait)
-                continue
-            raise
-    raise RuntimeError(f"Все {_SEND_MAX_RETRIES} попытки отправки пользователю {user_id} исчерпаны")
+    """Отправляет сообщение через бот. При rate limit — дропает без retry."""
+    try:
+        await bot.send_message(user_id=user_id, **kwargs)
+    except Exception as e:
+        err = str(e).lower()
+        if '429' in err or 'too.many.requests' in err or 'too_many' in err:
+            logger.warning(f"Rate limit MAX API, сообщение пользователю {user_id} дропнуто")
+            return
+        raise
 
 
 async def send_message(user_id: int, **kwargs) -> None:
@@ -48,6 +39,7 @@ redis = Redis(
     password=Config.REDIS_PASSWORD or None,
     ssl=Config.REDIS_SSL,
     ssl_ca_certs=Config.REDIS_CA_CERT if Config.REDIS_SSL else None,
+    max_connections=200,
 )
 
 name_validator = NameValidator(Config.NAMES_FILE_PATH)

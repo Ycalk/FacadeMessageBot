@@ -1,8 +1,11 @@
 """Панель модератора для управления сообщениями."""
 
 import asyncio
+import csv
+import io
 import json
 import secrets
+from datetime import date
 
 from nicegui import app, ui
 from sqlalchemy import select
@@ -22,7 +25,7 @@ from services.app_settings import (
     set_setting,
 )
 from services.broadcast import send_march_reminder
-from services.stats import load_stats
+from services.stats import load_hourly_stats, load_stats
 from services.blacklist import add_word, add_words_bulk, delete_word, get_all_words
 from services.internal_moderator import moderate_by_moderator
 from services.smartcaptcha import validate_smartcaptcha_token
@@ -336,6 +339,7 @@ async def moderator_page():
         ui.tab('blacklist', label='Чёрный список', icon='block')
         ui.tab('prompt', label='Промпт Mistral', icon='psychology')
         ui.tab('broadcast', label='Рассылка', icon='campaign')
+        ui.tab('stats', label='Статистика', icon='bar_chart')
 
     with ui.tab_panels(tabs, value='messages').classes('w-full'):
 
@@ -654,3 +658,44 @@ async def moderator_page():
                 asyncio.create_task(_broadcast_task(url))
 
             broadcast_btn.on_click(do_broadcast)
+
+        # ── Таб: Статистика ──────────────────────────────────────────────────
+        with ui.tab_panel('stats'):
+            ui.label('Сообщения по часам').classes('text-subtitle1 q-mb-xs')
+            ui.label('Выберите день и скачайте CSV с разбивкой по часам.').classes('text-caption text-grey q-mb-md')
+
+            today_str = date.today().strftime('%Y-%m-%d')
+            date_input = ui.input(
+                label='Дата',
+                value=today_str,
+                placeholder='YYYY-MM-DD',
+            ).classes('w-48').props('outlined')
+            with date_input:
+                with ui.menu() as date_menu:
+                    date_picker = ui.date(value=today_str).props('minimal')
+                    date_picker.on_value_change(lambda e: (
+                        date_input.set_value(e.value),
+                        date_menu.close(),
+                    ))
+                ui.button(icon='event', on_click=date_menu.open).props('flat dense')
+
+            async def export_csv():
+                raw = date_input.value.strip()
+                try:
+                    target = date.fromisoformat(raw)
+                except ValueError:
+                    ui.notify('Неверный формат даты, используйте YYYY-MM-DD', type='negative')
+                    return
+
+                rows = await load_hourly_stats(target)
+
+                buf = io.StringIO()
+                writer = csv.DictWriter(buf, fieldnames=['час', 'сообщений'])
+                writer.writeheader()
+                writer.writerows(rows)
+
+                filename = f'messages_by_hour_{target.isoformat()}.csv'
+                ui.download(buf.getvalue().encode('utf-8-sig'), filename)
+                ui.notify(f'CSV готов: {filename}', type='positive')
+
+            ui.button('Скачать CSV', icon='download', on_click=export_csv, color='primary').classes('q-mt-md')
