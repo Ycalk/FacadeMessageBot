@@ -14,6 +14,7 @@ MISTRAL_PROMPT_KEY = "mistral_custom_prompt"
 AUTO_APPROVE_KEY = "auto_approve_moderators"  # comma-separated список модераторов с автоодобрением
 MARCH_REMINDER_SENT_KEY = "march_reminder_sent_at"  # ISO-время последней рассылки напоминания
 STREAM_URL_KEY = "stream_url"  # URL прямой трансляции
+ACCEPTING_MESSAGES_KEY = "accepting_messages"  # true/false — принимаются ли сообщения
 DEFAULT_MISTRAL_PROMPT = """\
 Ты модератор поздравлений для медиафасада здания.
 Твоя задача - проверить сообщение на соответствие правилам:
@@ -74,10 +75,22 @@ async def set_auto_approve_moderators(moderator_ids: set[str]) -> None:
     await set_setting(AUTO_APPROVE_KEY, ",".join(sorted(moderator_ids)))
 
 
+async def get_accepting_messages() -> bool:
+    """Возвращает True, если приём сообщений включён."""
+    value = await get_setting(ACCEPTING_MESSAGES_KEY, "true")
+    return value.lower() == "true"
+
+
+async def set_accepting_messages(accepting: bool) -> None:
+    """Включает или отключает приём сообщений."""
+    await set_setting(ACCEPTING_MESSAGES_KEY, "true" if accepting else "false")
+
+
 async def init_default_settings() -> None:
     """Записывает дефолтные настройки в БД при первом запуске (не перезаписывает существующие)."""
     defaults = {
         MISTRAL_PROMPT_KEY: DEFAULT_MISTRAL_PROMPT,
+        ACCEPTING_MESSAGES_KEY: "true",
     }
     async with async_session() as session:
         for key, value in defaults.items():

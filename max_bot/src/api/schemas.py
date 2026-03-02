@@ -42,6 +42,11 @@ class MessageShownOnFacadeRequest(BaseModel):
     type: int  # 1 = shown
 
 
+class AcceptingMessagesRequest(BaseModel):
+    """Запрос на изменение режима приёма сообщений."""
+    accepting: bool
+
+
 class MessageResponse(BaseModel):
     """Ответ со списком сообщений."""
     id: int

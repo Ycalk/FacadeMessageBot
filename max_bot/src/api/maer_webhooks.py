@@ -5,16 +5,26 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
 from core.logger import get_logger
-from api.schemas import MessageModeratedRequest, MessageShownOnFacadeRequest
+from api.schemas import AcceptingMessagesRequest, MessageModeratedRequest, MessageShownOnFacadeRequest
 from api.auth import verify_api_token
 from api.utils import notify_user_moderation_result
 from db.models import Message, MessageStatus
 from db.session import async_session
+from services.app_settings import set_accepting_messages
 
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/maer", dependencies=[verify_api_token])
+
+
+@router.put("/accepting")
+async def set_accepting(request: AcceptingMessagesRequest):
+    """Включает или отключает приём сообщений от пользователей."""
+    await set_accepting_messages(request.accepting)
+    state = "включён" if request.accepting else "отключён"
+    logger.info(f"Приём сообщений {state}")
+    return {"status": "ok", "accepting": request.accepting}
 
 
 @router.post("/moderated")

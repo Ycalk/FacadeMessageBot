@@ -1,13 +1,16 @@
 from maxapi import Router, F
 from core.logger import get_logger
 
-from bot.instance import get_context, antispam
+from maxapi.enums.parse_mode import ParseMode
+
+from bot.instance import get_context, antispam, send_message
 from bot.states import UserStates
 from bot.texts import Texts
 from bot.handlers.get_message import get_message
 from bot.handlers.get_name import get_name
 from bot.handlers.get_city import get_city
 from bot.handlers.wrong_step import reply_wrong_step_for_message
+from services.app_settings import get_accepting_messages
 from services.message_input_logs import log_get_message_input
 
 logger = get_logger(__name__)
@@ -25,6 +28,15 @@ async def _handle_text(event):
 
     ctx = get_context(user_id)
     current_state = await ctx.get_state()
+
+    # Проверка приёма сообщений
+    if not await get_accepting_messages():
+        await send_message(
+            user_id=user_id,
+            text=Texts.Messages.messages_not_accepting,
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
 
     # Антиспам-проверка
     if not await antispam.record_action(user_id):
