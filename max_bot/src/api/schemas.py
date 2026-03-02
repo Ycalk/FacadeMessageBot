@@ -52,6 +52,7 @@ class MessageResponse(BaseModel):
     frame_id: int | None
     status: str
     shown_on_facade: bool
+    shown_time: datetime | None
     photo_sent: bool
     want_photo: bool | None
     preview_url: str | None

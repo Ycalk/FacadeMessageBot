@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import ForeignKey, Text, func, JSON, text
+from sqlalchemy import DateTime, ForeignKey, Text, func, JSON, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -42,6 +42,7 @@ class Message(Base):
     frame_id: Mapped[int | None]
     status: Mapped[str] = mapped_column(default=MessageStatus.INTERNAL_MODERATION)
     shown_on_facade: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Был показ на фасаде
+    shown_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # Время прихода webhook /maer/shown (UTC)
     photo_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Фото отправлено пользователю
     reminder_sent: Mapped[bool] = mapped_column(default=False, server_default=text("false"))  # Напоминание о показе отправлено
     want_photo: Mapped[bool | None]               # Хочет ли получить фото фасада (None = не ответил)

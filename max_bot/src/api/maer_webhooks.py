@@ -1,6 +1,6 @@
 """Webhooks для интеграции с Maer API."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
@@ -123,18 +123,21 @@ async def message_shown(request: MessageShownOnFacadeRequest):
                 )
                 return {"status": "ignored", "reason": "message_not_moderated"}
 
+            shown_at_utc = datetime.now(timezone.utc)
             message.shown_on_facade = True
+            if message.shown_time is None:
+                message.shown_time = shown_at_utc
 
             # Сохраняем время показа в мета
             if not message.meta:
                 message.meta = {}
-            message.meta["shown_at"] = datetime.now().isoformat()
+            message.meta["shown_at"] = message.shown_time.isoformat()
 
             await session.commit()
 
             logger.info(
                 f"Сообщение {request.id} показано на фасаде: "
-                "shown_on_facade=True"
+                f"shown_on_facade=True, shown_time={message.shown_time.isoformat()}"
             )
 
         return {"status": "ok"}
