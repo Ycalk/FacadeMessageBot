@@ -1,9 +1,5 @@
-import os
-import sentry_sdk
-if sentry := os.getenv("SENTRY_DSN"):
-    sentry_sdk.init(dsn=sentry, send_default_pii=True, environment=os.getenv("SENTRY_ENV"))
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from contextlib import asynccontextmanager
 
 from config import settings
@@ -88,13 +84,10 @@ app = FastAPI(
     ]
 )
 
-# Добавляем CORS middleware
+# Ограничиваем допустимые Host-заголовки для внутреннего сервиса.
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_hosts,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    TrustedHostMiddleware,
+    allowed_hosts=settings.allowed_hosts,
 )
 
 # Подключаем роуты

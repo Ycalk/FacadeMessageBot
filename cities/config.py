@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     # Cities data file path
     cities_file_path: str = "/home/cities/app/data/cities.csv"
     
-    # API settings
-    allowed_hosts: List[str] = ["*"]
+    # Ограничение по заголовку Host (TrustedHostMiddleware).
+    allowed_hosts: List[str] = ["cities", "localhost", "127.0.0.1"]
     debug: bool = False
     
     # Server settings
@@ -34,8 +34,8 @@ class Settings(BaseSettings):
     @classmethod
     def parse_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str):
-            return [host.strip() for host in v.split(',')]
-        return v
+            return [host.strip() for host in v.split(',') if host.strip()]
+        return v or []
 
 
 # Создаем глобальный экземпляр настроек
