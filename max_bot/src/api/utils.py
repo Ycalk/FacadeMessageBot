@@ -35,7 +35,7 @@ _MONTHS_RU = {
 def format_planned_show_time(planned_show_at: datetime | None) -> str:
     """Форматирует дату планового показа для текста пользователю."""
     if planned_show_at is None:
-        return "8 марта 2026г"
+        return "7 марта 2026г"
 
     if planned_show_at.tzinfo is None:
         show_at_utc = planned_show_at.replace(tzinfo=timezone.utc)
