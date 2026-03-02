@@ -52,7 +52,11 @@ def _render_preview(
     draw = ImageDraw.Draw(img)
     W, H = img.size
     text_color = "white"
-    city_color = "#CD3782"
+    # Эквивалент:
+    # linear-gradient(0deg, #CD3782, #CD3782),
+    # linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2))
+    city_color = "#D75F9B"
+    name_color = "#E6E6E6"
 
     # Текстовая зона привязана к блоку в макете:
     # x=42, y=433, w=636, h=240, padding=(26,39,26,39) для базового фона 720x760.
@@ -81,7 +85,7 @@ def _render_preview(
 
     # Загрузка шрифтов.
     font_path = get_data_dir() / "Max Sans DemiBold.ttf"
-    font_light_path = get_data_dir() / "Max Sans Light.ttf"
+    font_light_path = get_data_dir() / "Max Sans Regular.ttf"
 
     # Визуальная компенсация: на рендере 43px выглядит немного меньше макета.
     message_font_scale = 1.08
@@ -90,8 +94,8 @@ def _render_preview(
     size_small = max(int(round(30 * sy)), 12)
     line_height_mult = 1.15
     name_size = max(int(round(32 * sy)), 12)
-    city_size = max(int(round(27 * sy)), 10)
-    name_city_gap = int(round(14 * sy))
+    city_size = max(int(round(29 * sy)), 10)
+    name_city_gap = max(int(round(11 * sy)), 1)
 
     def _fit_line(text: str, font: ImageFont.FreeTypeFont, max_w: int) -> str:
         """Обрезает строку в одну линию с троеточием по ширине."""
@@ -193,7 +197,7 @@ def _render_preview(
     safe_name = _fit_line(name, name_font, header_w)
     safe_city = _fit_line(city, city_font, header_w)
     if safe_name:
-        draw.text((header_left, header_top), safe_name, font=name_font, fill=text_color, anchor="la")
+        draw.text((header_left, header_top), safe_name, font=name_font, fill=name_color, anchor="la")
     if safe_city:
         city_top = header_top + name_size + name_city_gap
         draw.text((header_left, city_top), safe_city, font=city_font, fill=city_color, anchor="la")
