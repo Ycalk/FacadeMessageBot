@@ -1,7 +1,10 @@
 """Сервис для получения статистики."""
 
+import io
 from datetime import date, datetime, timedelta
 
+import openpyxl
+from openpyxl.styles import Font, PatternFill
 from sqlalchemy import func, select, text
 
 from db.models import Message, MessageInputLog, MessageStatus, User
@@ -103,3 +106,60 @@ async def load_hourly_stats(target_date: date) -> list[dict]:
         hourly[row.hour.hour] = row.count
 
     return [{'час': f'{h:02d}:00', 'сообщений': hourly[h]} for h in range(24)]
+
+
+_HEADER_FILL = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+_HEADER_FONT = Font(bold=True, color='FFFFFF')
+
+
+async def build_message_log_xlsx(date_from: date, date_to: date) -> bytes:
+    """Формирует XLSX-выгрузку message_input_logs за период (без джойна с messages)."""
+    start_utc = datetime(date_from.year, date_from.month, date_from.day) - _MSK
+    end_utc = datetime(date_to.year, date_to.month, date_to.day) - _MSK + timedelta(days=1)
+
+    async with async_session() as session:
+        result = await session.execute(
+            select(
+                MessageInputLog.id.label('log_id'),
+                MessageInputLog.raw_text,
+                MessageInputLog.created_at,
+                User.max_id,
+                User.first_name,
+                User.username,
+            )
+            .join(User, User.id == MessageInputLog.user_id)
+            .where(MessageInputLog.created_at >= start_utc, MessageInputLog.created_at < end_utc)
+            .order_by(MessageInputLog.created_at)
+        )
+        rows = result.all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Сообщения'
+
+    headers = ['ID лога', 'Дата (МСК)', 'MAX ID', 'Имя профиля', 'Username', 'Текст']
+    col_widths = [10, 18, 14, 20, 20, 60]
+
+    for col_idx, (header, width) in enumerate(zip(headers, col_widths), start=1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.font = _HEADER_FONT
+        cell.fill = _HEADER_FILL
+        ws.column_dimensions[cell.column_letter].width = width
+
+    ws.freeze_panes = 'A2'
+
+    for row_idx, row in enumerate(rows, start=2):
+        values = [
+            row.log_id,
+            (row.created_at + _MSK).strftime('%Y-%m-%d %H:%M:%S'),
+            row.max_id,
+            row.first_name or '',
+            row.username or '',
+            row.raw_text,
+        ]
+        for col_idx, value in enumerate(values, start=1):
+            ws.cell(row=row_idx, column=col_idx, value=value)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()

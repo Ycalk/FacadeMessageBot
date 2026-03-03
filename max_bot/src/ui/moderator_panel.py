@@ -25,7 +25,7 @@ from services.app_settings import (
     set_setting,
 )
 from services.broadcast import send_march_reminder
-from services.stats import load_hourly_stats, load_stats
+from services.stats import build_message_log_xlsx, load_hourly_stats, load_stats
 from services.blacklist import add_word, add_words_bulk, delete_word, get_all_words
 from services.internal_moderator import moderate_by_moderator
 from services.smartcaptcha import validate_smartcaptcha_token
@@ -710,3 +710,50 @@ async def moderator_page():
                 ui.notify(f'CSV готов: {filename}', type='positive')
 
             ui.button('Скачать CSV', icon='download', on_click=export_csv, color='primary').classes('q-mt-md')
+
+            ui.separator().classes('q-my-lg')
+
+            ui.label('Выгрузка лога сообщений').classes('text-subtitle1 q-mb-xs')
+            ui.label('Все попытки ввода текста за период (из message_input_logs).').classes('text-caption text-grey q-mb-md')
+
+            with ui.row().classes('items-end q-gutter-md'):
+                log_from_str = date.today().strftime('%Y-%m-%d')
+                log_to_str = date.today().strftime('%Y-%m-%d')
+
+                log_from_input = ui.input(label='С', value=log_from_str, placeholder='YYYY-MM-DD').classes('w-40').props('outlined')
+                with log_from_input:
+                    with ui.menu() as log_from_menu:
+                        log_from_picker = ui.date(value=log_from_str).props('minimal')
+                        log_from_picker.on_value_change(lambda e: (
+                            log_from_input.set_value(e.value),
+                            log_from_menu.close(),
+                        ))
+                    ui.button(icon='event', on_click=log_from_menu.open).props('flat dense')
+
+                log_to_input = ui.input(label='По', value=log_to_str, placeholder='YYYY-MM-DD').classes('w-40').props('outlined')
+                with log_to_input:
+                    with ui.menu() as log_to_menu:
+                        log_to_picker = ui.date(value=log_to_str).props('minimal')
+                        log_to_picker.on_value_change(lambda e: (
+                            log_to_input.set_value(e.value),
+                            log_to_menu.close(),
+                        ))
+                    ui.button(icon='event', on_click=log_to_menu.open).props('flat dense')
+
+                async def export_log_xlsx():
+                    try:
+                        date_from = date.fromisoformat(log_from_input.value.strip())
+                        date_to = date.fromisoformat(log_to_input.value.strip())
+                    except ValueError:
+                        ui.notify('Неверный формат даты, используйте YYYY-MM-DD', type='negative')
+                        return
+                    if date_from > date_to:
+                        ui.notify('Дата «С» не может быть позже даты «По»', type='negative')
+                        return
+
+                    xlsx_bytes = await build_message_log_xlsx(date_from, date_to)
+                    filename = f'message_log_{date_from.isoformat()}_{date_to.isoformat()}.xlsx'
+                    ui.download.content(xlsx_bytes, filename)
+                    ui.notify(f'Файл готов: {filename}', type='positive')
+
+                ui.button('Скачать XLSX', icon='download', on_click=export_log_xlsx, color='secondary')
