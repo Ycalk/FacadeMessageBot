@@ -1,11 +1,17 @@
 from importlib import import_module
 
-from fastapi import FastAPI
+import sentry_sdk
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from maxapi.exceptions.max import MaxApiError
 from nicegui import ui
 
 from api.webhooks import router as webhooks_router
 from api.maer_webhooks import router as maer_router
 from core.config import Config
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def create_app() -> FastAPI:
@@ -16,6 +22,15 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if Config.DEVELOP else None,
         openapi_url="/openapi.json" if Config.DEVELOP else None,
     )
+
+    @app.exception_handler(MaxApiError)
+    async def max_api_error_handler(request: Request, exc: MaxApiError) -> JSONResponse:
+        if exc.code == 404 and isinstance(exc.raw, dict) and exc.raw.get("code") == "chat.not.found":
+            logger.warning(f"Чат не найден (удалён или недоступен): {exc.raw.get('message')}")
+            return JSONResponse(status_code=200, content={"ok": True})
+        logger.error(f"Ошибка MAX API [{exc.code}]: {exc.raw}")
+        sentry_sdk.capture_exception(exc)
+        return JSONResponse(status_code=200, content={"ok": True})
 
     # Подключаем роутеры
     app.include_router(webhooks_router)  # /message/*

@@ -1,5 +1,6 @@
 """Модерация сообщений через Mistral AI."""
 
+import sentry_sdk
 from openai import AsyncOpenAI
 from core.config import Config
 from core.logger import get_logger
@@ -79,5 +80,6 @@ async def moderate_with_mistral(text: str, name: str, city: str) -> dict:
 
     except Exception as e:
         logger.error(f"Ошибка при Mistral модерации: {e}")
+        sentry_sdk.capture_exception(e)
         # При ошибке пропускаем (одобряем)
         return {"approved": True, "reason": f"Ошибка Mistral: {e}", "confidence": 0.0}

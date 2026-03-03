@@ -1,5 +1,7 @@
 import asyncio
 
+import sentry_sdk
+
 from bot.instance import bot, dispatcher
 from bot.routers import (
     system_router,
@@ -15,6 +17,14 @@ from services.app_settings import init_default_settings
 from services.blacklist import load_blacklist
 
 logger = get_logger(__name__)
+
+if Config.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=Config.SENTRY_DSN,
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+    )
+    logger.info("Sentry инициализирован")
 
 
 async def init_db() -> None:

@@ -4,6 +4,7 @@ import asyncio
 from datetime import datetime, timedelta
 from functools import partial
 
+import sentry_sdk
 from maxapi.types import MessageCallback, CallbackButton
 from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
@@ -131,6 +132,7 @@ async def send_to_moderation(callback: MessageCallback) -> None:
                 await apply_auto_approvals(message_id)
             except Exception as exc:
                 logger.error(f"Ошибка автоодобрения для сообщения {message_id}: {exc}")
+                sentry_sdk.capture_exception(exc)
 
         asyncio.create_task(_run_auto_approvals())
 
@@ -148,6 +150,7 @@ async def send_to_moderation(callback: MessageCallback) -> None:
 
     except Exception as e:
         logger.error(f"Ошибка при создании/отправке уведомления: {e}")
+        sentry_sdk.capture_exception(e)
         if message_id is not None:
             # Сообщение уже сохранено в БД — сообщаем правильно, не пугаем пользователя
             logger.warning(f"Сообщение {message_id} уже в модерации, уведомление не доставлено")

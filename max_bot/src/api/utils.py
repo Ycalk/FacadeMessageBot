@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta, timezone
 
 import httpx
+import sentry_sdk
 from sqlalchemy import select
 from maxapi.types.input_media import InputMediaBuffer
 from maxapi.types import CallbackButton
@@ -250,3 +251,4 @@ async def send_rejection_notification(message_id: int) -> None:
         logger.info(f"Уведомление об отклонении отправлено пользователю {user.max_id} для сообщения {message_id}")
     except Exception as e:
         logger.error(f"Ошибка при отправке уведомления об отклонении для сообщения {message_id}: {e}")
+        sentry_sdk.capture_exception(e)

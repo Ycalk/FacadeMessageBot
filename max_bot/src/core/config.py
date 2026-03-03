@@ -110,6 +110,9 @@ class Settings(BaseSettings):
     MAER_API_URL: str = ""
     MAER_API_TOKEN: str = ""
 
+    # Sentry
+    SENTRY_DSN: str = ""
+
     @property
     def unlimited_users_list(self) -> list[int]:
         """Возвращает список ID пользователей без лимитов."""

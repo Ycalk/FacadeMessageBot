@@ -1,5 +1,6 @@
 import asyncio
 
+import sentry_sdk
 from maxapi import Bot, Dispatcher
 from redis.asyncio import Redis
 
@@ -30,13 +31,21 @@ async def _send_with_retry(user_id: int, **kwargs) -> None:
             if '429' in err or 'too.many.requests' in err or 'too_many' in err:
                 wait = _RATE_LIMIT_BASE_PAUSE * (attempt + 1)
                 logger.warning(
-                    f"Rate limit MAX API для пользователя {user_id}, "
-                    f"ждём {wait:.0f}с (попытка {attempt + 1}/{_MAX_RETRIES})"
+                    f"Rate limit MAX API (429) для пользователя {user_id}, "
+                    f"ждём {wait:.0f}с (попытка {attempt + 1}/{_MAX_RETRIES}): {e}"
+                )
+                sentry_sdk.capture_message(
+                    f"Rate limit 429 для пользователя {user_id} (попытка {attempt + 1}/{_MAX_RETRIES})",
+                    level="warning",
                 )
                 await asyncio.sleep(wait)
                 continue
+            logger.error(f"Ошибка отправки сообщения пользователю {user_id} (попытка {attempt + 1}/{_MAX_RETRIES}): {e}")
+            sentry_sdk.capture_exception(e)
             raise
-    logger.error(f"Не удалось отправить сообщение пользователю {user_id} — все {_MAX_RETRIES} попытки исчерпаны")
+    err = RuntimeError(f"Не удалось отправить сообщение пользователю {user_id} — все {_MAX_RETRIES} попытки 429 исчерпаны")
+    logger.error(str(err))
+    sentry_sdk.capture_exception(err)
 
 
 async def send_message(user_id: int, **kwargs) -> None:
