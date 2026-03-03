@@ -27,6 +27,10 @@ def create_app() -> FastAPI:
     async def max_api_error_handler(request: Request, exc: MaxApiError) -> JSONResponse:
         if exc.code == 404 and isinstance(exc.raw, dict) and exc.raw.get("code") == "chat.not.found":
             logger.warning(f"Чат не найден (удалён или недоступен): {exc.raw.get('message')}")
+            sentry_sdk.capture_message(
+                f"Чат не найден: {exc.raw.get('message')}",
+                level="warning",
+            )
             return JSONResponse(status_code=200, content={"ok": True})
         logger.error(f"Ошибка MAX API [{exc.code}]: {exc.raw}")
         sentry_sdk.capture_exception(exc)
