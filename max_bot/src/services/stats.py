@@ -112,10 +112,13 @@ _HEADER_FILL = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='
 _HEADER_FONT = Font(bold=True, color='FFFFFF')
 
 
-async def build_message_log_xlsx(date_from: date, date_to: date) -> bytes:
-    """Формирует XLSX-выгрузку message_input_logs за период (без джойна с messages)."""
-    start_utc = datetime(date_from.year, date_from.month, date_from.day) - _MSK
-    end_utc = datetime(date_to.year, date_to.month, date_to.day) - _MSK + timedelta(days=1)
+async def build_message_log_xlsx(date_from: datetime, date_to: datetime) -> bytes:
+    """Формирует XLSX-выгрузку message_input_logs за период (без джойна с messages).
+
+    date_from / date_to — datetime в МСК (UTC+3), граница включительно.
+    """
+    start_utc = date_from - _MSK
+    end_utc = date_to - _MSK
 
     async with async_session() as session:
         result = await session.execute(

@@ -5,7 +5,7 @@ import csv
 import io
 import json
 import secrets
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from nicegui import app, ui
 from sqlalchemy import select
@@ -364,16 +364,17 @@ async def moderator_page():
                     for mod in moderators:
                         switch = ui.switch(mod, value=mod in auto_approve_mods)
 
-                        async def on_toggle(val: bool, moderator_id: str = mod):
+                        async def on_toggle(e, moderator_id: str = mod):
+                            enabled = e.value
                             mods = await get_auto_approve_moderators()
-                            if val:
+                            if enabled:
                                 mods.add(moderator_id)
                             else:
                                 mods.discard(moderator_id)
                             await set_auto_approve_moderators(mods)
                             ui.notify(
-                                f'Автоодобрение {"включено" if val else "выключено"}: {moderator_id}',
-                                type='positive' if val else 'warning',
+                                f'Автоодобрение {"включено" if enabled else "выключено"}: {moderator_id}',
+                                type='positive' if enabled else 'warning',
                             )
 
                         switch.on_value_change(on_toggle)
@@ -716,43 +717,71 @@ async def moderator_page():
             ui.label('Выгрузка лога сообщений').classes('text-subtitle1 q-mb-xs')
             ui.label('Все попытки ввода текста за период (из message_input_logs).').classes('text-caption text-grey q-mb-md')
 
-            with ui.row().classes('items-end q-gutter-md'):
-                log_from_str = date.today().strftime('%Y-%m-%d')
-                log_to_str = date.today().strftime('%Y-%m-%d')
+            with ui.row().classes('items-end q-gutter-md flex-wrap'):
+                _today = date.today().strftime('%Y-%m-%d')
 
-                log_from_input = ui.input(label='С', value=log_from_str, placeholder='YYYY-MM-DD').classes('w-40').props('outlined')
-                with log_from_input:
-                    with ui.menu() as log_from_menu:
-                        log_from_picker = ui.date(value=log_from_str).props('minimal')
-                        log_from_picker.on_value_change(lambda e: (
-                            log_from_input.set_value(e.value),
-                            log_from_menu.close(),
-                        ))
-                    ui.button(icon='event', on_click=log_from_menu.open).props('flat dense')
+                # ── С (дата + время) ──────────────────────────────────────────
+                with ui.row().classes('items-end q-gutter-xs no-wrap'):
+                    log_from_date_input = ui.input(label='С (дата)', value=_today, placeholder='YYYY-MM-DD').classes('w-36').props('outlined')
+                    with log_from_date_input:
+                        with ui.menu() as log_from_date_menu:
+                            _p = ui.date(value=_today).props('minimal')
+                            _p.on_value_change(lambda e: (
+                                log_from_date_input.set_value(e.value),
+                                log_from_date_menu.close(),
+                            ))
+                        ui.button(icon='event', on_click=log_from_date_menu.open).props('flat dense')
 
-                log_to_input = ui.input(label='По', value=log_to_str, placeholder='YYYY-MM-DD').classes('w-40').props('outlined')
-                with log_to_input:
-                    with ui.menu() as log_to_menu:
-                        log_to_picker = ui.date(value=log_to_str).props('minimal')
-                        log_to_picker.on_value_change(lambda e: (
-                            log_to_input.set_value(e.value),
-                            log_to_menu.close(),
-                        ))
-                    ui.button(icon='event', on_click=log_to_menu.open).props('flat dense')
+                    log_from_time_input = ui.input(label='Время', value='00:00', placeholder='HH:MM').classes('w-24').props('outlined')
+                    with log_from_time_input:
+                        with ui.menu() as log_from_time_menu:
+                            _tp = ui.time(value='00:00').props('format24h')
+                            _tp.on_value_change(lambda e: (
+                                log_from_time_input.set_value(e.value),
+                                log_from_time_menu.close(),
+                            ))
+                        ui.button(icon='schedule', on_click=log_from_time_menu.open).props('flat dense')
+
+                # ── По (дата + время) ─────────────────────────────────────────
+                with ui.row().classes('items-end q-gutter-xs no-wrap'):
+                    log_to_date_input = ui.input(label='По (дата)', value=_today, placeholder='YYYY-MM-DD').classes('w-36').props('outlined')
+                    with log_to_date_input:
+                        with ui.menu() as log_to_date_menu:
+                            _p2 = ui.date(value=_today).props('minimal')
+                            _p2.on_value_change(lambda e: (
+                                log_to_date_input.set_value(e.value),
+                                log_to_date_menu.close(),
+                            ))
+                        ui.button(icon='event', on_click=log_to_date_menu.open).props('flat dense')
+
+                    log_to_time_input = ui.input(label='Время', value='23:59', placeholder='HH:MM').classes('w-24').props('outlined')
+                    with log_to_time_input:
+                        with ui.menu() as log_to_time_menu:
+                            _tp2 = ui.time(value='23:59').props('format24h')
+                            _tp2.on_value_change(lambda e: (
+                                log_to_time_input.set_value(e.value),
+                                log_to_time_menu.close(),
+                            ))
+                        ui.button(icon='schedule', on_click=log_to_time_menu.open).props('flat dense')
 
                 async def export_log_xlsx():
                     try:
-                        date_from = date.fromisoformat(log_from_input.value.strip())
-                        date_to = date.fromisoformat(log_to_input.value.strip())
+                        dt_from = datetime.fromisoformat(
+                            f'{log_from_date_input.value.strip()} {log_from_time_input.value.strip()}:00'
+                        )
+                        dt_to = datetime.fromisoformat(
+                            f'{log_to_date_input.value.strip()} {log_to_time_input.value.strip()}:59'
+                        )
                     except ValueError:
-                        ui.notify('Неверный формат даты, используйте YYYY-MM-DD', type='negative')
+                        ui.notify('Неверный формат даты/времени', type='negative')
                         return
-                    if date_from > date_to:
+                    if dt_from > dt_to:
                         ui.notify('Дата «С» не может быть позже даты «По»', type='negative')
                         return
 
-                    xlsx_bytes = await build_message_log_xlsx(date_from, date_to)
-                    filename = f'message_log_{date_from.isoformat()}_{date_to.isoformat()}.xlsx'
+                    xlsx_bytes = await build_message_log_xlsx(dt_from, dt_to)
+                    suffix = f'{dt_from.strftime("%Y%m%d_%H%M")}_{dt_to.strftime("%Y%m%d_%H%M")}'
+                    filename = f'message_log_{suffix}.xlsx'
                     ui.download.content(xlsx_bytes, filename)
                     ui.notify(f'Файл готов: {filename}', type='positive')
 
