@@ -6,6 +6,7 @@ from bot.instance import get_context, cities_client
 from bot.states import UserStates
 from bot.steps import show_confirm_city
 from bot.texts import Texts
+from core.config import Config
 
 logger = get_logger(__name__)
 
@@ -22,6 +23,13 @@ async def get_city(event: MessageCreated, bot: Bot) -> None:
         return
 
     city_input = text.strip()
+
+    if len(city_input) > Config.MAX_CITY_LENGTH:
+        await bot.send_message(
+            user_id=user_id,
+            text=Texts.Messages.invalid_city_too_long,
+        )
+        return
 
     # Валидация через cities service
     search_result = await cities_client.search_cities(city_input, limit=1)

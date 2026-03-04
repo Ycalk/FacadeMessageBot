@@ -49,8 +49,14 @@ class Texts:
             "или нажмите ниже, чтобы использовать имя из профиля."
         )
         invalid_name_text: Final[str] = "Пожалуйста, введите имя снова."
+        invalid_name_too_long: Final[str] = (
+            f"Имя слишком длинное. Пожалуйста, укажите имя до {Config.MAX_NAME_LENGTH} символов."
+        )
 
         add_city: Final[str] = "Укажите город (до 15 символов)"
+        invalid_city_too_long: Final[str] = (
+            f"Название города слишком длинное. Пожалуйста, укажите город до {Config.MAX_CITY_LENGTH} символов."
+        )
         confirm_city: Final[str] = "Город: {city}\nПодтвердить?"
 
         choose_background_prompt: Final[str] = (

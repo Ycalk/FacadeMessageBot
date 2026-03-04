@@ -14,7 +14,7 @@ class NameValidator:
                 if not row:
                     continue
                 name = row[0].strip().lower()
-                if 0 < len(name) < Config.MAX_NAME_LENGTH:
+                if 0 < len(name) <= Config.MAX_NAME_LENGTH:
                     self.names.add(name)
 
     async def validate_using_name_api(self, name: str) -> bool:
@@ -54,7 +54,7 @@ class NameValidator:
 
     async def __call__(self, name: str) -> bool:
         name = name.strip().lower().replace("\u0451", "\u0435")
-        if 0 < len(name) < Config.MAX_NAME_LENGTH and name.isalpha():
+        if 0 < len(name) <= Config.MAX_NAME_LENGTH and name.isalpha():
             if self.validate_using_whitelist(name):
                 return True
             if await self.validate_using_name_api(name):

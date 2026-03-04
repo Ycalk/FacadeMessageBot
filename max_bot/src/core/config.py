@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     # Bot settings
     MAX_MESSAGE_LENGTH: int = 80
     MAX_NAME_LENGTH: int = 15
+    MAX_CITY_LENGTH: int = 15
     MAXIMUM_MESSAGES_PER_USER: int = 2
     MESSAGES_TIME_OUT_MINUTES: int = 1
     UNLIMITED_USERS: str = ""  # ID пользователей без лимитов (через запятую)
