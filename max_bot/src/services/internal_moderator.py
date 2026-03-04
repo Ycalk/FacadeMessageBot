@@ -25,7 +25,7 @@ async def moderate_by_moderator(message_id: int, moderator_id: str, approve: boo
     """
     async with async_session() as session:
         result = await session.execute(
-            select(Message).where(Message.id == message_id)
+            select(Message).where(Message.id == message_id).with_for_update()
         )
         message = result.scalar_one_or_none()
 
