@@ -40,6 +40,13 @@ async def _send_with_retry(user_id: int, **kwargs) -> None:
                 )
                 await asyncio.sleep(wait)
                 continue
+            if 'chat.denied' in err or 'dialog.suspended' in err or '403' in err:
+                logger.warning(f"Диалог с пользователем {user_id} заблокирован или приостановлен: {e}")
+                sentry_sdk.capture_message(
+                    f"Диалог заблокирован для пользователя {user_id}: {e}",
+                    level="warning",
+                )
+                return
             logger.error(f"Ошибка отправки сообщения пользователю {user_id} (попытка {attempt + 1}/{_MAX_RETRIES}): {e}")
             sentry_sdk.capture_exception(e)
             raise
