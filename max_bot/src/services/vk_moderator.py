@@ -99,13 +99,7 @@ async def moderate_by_vk_moderator(message_id: int, moderator_id: str, approve: 
                     logger.error(
                         f"Ошибка Maer API для сообщения {message_id}: {e}"
                     )
-                    message.status = MessageStatus.REJECTED
                     await session.commit()
-                    logger.info(f"Сообщение {message_id} отклонено из-за ошибки Maer API")
-
-                    from api.utils import send_rejection_notification
-                    await send_rejection_notification(message_id)
-
                     return {
                         "success": False,
                         "error": f"Ошибка Maer API: {e}",
