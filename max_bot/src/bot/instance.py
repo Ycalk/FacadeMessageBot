@@ -28,7 +28,7 @@ async def _send_with_retry(user_id: int, **kwargs) -> None:
             return
         except Exception as e:
             err = str(e).lower()
-            if '429' in err or 'too.many.requests' in err or 'too_many' in err:
+            if 'code=429' in err or 'too.many.requests' in err or 'too_many' in err:
                 wait = _RATE_LIMIT_BASE_PAUSE * (attempt + 1)
                 logger.warning(
                     f"Rate limit MAX API (429) для пользователя {user_id}, "
