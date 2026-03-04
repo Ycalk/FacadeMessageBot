@@ -259,11 +259,11 @@ async def vk_moderator_page():
 
     async def refresh_table():
         """Обновляет данные таблицы и статистику."""
-        nonlocal messages, stats
+        nonlocal messages, stats, all_rows
         messages = await load_vk_messages()
         stats = await load_stats()
-        table.rows = prepare_table_rows()
-        table.update()
+        all_rows = prepare_table_rows()
+        do_filter()
         stats_block.refresh()
         ui.notify('Данные обновлены', type='positive')
 
@@ -337,6 +337,10 @@ async def vk_moderator_page():
 
     stats_block()
 
+    with ui.row().classes('items-center q-gutter-sm q-mb-sm'):
+        search_input = ui.input(placeholder='Поиск по ID или тексту...').props('outlined dense clearable').classes('w-72')
+        ui.icon('search').classes('text-grey')
+
     columns = [
         {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
         {'name': 'text', 'label': 'Текст', 'field': 'text', 'sortable': True, 'align': 'center'},
@@ -352,12 +356,26 @@ async def vk_moderator_page():
         {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
     ]
 
+    all_rows = prepare_table_rows()
     table = ui.table(
         columns=columns,
-        rows=prepare_table_rows(),
+        rows=all_rows,
         row_key='id',
         pagination={'rowsPerPage': 100, 'sortBy': 'status_order', 'descending': False}
     ).classes('w-full')
+
+    def do_filter():
+        search = (search_input.value or '').strip().lower()
+        if not search:
+            table.rows = list(all_rows)
+        else:
+            table.rows = [
+                r for r in all_rows
+                if search in str(r['id']) or search in r['text'].lower()
+            ]
+        table.update()
+
+    search_input.on('input', lambda: do_filter())
 
     table.add_slot('top-right', '''
         <q-btn color="primary" icon="refresh" label="Обновить" @click="$parent.$emit('refresh')" />
