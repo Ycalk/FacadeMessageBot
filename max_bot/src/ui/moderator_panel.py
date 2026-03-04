@@ -379,9 +379,7 @@ async def moderator_page():
 
                         switch.on_value_change(on_toggle)
 
-            with ui.row().classes('items-center q-gutter-sm q-mb-sm'):
-                search_input = ui.input(placeholder='Поиск по ID или тексту...').props('outlined dense clearable').classes('w-72')
-                ui.icon('search').classes('text-grey')
+            search_input = ui.input(placeholder='Поиск по ID или тексту...').props('outlined dense clearable').classes('w-72 q-mb-sm')
 
             columns = [
                 {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
@@ -418,7 +416,8 @@ async def moderator_page():
                     ]
                 table.update()
 
-            search_input.on('input', lambda: do_filter())
+            search_input.on('keydown.enter', lambda: do_filter())
+            search_input.on('clear', lambda: do_filter())
 
             table.add_slot('top-right', '''
                 <q-btn color="primary" icon="refresh" label="Обновить" @click="$parent.$emit('refresh')" />
