@@ -39,11 +39,11 @@ def format_planned_show_time(planned_show_at: datetime | None) -> str:
         return "7 марта 2026г"
 
     if planned_show_at.tzinfo is None:
-        show_at_utc = planned_show_at.replace(tzinfo=timezone.utc)
+        # Maer может присылать наивное время в МСК без tzinfo.
+        show_at_msk = planned_show_at.replace(tzinfo=_MSK_TZ)
     else:
-        show_at_utc = planned_show_at.astimezone(timezone.utc)
+        show_at_msk = planned_show_at.astimezone(_MSK_TZ)
 
-    show_at_msk = show_at_utc.astimezone(_MSK_TZ)
     month_name = _MONTHS_RU[show_at_msk.month]
     return f"{show_at_msk.day} {month_name} {show_at_msk.year}г"
 

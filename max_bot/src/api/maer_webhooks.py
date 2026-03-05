@@ -1,6 +1,6 @@
 """Webhooks для интеграции с Maer API."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
@@ -14,6 +14,7 @@ from services.app_settings import set_accepting_messages
 
 
 logger = get_logger(__name__)
+_MSK_TZ = timezone(timedelta(hours=3))
 
 router = APIRouter(prefix="/maer", dependencies=[verify_api_token])
 
@@ -51,7 +52,13 @@ async def message_moderated(request: MessageModeratedRequest):
                 raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
             if request.planned_show_at is not None:
-                message.planned_show_at = request.planned_show_at
+                if request.planned_show_at.tzinfo is None:
+                    # Maer может прислать наивное время в МСК без tzinfo.
+                    message.planned_show_at = request.planned_show_at.replace(
+                        tzinfo=_MSK_TZ
+                    ).astimezone(timezone.utc)
+                else:
+                    message.planned_show_at = request.planned_show_at.astimezone(timezone.utc)
 
             if request.status in {1, 2} and message.status != MessageStatus.MAER_MODERATION:
                 logger.warning(
