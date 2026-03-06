@@ -78,7 +78,6 @@ async def get_approved_messages():
                 select(Message)
                 .where(
                     Message.status == MessageStatus.APPROVED,
-                    or_(Message.want_photo.is_(None), Message.want_photo == True),
                 )
                 .order_by(Message.created_at.desc())
             )
