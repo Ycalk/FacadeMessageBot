@@ -47,6 +47,18 @@ async def _send_with_retry(user_id: int, **kwargs) -> None:
                     level="warning",
                 )
                 return
+            is_network_err = any(
+                kw in err for kw in ('server disconnected', 'connection reset', 'connection error', 'timeout')
+            )
+            if is_network_err and attempt < _MAX_RETRIES - 1:
+                wait = 2.0 * (attempt + 1)
+                logger.warning(
+                    f"Сетевая ошибка при отправке пользователю {user_id}, "
+                    f"повтор через {wait:.0f}с (попытка {attempt + 1}/{_MAX_RETRIES}): {e}"
+                )
+                sentry_sdk.capture_exception(e)
+                await asyncio.sleep(wait)
+                continue
             logger.error(f"Ошибка отправки сообщения пользователю {user_id} (попытка {attempt + 1}/{_MAX_RETRIES}): {e}")
             sentry_sdk.capture_exception(e)
             raise
