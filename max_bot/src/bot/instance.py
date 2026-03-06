@@ -2,6 +2,7 @@ import asyncio
 
 import sentry_sdk
 from maxapi import Bot, Dispatcher
+from maxapi.exceptions import MaxConnection
 from redis.asyncio import Redis
 
 from core.config import Config
@@ -46,7 +47,7 @@ async def _send_with_retry(user_id: int, **kwargs) -> None:
             if '404' in err or 'chat.not.found' in err or 'not.found' in err or 'not found' in err:
                 logger.warning(f"Чат с пользователем {user_id} не найден, пропускаем: {e}")
                 return
-            is_network_err = any(
+            is_network_err = isinstance(e, MaxConnection) or any(
                 kw in err for kw in ('server disconnected', 'connection reset', 'connection error', 'timeout')
             )
             if is_network_err and attempt < _MAX_RETRIES - 1:
