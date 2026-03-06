@@ -57,7 +57,6 @@ async def load_stats() -> dict:
 
         waiting_for_photo = await session.scalar(
             select(func.count(Message.id)).where(
-                Message.shown_on_facade == True,  # noqa: E712
                 Message.photo_sent == False,  # noqa: E712
                 Message.want_photo == True,  # noqa: E712
             )
