@@ -5,7 +5,8 @@ import secrets
 from datetime import timedelta
 
 from nicegui import app, ui
-from sqlalchemy import select
+from sqlalchemy import select, func, or_, case, cast, String, type_coerce
+from sqlalchemy.dialects.postgresql import JSONB
 
 from core.config import Config
 from core.logger import get_logger
@@ -27,28 +28,56 @@ _VK_VISIBLE_STATUSES = {
 }
 
 
-async def load_vk_messages():
-    """Загружает сообщения, которые прошли (или проходят) VK модерацию."""
+async def load_vk_messages(page: int = 1, page_size: int = 50, search: str = '', sort_by: str | None = None, descending: bool = False):
+    """Загружает сообщения, которые прошли (или проходят) VK модерацию, с пагинацией."""
     async with async_session() as session:
-        result = await session.execute(
-            select(Message)
-            .order_by(Message.created_at.desc())
+        status_order = case(
+            (Message.status == MessageStatus.VK_MODERATION, 0),
+            else_=1,
         )
+        # REJECTED показываем только если meta->>'vk_entered' = 'true' (JSONB)
+        vk_entered_filter = type_coerce(Message.meta, JSONB)['vk_entered'].as_boolean()
+        if sort_by is None:
+            order_clauses = [Message.id.desc()]
+        elif sort_by == 'id':
+            order_clauses = [Message.id.desc() if descending else Message.id.asc()]
+        else:
+            order_clauses = [status_order.desc() if descending else status_order.asc(), Message.id.desc()]
+        base_query = (
+            select(Message)
+            .where(
+                or_(
+                    Message.status.in_(_VK_VISIBLE_STATUSES),
+                    (Message.status == MessageStatus.REJECTED) & vk_entered_filter,
+                )
+            )
+            .order_by(*order_clauses)
+        )
+        if search:
+            base_query = base_query.where(
+                or_(
+                    cast(Message.id, String).contains(search),
+                    Message.text.ilike(f'%{search}%'),
+                )
+            )
+
+        total = (await session.execute(
+            select(func.count()).select_from(base_query.subquery())
+        )).scalar_one()
+
+        offset = (page - 1) * page_size
+        result = await session.execute(base_query.offset(offset).limit(page_size))
         rows = result.scalars().all()
 
         messages = []
         for msg in rows:
             meta = msg.meta or {}
-            # Показываем: статусы ≥ VK или REJECTED с флагом vk_entered
-            if msg.status not in _VK_VISIBLE_STATUSES:
-                if not (msg.status == MessageStatus.REJECTED and meta.get("vk_entered")):
-                    continue
             messages.append({
                 'message': msg,
                 'vk_approvals': meta.get('vk_approvals', []),
                 'vk_rejections': meta.get('vk_rejections', []),
             })
-        return messages
+        return messages, total
 
 
 async def moderate_message_by_vk_moderator_ui(message_id: int, moderator_id: str, approve: bool):
@@ -200,7 +229,9 @@ async def vk_moderator_page():
 
     # === Авторизованная часть ===
 
-    messages = await load_vk_messages()
+    _state = {'page': 1, 'page_size': 20, 'search': '', 'total': 0, 'sort_by': None, 'descending': False}
+    messages, _total = await load_vk_messages(page=1, page_size=_state['page_size'], sort_by=_state['sort_by'], descending=_state['descending'])
+    _state['total'] = _total
     moderators = Config.vk_moderators_list
     stats = await load_stats()
 
@@ -260,10 +291,23 @@ async def vk_moderator_page():
     async def refresh_table():
         """Обновляет данные таблицы и статистику."""
         nonlocal messages, stats, all_rows
-        messages = await load_vk_messages()
+        messages, new_total = await load_vk_messages(
+            page=_state['page'],
+            page_size=_state['page_size'],
+            search=_state['search'],
+            sort_by=_state['sort_by'],
+            descending=_state['descending'],
+        )
+        _state['total'] = new_total
         stats = await load_stats()
         all_rows = prepare_table_rows()
-        do_filter()
+        table.rows = all_rows
+        table._props['pagination'] = {
+            'page': _state['page'],
+            'rowsPerPage': _state['page_size'],
+            'rowsNumber': new_total,
+        }
+        table.update()
         stats_block.refresh()
         ui.notify('Данные обновлены', type='positive')
 
@@ -340,17 +384,17 @@ async def vk_moderator_page():
     search_input = ui.input(placeholder='Поиск по ID или тексту...').props('outlined dense clearable').classes('w-72 q-mb-sm')
 
     columns = [
-        {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': True, 'align': 'center'},
-        {'name': 'text', 'label': 'Текст', 'field': 'text', 'sortable': True, 'align': 'center'},
-        {'name': 'name', 'label': 'Имя', 'field': 'name', 'sortable': True, 'align': 'center'},
-        {'name': 'city', 'label': 'Город', 'field': 'city', 'sortable': True, 'align': 'center'},
-        {'name': 'status', 'label': 'Статус', 'field': 'status', 'sortable': True, 'align': 'center'},
+        {'name': 'id', 'label': 'ID', 'field': 'id', 'sortable': False, 'align': 'center'},
+        {'name': 'text', 'label': 'Текст', 'field': 'text', 'sortable': False, 'align': 'center'},
+        {'name': 'name', 'label': 'Имя', 'field': 'name', 'sortable': False, 'align': 'center'},
+        {'name': 'city', 'label': 'Город', 'field': 'city', 'sortable': False, 'align': 'center'},
+        {'name': 'status', 'label': 'Статус', 'field': 'status', 'sortable': False, 'align': 'center'},
         {'name': 'preview_url', 'label': 'Превью', 'field': 'preview_url', 'sortable': False, 'align': 'center'},
-        {'name': 'want_photo', 'label': 'Отправить фото', 'field': 'want_photo', 'sortable': True, 'align': 'center'},
-        {'name': 'shown_on_facade', 'label': 'Показано на фасаде', 'field': 'shown_on_facade', 'sortable': True, 'align': 'center'},
-        {'name': 'photo_sent', 'label': 'Фото отправлено', 'field': 'photo_sent', 'sortable': True, 'align': 'center'},
-        {'name': 'shown_time', 'label': 'Факт показа (МСК)', 'field': 'shown_time', 'sortable': True, 'align': 'center'},
-        {'name': 'created_at', 'label': 'Создано', 'field': 'created_at', 'sortable': True, 'align': 'center'},
+        {'name': 'want_photo', 'label': 'Отправить фото', 'field': 'want_photo', 'sortable': False, 'align': 'center'},
+        {'name': 'shown_on_facade', 'label': 'Показано на фасаде', 'field': 'shown_on_facade', 'sortable': False, 'align': 'center'},
+        {'name': 'photo_sent', 'label': 'Фото отправлено', 'field': 'photo_sent', 'sortable': False, 'align': 'center'},
+        {'name': 'shown_time', 'label': 'Факт показа (МСК)', 'field': 'shown_time', 'sortable': False, 'align': 'center'},
+        {'name': 'created_at', 'label': 'Создано', 'field': 'created_at', 'sortable': False, 'align': 'center'},
         {'name': 'actions', 'label': 'Модерация', 'field': 'actions', 'sortable': False, 'align': 'center'},
     ]
 
@@ -359,22 +403,80 @@ async def vk_moderator_page():
         columns=columns,
         rows=all_rows,
         row_key='id',
-        pagination={'rowsPerPage': 100, 'sortBy': 'status_order', 'descending': False}
-    ).classes('w-full')
+        pagination={'page': 1, 'rowsPerPage': _state['page_size'], 'rowsNumber': _state['total']},
+    ).classes('w-full').props('rows-per-page-options=[20,50,100,200,1000,5000]')
 
-    def do_filter():
-        search = (search_input.value or '').strip().lower()
-        if not search:
-            table.rows = list(all_rows)
-        else:
-            table.rows = [
-                r for r in all_rows
-                if search in str(r['id']) or search in r['text'].lower()
-            ]
+    # Кастомные заголовки для сортируемых колонок
+    table.add_slot('header-cell-id', '''
+        <q-th :props="props" @click="$parent.$emit('sort_col', 'id')" style="cursor:pointer; user-select:none">
+            ID <i class="material-icons vk-sort-icon" data-col="id" style="font-size:14px;vertical-align:middle;display:none">arrow_upward</i>
+        </q-th>
+    ''')
+    table.add_slot('header-cell-status', '''
+        <q-th :props="props" @click="$parent.$emit('sort_col', 'status')" style="cursor:pointer; user-select:none">
+            Статус <i class="material-icons vk-sort-icon" data-col="status" style="font-size:14px;vertical-align:middle;display:none">arrow_upward</i>
+        </q-th>
+    ''')
+
+    async def _update_sort_icons():
+        icon = 'arrow_downward' if _state['descending'] else 'arrow_upward'
+        field = _state['sort_by'] or ''
+        await ui.run_javascript(f"""
+            document.querySelectorAll('.vk-sort-icon').forEach(el => {{
+                el.style.display = el.dataset.col === '{field}' ? 'inline' : 'none';
+                el.textContent = '{icon}';
+            }});
+        """)
+
+    async def reload_page():
+        nonlocal messages, all_rows
+        messages, new_total = await load_vk_messages(
+            page=_state['page'],
+            page_size=_state['page_size'],
+            search=_state['search'],
+            sort_by=_state['sort_by'],
+            descending=_state['descending'],
+        )
+        _state['total'] = new_total
+        all_rows = prepare_table_rows()
+        table.rows = all_rows
+        table._props['pagination'] = {
+            'page': _state['page'],
+            'rowsPerPage': _state['page_size'],
+            'rowsNumber': new_total,
+        }
         table.update()
+        await _update_sort_icons()
 
-    search_input.on('keydown.enter', lambda: do_filter())
-    search_input.on('clear', lambda: do_filter())
+    async def do_filter():
+        _state['search'] = (search_input.value or '').strip().lower()
+        _state['page'] = 1
+        await reload_page()
+
+    async def handle_request(e):
+        pag = e.args.get('pagination', {})
+        _state['page'] = pag.get('page', 1)
+        _state['page_size'] = pag.get('rowsPerPage', _state['page_size'])
+        await reload_page()
+
+    async def handle_sort_col(e):
+        field = e.args
+        if _state['sort_by'] == field:
+            if not _state['descending']:
+                _state['descending'] = True   # asc → desc
+            else:
+                _state['sort_by'] = None      # desc → нет сортировки
+                _state['descending'] = False
+        else:
+            _state['sort_by'] = field         # новое поле → asc
+            _state['descending'] = False
+        _state['page'] = 1
+        await reload_page()
+
+    table.on('sort_col', handle_sort_col)
+    search_input.on('keydown.enter', do_filter)
+    search_input.on('clear', do_filter)
+    ui.timer(0.3, _update_sort_icons, once=True)
 
     table.add_slot('top-right', '''
         <q-btn color="primary" icon="refresh" label="Обновить" @click="$parent.$emit('refresh')" />
@@ -460,5 +562,6 @@ async def vk_moderator_page():
     ''')
 
     table.on('refresh', refresh_table)
+    table.on('request', handle_request)
     table.on('approve', lambda e: handle_vk_moderator_approve(e.args['message_id'], e.args['moderator_id']))
     table.on('reject', lambda e: handle_reject(e.args))

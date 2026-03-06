@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from urllib.parse import urlparse
 
 from core.logger import get_logger
@@ -78,7 +78,7 @@ async def get_approved_messages():
                 select(Message)
                 .where(
                     Message.status == MessageStatus.APPROVED,
-                    Message.want_photo.is_not(False),
+                    or_(Message.want_photo.is_(None), Message.want_photo == True),
                 )
                 .order_by(Message.created_at.desc())
             )
