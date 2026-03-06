@@ -42,10 +42,9 @@ async def _send_with_retry(user_id: int, **kwargs) -> None:
                 continue
             if 'chat.denied' in err or 'dialog.suspended' in err or '403' in err:
                 logger.warning(f"Диалог с пользователем {user_id} заблокирован или приостановлен: {e}")
-                sentry_sdk.capture_message(
-                    f"Диалог заблокирован для пользователя {user_id}: {e}",
-                    level="warning",
-                )
+                return
+            if '404' in err or 'chat.not.found' in err or 'not.found' in err:
+                logger.warning(f"Чат с пользователем {user_id} не найден, пропускаем: {e}")
                 return
             is_network_err = any(
                 kw in err for kw in ('server disconnected', 'connection reset', 'connection error', 'timeout')
