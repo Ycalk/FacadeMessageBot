@@ -43,7 +43,7 @@ async def _send_with_retry(user_id: int, **kwargs) -> None:
             if 'chat.denied' in err or 'dialog.suspended' in err or '403' in err:
                 logger.warning(f"Диалог с пользователем {user_id} заблокирован или приостановлен: {e}")
                 return
-            if '404' in err or 'chat.not.found' in err or 'not.found' in err:
+            if '404' in err or 'chat.not.found' in err or 'not.found' in err or 'not found' in err:
                 logger.warning(f"Чат с пользователем {user_id} не найден, пропускаем: {e}")
                 return
             is_network_err = any(
