@@ -372,6 +372,8 @@ async def moderator_page():
                     ui.label('Прошли этапы:').classes('text-caption text-grey')
                     with ui.row().classes('q-gutter-xs flex-wrap'):
                         for status in MessageStatus:
+                            if status == MessageStatus.OVERLOAD:
+                                continue
                             count = stats['passed_by_status'].get(status, 0)
                             color = status_colors.get(status, 'grey')
                             ui.badge(
