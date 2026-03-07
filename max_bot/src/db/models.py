@@ -12,6 +12,7 @@ class MessageStatus(StrEnum):
     MAER_MODERATION = "maer_moderation"            # На модерации Maer
     APPROVED = "approved"                          # Одобрено модератором
     REJECTED = "rejected"                          # Отклонено модератором
+    OVERLOAD = "overload"                          # Перегрузка: фасад заполнен, уведомление отправлено
 
 
 class Base(DeclarativeBase):

@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 MISTRAL_PROMPT_KEY = "mistral_custom_prompt"
 AUTO_APPROVE_KEY = "auto_approve_moderators"  # comma-separated список модераторов с автоодобрением
 MARCH_REMINDER_SENT_KEY = "march_reminder_sent_at"  # ISO-время последней рассылки напоминания
+OVERLOAD_BROADCAST_SENT_KEY = "overload_broadcast_sent_at"  # ISO-время последней рассылки о перегрузке фасада
 STREAM_URL_KEY = "stream_url"  # URL прямой трансляции
 ACCEPTING_MESSAGES_KEY = "accepting_messages"  # true/false — принимаются ли сообщения
 DEFAULT_MISTRAL_PROMPT = """\

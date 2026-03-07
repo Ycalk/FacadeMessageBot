@@ -18,13 +18,14 @@ from services.app_settings import (
     DEFAULT_MISTRAL_PROMPT,
     MARCH_REMINDER_SENT_KEY,
     MISTRAL_PROMPT_KEY,
+    OVERLOAD_BROADCAST_SENT_KEY,
     STREAM_URL_KEY,
     get_auto_approve_moderators,
     get_setting,
     set_auto_approve_moderators,
     set_setting,
 )
-from services.broadcast import send_march_reminder
+from services.broadcast import send_march_reminder, send_overload_broadcast
 from services.stats import build_message_log_xlsx, load_hourly_stats, load_stats
 from services.blacklist import add_word, add_words_bulk, delete_word, get_all_words
 from services.internal_moderator import moderate_by_moderator
@@ -783,6 +784,44 @@ async def moderator_page():
                 asyncio.create_task(_broadcast_task(url))
 
             broadcast_btn.on_click(do_broadcast)
+
+            ui.separator().classes('q-my-lg')
+
+            # ── Рассылка о перегрузке фасада ──────────────────────────────────
+            last_overload_sent = await get_setting(OVERLOAD_BROADCAST_SENT_KEY, '')
+
+            ui.label('Рассылка о перегрузке фасада').classes('text-subtitle1 q-mb-xs')
+            ui.label(
+                'Сообщение будет отправлено всем пользователям, чьи поздравления находятся '
+                'в статусе internal_moderation или vk_moderation. '
+                'После отправки статус сообщения меняется на overload — повторная рассылка им не придёт.'
+            ).classes('text-caption text-grey q-mb-md')
+
+            overload_sent_label_text = f'Последняя рассылка: {last_overload_sent}' if last_overload_sent else 'Рассылка ещё не выполнялась'
+            overload_sent_label = ui.label(overload_sent_label_text).classes('text-caption text-grey q-mt-sm')
+            overload_btn = ui.button(
+                'Отправить уведомление о перегрузке',
+                icon='warning',
+                color='orange',
+            ).classes('q-mt-md')
+
+            async def _overload_task() -> None:
+                try:
+                    count = await send_overload_broadcast()
+                    new_sent = await get_setting(OVERLOAD_BROADCAST_SENT_KEY, '')
+                    overload_sent_label.text = f'Последняя рассылка: {new_sent} ({count} отправлено)'
+                except Exception as e:
+                    logger.error(f'Ошибка рассылки перегрузки: {e}')
+                    overload_sent_label.text = f'Ошибка рассылки: {e}'
+                finally:
+                    overload_btn.enable()
+
+            async def do_overload_broadcast():
+                overload_btn.disable()
+                overload_sent_label.text = 'Рассылка выполняется...'
+                asyncio.create_task(_overload_task())
+
+            overload_btn.on_click(do_overload_broadcast)
 
         # ── Таб: Статистика ──────────────────────────────────────────────────
         with ui.tab_panel('stats'):
