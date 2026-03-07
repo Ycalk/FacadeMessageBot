@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import select, update
 
+from maxapi.enums.parse_mode import ParseMode
+
 from bot.instance import send_message
 from bot.texts import Texts
 from core.logger import get_logger
@@ -19,7 +21,7 @@ _BROADCAST_CONCURRENCY = 30
 _broadcast_semaphore = asyncio.Semaphore(_BROADCAST_CONCURRENCY)
 
 
-async def _send_one_safe(user_id: int, text: str) -> str:
+async def _send_one_safe(user_id: int, text: str, parse_mode: ParseMode | None = None) -> str:
     """
     Отправляет сообщение одному пользователю. Retry при 429 встроен в send_message.
 
@@ -29,7 +31,10 @@ async def _send_one_safe(user_id: int, text: str) -> str:
         'error'   — другая ошибка
     """
     try:
-        await send_message(user_id=user_id, text=text)
+        kwargs = {"text": text}
+        if parse_mode is not None:
+            kwargs["parse_mode"] = parse_mode
+        await send_message(user_id=user_id, **kwargs)
         return 'sent'
     except Exception as e:
         err = str(e).lower()
@@ -114,7 +119,7 @@ _OVERLOAD_TEXT = (
     "Ваша активность превзошла все ожидания — свободные места на медиафасаде разлетелись "
     "в считанные мгновения, и экран полностью забронирован до конца праздника. "
     "Если вы не успели попасть в эфир, воспользуйтесь "
-    "[Конструктором открыток от МАХ](https://max.ru/maxpostcards): "
+    "[Конструктором открыток от МАХ](https://max.ru/maxpostcards_bot): "
     "создайте своё поздравление и отправьте его лично! "
     "Следите за новостями в [нашем канале](https://max.ru/max_news) — "
     "впереди ещё много активностей. С праздником! 🌷"
@@ -158,7 +163,7 @@ async def send_overload_broadcast() -> int:
 
     async def _send_one(user: User) -> None:
         async with _broadcast_semaphore:
-            results[user.id] = await _send_one_safe(user.max_id, _OVERLOAD_TEXT)
+            results[user.id] = await _send_one_safe(user.max_id, _OVERLOAD_TEXT, ParseMode.MARKDOWN)
 
     await asyncio.gather(*[_send_one(u) for u in seen_users.values()])
 
