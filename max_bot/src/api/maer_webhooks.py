@@ -150,8 +150,7 @@ async def message_shown(request: MessageShownOnFacadeRequest):
 
             shown_at_utc = datetime.now(timezone.utc)
             message.shown_on_facade = True
-            if message.shown_time is None:
-                message.shown_time = shown_at_utc
+            message.shown_time = shown_at_utc
 
             # Сохраняем время показа в мета
             if not message.meta:
